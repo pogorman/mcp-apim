@@ -67,7 +67,7 @@ Any MCP-compatible client can connect and auto-discover all 12 tools.
 Try it in your browser: **https://kind-forest-06c4d3c0f.1.azurestaticapps.net/**
 
 Two views accessible from a VS Code-style activity bar:
-- **Investigative Agent** — Ask questions in natural language. GPT-4.1 decides which tools to call, queries the database, and returns a synthesized answer.
+- **Investigative Agent** — Ask questions in natural language. The AI model decides which tools to call, queries the database, and returns a synthesized answer. Switch between 6 models (GPT-4.1, GPT-5, GPT-5 Mini, o4-mini, o3-mini, Phi-4) via the dropdown.
 - **MCP Tool Tester** — Connect directly to the MCP server, discover tools, and call them individually with specific parameters. Useful for demos and debugging.
 
 ## Tools

@@ -5,7 +5,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import express from "express";
 import { registerTools } from "./tools.js";
-import { chat } from "./chat.js";
+import { chat, getAvailableModels } from "./chat.js";
 
 const transportMode = process.env.MCP_TRANSPORT ?? "stdio";
 
@@ -95,15 +95,20 @@ if (transportMode === "http") {
     await transports[sessionId].handleRequest(req, res);
   });
 
+  // Available models endpoint
+  app.get("/models", (_req, res) => {
+    res.json({ models: getAvailableModels() });
+  });
+
   // Chat endpoint — natural language interface powered by Azure OpenAI
   app.post("/chat", async (req, res) => {
     try {
-      const { message, history } = req.body;
+      const { message, history, model } = req.body;
       if (!message || typeof message !== "string") {
         res.status(400).json({ error: "message is required" });
         return;
       }
-      const result = await chat({ message, history });
+      const result = await chat({ message, history, model });
       res.json(result);
     } catch (err) {
       console.error("Chat error:", err);

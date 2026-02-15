@@ -868,3 +868,20 @@ The `/chat` endpoint on the Container App:
 6. Final natural language response returned to the browser
 
 Authentication: Container App's managed identity has "Cognitive Services OpenAI User" role on the AI Services account. Uses `DefaultAzureCredential` + `getBearerTokenProvider` (no API keys).
+
+### Model Selection
+
+The SPA header includes a model selector dropdown. Available models are fetched from `GET /models` on page load. The selected model is passed in the `/chat` request body as `model` — the server validates it against the `AVAILABLE_MODELS` list and falls back to `gpt-4.1` if invalid.
+
+Deployed models on the AI Services account (`foundry-og-agents`):
+
+| Deployment | Model | Format | Use Case |
+|-----------|-------|--------|----------|
+| gpt-4.1 | GPT-4.1 | OpenAI | Best for complex multi-tool investigations (default) |
+| gpt-5 | GPT-5 | OpenAI | Latest flagship model |
+| gpt-5-mini | GPT-5 Mini | OpenAI | Fast and capable |
+| o4-mini | o4-mini | OpenAI | Reasoning model, efficient |
+| o3-mini | o3-mini | OpenAI | Reasoning model, compact |
+| Phi-4 | Phi-4 | Microsoft MaaS | Lightweight SLM |
+
+All models use the same Azure OpenAI endpoint and managed identity auth. The `model` parameter in the OpenAI SDK's `chat.completions.create()` is set to the deployment name.

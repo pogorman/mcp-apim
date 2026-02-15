@@ -388,3 +388,37 @@ Foundry/Copilot Studio → Container App /mcp (Streamable HTTP) → APIM → Fun
 - Updated all 7 root md files (ARCHITECTURE.md, README.md, CLAUDE.md, USAGE.md, SESSION_LOG.md, COMMANDS.md, PROMPTS.md)
 - Replaced "Chat SPA" / "Chat Interface" references with "dual-panel SPA" / "Web Interface" across all files
 - Updated project structure descriptions to reflect Agent chat + MCP tool tester
+
+---
+
+## Session 11 — Model Selector, AI Foundry Fix (2026-02-15)
+
+### MCAPS Fix: AI Foundry Hub
+- **Problem:** `publicNetworkAccess` on `philly-ai-hub` was set to `Disabled` by MCAPS policy — user got "restricted resource from unauthorized network location" error in Foundry portal
+- **Fix:** `az ml workspace update --name philly-ai-hub --resource-group rg-foundry --public-network-access Enabled`
+- Same pattern as storage/SQL in Session 7 — MCAPS periodically disables public access
+
+### Model Deployments
+Deployed 4 new models on `foundry-og-agents` AI Services account (GlobalStandard, pay-per-token):
+| Deployment | Model | Format |
+|-----------|-------|--------|
+| gpt-4.1 | gpt-4.1 | OpenAI (existing) |
+| o3-mini | o3-mini | OpenAI (existing) |
+| o4-mini | o4-mini | OpenAI (new) |
+| gpt-5 | gpt-5 | OpenAI (new) |
+| gpt-5-mini | gpt-5-mini | OpenAI (new) |
+| Phi-4 | Phi-4 | Microsoft MaaS (new) |
+
+Note: gpt-5.2 was only available as `GlobalProvisionedManaged` (pay-per-hour, expensive) — used gpt-5 (GlobalStandard, pay-per-token) instead.
+
+### Model Selector
+- Added `model` field to `ChatRequest` in `chat.ts` — maps to Azure OpenAI deployment name
+- Added `/models` GET endpoint returning available model list
+- Added `AVAILABLE_MODELS` array in `chat.ts` with id, label, description for each model
+- Response now includes `model` field showing which deployment was actually used
+- Added model selector dropdown to SPA header (between title and status indicator)
+- SPA fetches `/models` on load to stay in sync with server; falls back to hardcoded defaults
+- Built and deployed new container image + SPA
+
+### Key Lesson
+- Phi-4 uses `Microsoft` model format (MaaS) but deploys on the same AI Services account as OpenAI models. Same Azure OpenAI endpoint, same `DefaultAzureCredential` auth — just a different deployment name.

@@ -9,8 +9,18 @@ import type { ChatCompletionTool, ChatCompletionMessageParam } from "openai/reso
 import * as api from "./apim-client.js";
 
 const AZURE_OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT ?? "https://foundry-og-agents.cognitiveservices.azure.com/";
-const AZURE_OPENAI_DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT ?? "gpt-4.1";
+const DEFAULT_DEPLOYMENT = process.env.AZURE_OPENAI_DEPLOYMENT ?? "gpt-4.1";
 const AZURE_OPENAI_API_VERSION = "2025-01-01-preview";
+
+// Available model deployments — deployment name must match what's deployed on the Azure OpenAI resource
+const AVAILABLE_MODELS: Array<{ id: string; label: string; description: string }> = [
+  { id: "gpt-4.1", label: "GPT-4.1", description: "Best for complex investigations" },
+  { id: "gpt-5", label: "GPT-5", description: "Latest flagship model" },
+  { id: "gpt-5-mini", label: "GPT-5 Mini", description: "Fast and capable" },
+  { id: "o4-mini", label: "o4-mini", description: "Reasoning model, efficient" },
+  { id: "o3-mini", label: "o3-mini", description: "Reasoning model, compact" },
+  { id: "Phi-4", label: "Phi-4", description: "Microsoft SLM, lightweight" },
+];
 
 let clientInstance: AzureOpenAI | null = null;
 
@@ -22,7 +32,7 @@ function getClient(): AzureOpenAI {
       azureADTokenProvider: tokenProvider,
       endpoint: AZURE_OPENAI_ENDPOINT,
       apiVersion: AZURE_OPENAI_API_VERSION,
-      deployment: AZURE_OPENAI_DEPLOYMENT,
+      deployment: DEFAULT_DEPLOYMENT,
     });
   }
   return clientInstance;
@@ -265,16 +275,28 @@ async function executeTool(name: string, args: Record<string, unknown>): Promise
 export interface ChatRequest {
   message: string;
   history?: Array<{ role: "user" | "assistant"; content: string }>;
+  model?: string;
 }
 
 export interface ChatResponse {
   reply: string;
   toolCalls?: Array<{ name: string; args: Record<string, unknown> }>;
+  model: string;
+}
+
+export function getAvailableModels() {
+  return AVAILABLE_MODELS;
 }
 
 export async function chat(req: ChatRequest): Promise<ChatResponse> {
   const client = getClient();
   const toolCalls: Array<{ name: string; args: Record<string, unknown> }> = [];
+
+  // Resolve deployment — validate against available models, fall back to default
+  const requestedModel = req.model || DEFAULT_DEPLOYMENT;
+  const deployment = AVAILABLE_MODELS.some(m => m.id === requestedModel)
+    ? requestedModel
+    : DEFAULT_DEPLOYMENT;
 
   // Build message history
   const messages: ChatCompletionMessageParam[] = [
@@ -294,7 +316,7 @@ export async function chat(req: ChatRequest): Promise<ChatResponse> {
     const response = await client.chat.completions.create({
       messages,
       tools: TOOLS,
-      model: AZURE_OPENAI_DEPLOYMENT,
+      model: deployment,
     });
 
     const choice = response.choices[0];
@@ -326,11 +348,13 @@ export async function chat(req: ChatRequest): Promise<ChatResponse> {
     return {
       reply: choice.message.content ?? "(no response)",
       toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+      model: deployment,
     };
   }
 
   return {
     reply: "I've made too many tool calls trying to answer this. Could you ask a more specific question?",
     toolCalls,
+    model: deployment,
   };
 }

@@ -99,7 +99,7 @@ mcp-apim/
 | Container App | `philly-mcp-server` | Consumption, 0-3 replicas |
 | AI Foundry Hub | `philly-ai-hub` | — (rg-foundry, eastus) |
 | AI Foundry Project | `philly-profiteering` | — (under philly-ai-hub) |
-| AI Services | `foundry-og-agents` | S0 (eastus, GPT-4.1) |
+| AI Services | `foundry-og-agents` | S0 (eastus, 6 model deployments) |
 | Static Web App | `philly-profiteering-spa` | Free |
 
 ## Database (10 Tables, ~29M Rows)

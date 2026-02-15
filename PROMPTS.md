@@ -79,6 +79,11 @@ User prompts from each session of building this project, reconstructed from sess
 
 - "when updating the architecture document, please make sure to really explain what's going on with the container(s). i'm new to containers but don't necessarily need things dumbed down. just need to understand that basics to the specifics. i also want you to go into detail on the agent and how it works when presented with specific questions. when does it use just the llm if ever, or just the mcp server if ever. the spa that had just the mcp tool interface... i still want that but as a separate page just so i can show the very specific tools the mcp server exposes. am i saying that right? maybe have the investigative agent as one view accessible by a left hand nav icon, and then the mcp tool interface as another. it would be nice to be able to have them both open at the same time, side by side like vertical tabs where when i close one the remaining open one takes up the space the other one once occupied. finally make sure the latest is deployed to azure prod, update all our root files, and push everything to github repo"
 
+## Session 11 — Model Selector, AI Foundry Fix
+
+- "is there a reason i can't open the azure foundry project? i get this error Error loading Azure AI hub You are attempting to access a restricted resource from an unauthorized network location. Please contact your administrator or follow the troubleshooting instructions"
+- "i would like to change the model, or at least have the option to use other models. like o4 mini, gpt 5.2, and phi-4.... there should be a dropdown where the model is currently displayed in the web page that allows me to choose"
+
 ---
 
 ## Example Analysis Prompts (for use with the connected agent)
