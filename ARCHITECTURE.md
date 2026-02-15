@@ -727,24 +727,43 @@ Then GPT-4.1 synthesizes all results into a narrative response with specific dat
 
 ### Resource Inventory
 
-| Resource | Name | SKU | Region | Purpose |
-|----------|------|-----|--------|---------|
-| Resource Group | `rg-philly-profiteering` | — | East US 2 | Container for all resources |
-| SQL Server | `philly-stats-sql-01` | — | East US 2 | Logical SQL server (AAD-only auth) |
-| SQL Database | `phillystats` | GP_S_Gen5_2 | East US 2 | Data store (Serverless, auto-pause) |
-| Function App | `philly-profiteering-func` | FC1 | East US 2 | API compute (Flex Consumption) |
-| App Service Plan | `philly-func-flex-plan` | FC1 | East US 2 | Flex Consumption plan for Functions |
-| APIM | `philly-profiteering-apim` | Consumption | East US 2 | API gateway, auth, rate limiting |
-| Storage | `phillyprofiteersa` | Standard_LRS | East US | CSV data storage |
-| Storage | `phillyfuncsa` | Standard_LRS | East US 2 | Function App deployment storage |
-| Container Registry | `phillymcpacr` | Basic | East US 2 | Docker images for MCP server |
-| Container App Env | `philly-mcp-env` | Consumption | East US 2 | Container Apps environment |
-| Container App | `philly-mcp-server` | Consumption (0-3) | East US 2 | Remote MCP server (Streamable HTTP) |
-| App Insights | `philly-profiteering-func` | — | East US 2 | Function monitoring/logging |
-| AI Foundry Hub | `philly-ai-hub` | — | East US | AI project management |
-| AI Foundry Project | `philly-profiteering` | — | East US | Agent project under hub |
-| AI Services | `foundry-og-agents` | S0 | East US | GPT-4.1, Azure OpenAI |
-| Static Web App | `philly-profiteering-spa` | Free | East US 2 | Chat SPA interface |
+Resources are split across two resource groups.
+
+#### `rg-philly-profiteering` (East US 2) — Data + API + Compute
+
+Everything in the core data pipeline lives here. This is the purpose-built resource group for this project.
+
+| Resource | Name | SKU | Purpose |
+|----------|------|-----|---------|
+| SQL Server | `philly-stats-sql-01` | — | Logical SQL server (AAD-only auth) |
+| SQL Database | `phillystats` | GP_S_Gen5_2 | Data store (Serverless, auto-pause) |
+| Function App | `philly-profiteering-func` | FC1 | API compute (Flex Consumption) |
+| App Service Plan | `philly-func-flex-plan` | FC1 | Flex Consumption plan for Functions |
+| APIM | `philly-profiteering-apim` | Consumption | API gateway, auth, rate limiting |
+| Storage | `phillyprofiteersa` | Standard_LRS | CSV data storage (East US) |
+| Storage | `phillyfuncsa` | Standard_LRS | Function App deployment storage |
+| Container Registry | `phillymcpacr` | Basic | Docker images for MCP server |
+| Container App Env | `philly-mcp-env` | Consumption | Container Apps environment |
+| Container App | `philly-mcp-server` | Consumption (0-3) | Remote MCP server (Streamable HTTP) |
+| App Insights | `philly-profiteering-func` | — | Function monitoring/logging |
+| Static Web App | `philly-profiteering-spa` | Free | Chat SPA interface |
+
+#### `rg-foundry` — AI Services + Foundry
+
+This is a shared resource group that existed before this project (originally created for other AI/Foundry work). Our project uses some of these resources but not all.
+
+| Resource | Name | SKU | Region | Used by This Project? |
+|----------|------|-----|--------|----------------------|
+| AI Services | `foundry-og-agents` | S0 | East US | **Yes** — hosts all 6 model deployments (gpt-4.1, gpt-5, gpt-5-mini, o4-mini, o3-mini, Phi-4). The Container App's managed identity has "Cognitive Services OpenAI User" role on this account. |
+| AI Foundry Hub | `philly-ai-hub` | — | East US | **Yes** — AI project management hub |
+| AI Foundry Project | `philly-profiteering` | — | East US | **Yes** — agent project under hub |
+| Storage | `phillyaistorage417a39638` | — | East US | **Yes** — auto-provisioned by AI Foundry Hub for project artifacts |
+| Key Vault | `phillyaikeyvault6700cd78` | — | East US | **Yes** — auto-provisioned by AI Foundry Hub for secrets |
+| AI Services | `og-foundry-eus2` | S0 | East US 2 | **No** — separate AI Services account with unrelated deployments (sora, gpt-5-pro, gpt-image-1, gpt-5.2). Not used by this project. |
+| AI Services Project | `foundry-og-agents/foundry-deployments` | — | East US | **No** — Foundry project on the other AI Services account. Not used by this project. |
+| AI Services Project | `og-foundry-eus2/claude-foundry` | — | East US 2 | **No** — Foundry project on the EUS2 account. Not used by this project. |
+
+**Cleanup candidates** in `rg-foundry`: The three resources marked "No" (`og-foundry-eus2`, `foundry-deployments` project, `claude-foundry` project) are not used by this project. If they aren't used by anything else, they can be deleted. The `og-foundry-eus2` account has paid deployments (gpt-5-pro uses GlobalProvisionedManaged which bills per-hour if provisioned) — worth checking if those are still needed.
 
 ### Cost Model
 

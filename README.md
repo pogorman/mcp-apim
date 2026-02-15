@@ -1,16 +1,63 @@
 # Philly Poverty Profiteering
 
-An MCP server that lets AI agents investigate poverty profiteering patterns in Philadelphia using 10 public datasets (~29M rows). Query property ownership networks, code violations, demolitions, business licenses, and assessment data to identify exploitative LLCs and property owners.
+An AI-powered investigative platform that surfaces poverty profiteering patterns in Philadelphia. It combines 10 public datasets (~29 million rows) covering property ownership, code violations, demolitions, business licenses, and tax assessments into a queryable system that any AI agent — or a human through a web browser — can use to identify exploitative LLCs and property owners.
 
-## How It Works
+The system has three layers: a **serverless data API** (Azure Functions + SQL), an **MCP server** that exposes 12 investigative tools to any AI agent, and a **chat interface** where an LLM autonomously decides which tools to call to answer natural language questions. Everything is serverless and costs ~$1-2/month when idle.
+
+## Architecture
 
 ```
-Web Chat SPA → Container App /chat → Azure OpenAI GPT-4.1 (tool calling) → APIM → Functions → SQL
-Claude Code/Desktop → MCP Server (stdio, 12 tools) → APIM → Functions → SQL
-Foundry/Copilot Studio → Container App /mcp (Streamable HTTP) → APIM → Functions → SQL
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            Interfaces                                       │
+│                                                                             │
+│  Web SPA (chat)         Claude Code/Desktop       Foundry / Copilot Studio  │
+│  Browser → /chat        stdio (local process)     Streamable HTTP (remote)  │
+└─────┬───────────────────────────┬──────────────────────────┬────────────────┘
+      │                           │                          │
+      ▼                           ▼                          ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    MCP Server (Container App + local)                        │
+│                                                                             │
+│  Express server on Azure Container Apps (scale 0-3)                         │
+│  POST /chat  — LLM agentic loop (Azure OpenAI, 6 models, tool calling)     │
+│  POST /mcp   — MCP protocol (Streamable HTTP, 12 tools, session-based)     │
+│  GET  /models — available model list                                        │
+│  Also runs locally via stdio for Claude Code/Desktop                        │
+└──────────────────────────────────┬──────────────────────────────────────────┘
+                                   │ HTTPS + Ocp-Apim-Subscription-Key
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│               Azure API Management (Consumption tier)                       │
+│  Validates subscription key, injects x-functions-key for backend auth       │
+│  12 operations (9 GET, 3 POST)                                              │
+└──────────────────────────────────┬──────────────────────────────────────────┘
+                                   │ HTTPS + x-functions-key
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│               Azure Functions v4 (Flex Consumption, Node.js 20)             │
+│  12 HTTP-triggered functions, managed identity → Azure AD token auth        │
+└──────────────────────────────────┬──────────────────────────────────────────┘
+                                   │ TDS + Azure AD token
+                                   ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│               Azure SQL Database (Serverless Gen5, auto-pause)              │
+│  10 tables, 3 views, 28+ indexes, ~29M rows                                │
+│  Entity resolution graph + property + license + enforcement data            │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-Three ways to interact: a **web chat interface** where you ask natural language questions and GPT-4.1 figures out which tools to call, **Claude Code/Desktop** via local MCP server, or any **remote MCP client** via the Streamable HTTP endpoint. All compute is serverless — costs ~$1-2/month when idle.
+**How the chat agent works:** When a user asks a question through the web SPA or `/chat` endpoint, the system sends it to Azure OpenAI with 12 tool definitions. The LLM autonomously decides which tools to call — it might chain 3-5 calls to resolve a name, pull property details, check violations, and look up demolitions — then synthesizes the results into a narrative answer. The loop runs up to 10 rounds per question. See [ARCHITECTURE.md](ARCHITECTURE.md) for a detailed walkthrough with examples.
+
+## Web Interface
+
+Try it in your browser: **https://kind-forest-06c4d3c0f.1.azurestaticapps.net/**
+
+A dual-panel SPA with a VS Code-style activity bar:
+
+- **Investigative Agent** — Ask questions in natural language. The AI decides which tools to call, queries the database, and returns a synthesized answer. Switch between 6 models (GPT-4.1, GPT-5, GPT-5 Mini, o4-mini, o3-mini, Phi-4) via the dropdown.
+- **MCP Tool Tester** — Connect directly to the MCP server, discover tools via the MCP protocol, and call them individually with specific parameters. Useful for demos and debugging.
+
+Both panels can be open side-by-side or individually.
 
 ## Quick Start
 
@@ -53,7 +100,7 @@ Add to your config (`~/Library/Application Support/Claude/claude_desktop_config.
 
 ### Remote MCP Clients (Foundry, Copilot Studio)
 
-The MCP server is also deployed as a Container App with Streamable HTTP transport:
+The MCP server is deployed as a Container App with Streamable HTTP transport:
 
 ```
 MCP Endpoint: https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io/mcp
@@ -61,14 +108,6 @@ Health Check: https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecon
 ```
 
 Any MCP-compatible client can connect and auto-discover all 12 tools.
-
-### Web Interface
-
-Try it in your browser: **https://kind-forest-06c4d3c0f.1.azurestaticapps.net/**
-
-Two views accessible from a VS Code-style activity bar:
-- **Investigative Agent** — Ask questions in natural language. The AI model decides which tools to call, queries the database, and returns a synthesized answer. Switch between 6 models (GPT-4.1, GPT-5, GPT-5 Mini, o4-mini, o3-mini, Phi-4) via the dropdown.
-- **MCP Tool Tester** — Connect directly to the MCP server, discover tools, and call them individually with specific parameters. Useful for demos and debugging.
 
 ## Tools
 
@@ -97,40 +136,8 @@ Once connected, try asking your AI agent:
 - "Show me the assessment trend for parcel 405100505 over the last 10 years"
 - "Which zip codes have the highest vacancy and violation rates?"
 - "Find LLCs that own more than 50 properties and have demolition records"
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                        AI Client Layer                          │
-│  Claude Code/Desktop (stdio)  │  Foundry/Copilot Studio (HTTP) │
-└──────────┬────────────────────┼─────────────────┬───────────────┘
-           │                    │                 │
-           ▼                    ▼                 ▼
-┌────────────────────┐  ┌──────────────────────────────┐
-│  MCP Server (local)│  │  MCP Server (Container App)  │
-│  stdio transport   │  │  Streamable HTTP transport   │
-└─────────┬──────────┘  └──────────────┬───────────────┘
-          │                            │
-          └──────────┬─────────────────┘
-                     ▼
-┌─────────────────────────────────────────────────────────────────┐
-│          Azure API Management (Consumption tier)                │
-│  Validates subscription key, injects function key               │
-└──────────────────────────┬──────────────────────────────────────┘
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│          Azure Functions v4 (Flex Consumption)                  │
-│  12 HTTP-triggered functions, Node.js 20                        │
-│  Managed identity → Azure AD token auth to SQL                  │
-└──────────────────────────┬──────────────────────────────────────┘
-                           ▼
-┌─────────────────────────────────────────────────────────────────┐
-│          Azure SQL Database (Serverless Gen5)                   │
-│  10 tables, 3 views, 28+ indexes                                │
-│  ~29M rows across property, entity, license, enforcement data   │
-└─────────────────────────────────────────────────────────────────┘
-```
+- "Deep dive on 2837 Kensington Ave — who owns it, what violations, any demolitions?"
+- "Compare violation rates between zip codes 19134 and 19140"
 
 ## Data
 
@@ -147,26 +154,29 @@ Once connected, try asking your AI agent:
 | Appeals | 316K | L&I zoning and building code appeals |
 | Demolitions | 13.5K | City-initiated and owner-initiated demolitions |
 
-Data sourced from [davew-msft/PhillyStats](https://github.com/davew-msft/PhillyStats) (Philadelphia open data portals).
+Data sourced from [davew-msft/PhillyStats](https://github.com/davew-msft/PhillyStats) (Philadelphia open data portals). Original Fabric/Synapse notebooks are in [`jupyter-notebooks/`](jupyter-notebooks/).
 
 ## Project Structure
 
 ```
 mcp-apim/
-├── mcp-server/           # MCP Server (stdio + Streamable HTTP)
+├── mcp-server/              # MCP Server (stdio + Streamable HTTP)
 │   ├── src/
-│   │   ├── index.ts      # Dual transport entry point
-│   │   ├── tools.ts      # 12 tool definitions
-│   │   └── apim-client.ts
-│   └── Dockerfile        # Container App deployment
-├── functions/            # Azure Functions (12 endpoints)
-│   └── src/functions/    # One file per endpoint
-├── agent/                # Azure AI Foundry agent
-│   └── foundry_agent.py  # MCP + Bing grounding
-├── web/                  # Browser-based dual-panel interface
-│   └── index.html        # Agent chat + MCP tool tester SPA
-├── sql/schema.sql        # Database schema
-└── infra/                # Azure provisioning scripts
+│   │   ├── index.ts         # Dual transport entry point (Express + stdio)
+│   │   ├── tools.ts         # 12 tool definitions
+│   │   ├── chat.ts          # Azure OpenAI chat with tool calling loop
+│   │   └── apim-client.ts   # HTTP client for APIM
+│   └── Dockerfile           # Container App deployment (multi-stage, Alpine)
+├── functions/               # Azure Functions (12 HTTP endpoints)
+│   └── src/functions/       # One file per endpoint
+├── web/                     # Browser-based dual-panel interface
+│   └── index.html           # Investigative agent chat + MCP tool tester
+├── agent/                   # Azure AI Foundry agent
+│   └── foundry_agent.py     # MCP + Bing grounding
+├── sql/schema.sql           # Database schema (10 tables, 3 views, 28+ indexes)
+├── data/                    # Source CSV files (~4.4GB, 10 datasets)
+├── jupyter-notebooks/       # Original PhillyStats Fabric/Synapse notebooks
+└── infra/                   # Azure provisioning scripts
 ```
 
 ## Costs
@@ -175,21 +185,23 @@ All resources are serverless/consumption — scale to zero when idle:
 
 | Resource | Idle Cost |
 |----------|-----------|
-| Azure SQL (Serverless, auto-pauses) | $0 |
+| Azure SQL (Serverless, auto-pauses after 60min) | $0 |
 | Azure Functions (Flex Consumption) | $0 |
 | API Management (Consumption) | $0 |
 | Container App (scales to zero) | $0 |
+| Azure OpenAI (pay-per-token) | $0 |
+| Static Web App (Free tier) | $0 |
 | Storage (2 accounts) | ~$1/mo |
 | Container Registry (Basic) | ~$0.17/mo |
-| Static Web App (Free tier) | $0 |
 | **Total when idle** | **~$1-2/mo** |
 
 ## Documentation
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) — Full technical reference: schema, API specs, ERD, infrastructure
+- [ARCHITECTURE.md](ARCHITECTURE.md) — Full technical reference: schema, ERD, API specs, agent behavior, infrastructure, Container App deep dive
 - [USAGE.md](USAGE.md) — Quick start guides, curl examples, example prompts
 - [COMMANDS.md](COMMANDS.md) — All CLI commands used to build and deploy this project
 - [SESSION_LOG.md](SESSION_LOG.md) — Chronological build log with lessons learned
+- [PROMPTS.md](PROMPTS.md) — User prompts from each build session
 - [CLAUDE.md](CLAUDE.md) — AI agent instructions for working with this codebase
 
 ## License
