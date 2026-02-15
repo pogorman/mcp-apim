@@ -209,6 +209,49 @@ The MCP server is deployed and ready for Copilot Studio. Point Copilot Studio at
 
 Copilot Studio will auto-discover all 12 tools. See [MCP in Copilot Studio docs](https://learn.microsoft.com/en-us/microsoft-copilot-studio/agent-extend-action-mcp) for setup.
 
+## Web Interface
+
+**Live:** https://kind-forest-06c4d3c0f.1.azurestaticapps.net/
+
+Or open `web/index.html` locally in a browser.
+
+The SPA has two views accessible from a VS Code-style activity bar on the left:
+
+### Investigative Agent (Chat)
+
+Ask questions in natural language — the agent (GPT-4.1) decides which tools to call and returns a synthesized answer. Example questions:
+- "Who are the top 10 worst property owners by code violations?"
+- "What check cashing businesses operate in zip code 19134?"
+- "Tell me about GEENA LLC - how many properties and violations?"
+
+The chat maintains conversation history for multi-turn interactions. Tool call badges show which tools the agent used.
+
+### MCP Tool Tester
+
+Connect directly to the MCP server and call individual tools with specific parameters. Useful for demos and debugging:
+1. Click "Connect" (pre-filled with the Container App MCP endpoint)
+2. Browse the discovered tools in the sidebar
+3. Fill in parameters and click "Call Tool"
+4. View raw JSON results with elapsed time
+
+Both panels can be open simultaneously (side-by-side) or individually. Closing one gives the other full width.
+
+Deployed on Azure Static Web Apps (Free tier). To redeploy after changes:
+
+```bash
+npx @azure/static-web-apps-cli deploy web --app-name philly-profiteering-spa --env production
+```
+
+### Chat API (direct)
+
+```bash
+curl -X POST https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message":"Who are the top 5 worst property owners?"}'
+```
+
+Response includes `reply` (natural language) and `toolCalls` (which tools were invoked).
+
 ## Notes
 
 - **First request may be slow (~30-60s):** The Azure SQL database auto-pauses after 60 minutes of inactivity. The first query wakes it up.

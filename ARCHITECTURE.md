@@ -6,7 +6,7 @@ This system enables AI agents to investigate poverty profiteering patterns in Ph
 
 The architecture follows a four-tier pattern: an **MCP Server** translates AI tool calls into HTTPS requests to **Azure API Management**, which authenticates and routes them to **Azure Functions**, which query an **Azure SQL Database**. All compute tiers are serverless/consumption-based, costing ~$1-2/month when idle.
 
-The MCP server supports dual transport: **stdio** (local, for Claude Code/Desktop) and **Streamable HTTP** (remote, deployed on Azure Container Apps for Azure AI Foundry, Copilot Studio, and other remote MCP clients).
+The MCP server supports dual transport: **stdio** (local, for Claude Code/Desktop) and **Streamable HTTP** (remote, deployed on Azure Container Apps for Azure AI Foundry, Copilot Studio, and other remote MCP clients). A **chat endpoint** (`/chat`) powered by Azure OpenAI GPT-4.1 with tool calling enables natural language interaction via a web SPA — the LLM autonomously selects and invokes tools to answer user questions.
 
 ---
 
@@ -506,6 +506,223 @@ Fallback variables (for direct Function App access, bypassing APIM):
 
 ---
 
+## Container App Deep Dive
+
+### What's a Container?
+
+A container is an isolated, lightweight runtime environment that packages an application together with everything it needs to run: the code, the Node.js runtime, npm packages, and OS-level libraries. Unlike a virtual machine (which emulates an entire operating system), a container shares the host's OS kernel and only bundles the application layer. This makes containers fast to start (seconds, not minutes), small (our image is ~180MB vs multi-GB for a VM), and perfectly reproducible — the same image runs identically on a developer laptop, in CI/CD, and in production.
+
+### How Our Container Image Is Built
+
+The image is defined by `mcp-server/Dockerfile` using a **multi-stage build**:
+
+```
+Stage 1: "builder" (node:20-alpine)          Stage 2: runtime (node:20-alpine)
+┌──────────────────────────────────┐         ┌──────────────────────────────────┐
+│ COPY package.json                │         │ COPY package.json                │
+│ npm install (ALL deps)           │         │ npm install --omit=dev           │
+│ COPY tsconfig.json + src/        │         │   (production deps only:         │
+│ npx tsc (compile TS → JS)        │         │    express, openai, mcp-sdk,     │
+│                                  │──dist──→│    @azure/identity, etc.)        │
+│ Contains: TypeScript compiler,   │         │ COPY dist/ from builder stage    │
+│   dev dependencies, source code  │         │                                  │
+│ (discarded after build)          │         │ ENV MCP_TRANSPORT=http            │
+└──────────────────────────────────┘         │ ENV PORT=8080                    │
+                                             │ CMD ["node", "dist/index.js"]    │
+                                             └──────────────────────────────────┘
+```
+
+**Why two stages?** Stage 1 installs everything needed to compile TypeScript. Stage 2 starts fresh with only production npm packages and the compiled JavaScript. This keeps the final image small and excludes build-time tooling (TypeScript compiler, type definitions, dev dependencies) from production.
+
+**Why Alpine?** `node:20-alpine` uses Alpine Linux (~5MB base) instead of Debian (~120MB). Smaller image = faster pulls, less storage, smaller attack surface.
+
+### Azure Container Registry (ACR)
+
+The built image is stored in **Azure Container Registry** (`phillymcpacr.azurecr.io`), a private Docker registry in Azure. We don't build images locally — instead we use `az acr build`, which uploads the Dockerfile and source to ACR and builds the image in the cloud. This means you don't need Docker installed on your machine.
+
+```
+Developer machine                          Azure Container Registry
+┌─────────────────┐    az acr build       ┌─────────────────────────┐
+│ mcp-server/      │──────────────────────→│ phillymcpacr.azurecr.io │
+│   Dockerfile     │   (uploads context,   │                         │
+│   package.json   │    builds in cloud)   │ mcp-server:latest       │
+│   src/           │                       │ sha256:af035801...       │
+└─────────────────┘                       └────────────┬────────────┘
+                                                       │ image pull
+                                                       ▼
+                                          ┌─────────────────────────┐
+                                          │ Container App            │
+                                          │ philly-mcp-server        │
+                                          └─────────────────────────┘
+```
+
+### Azure Container Apps
+
+**Container Apps** is a serverless container hosting service. You give it a container image and it runs it, handling all the infrastructure: load balancing, HTTPS certificates, DNS, scaling, and health monitoring. You never SSH into a VM or configure Nginx.
+
+Key characteristics of our deployment:
+
+| Setting | Value | Why |
+|---------|-------|-----|
+| Plan | Consumption | Pay-per-use, scales to zero — $0 when idle |
+| Min replicas | 0 | Container shuts down completely when no requests arrive |
+| Max replicas | 3 | Scales up under load; each replica is an independent instance |
+| Target port | 8080 | Express listens on 8080 inside the container |
+| Ingress | External | Publicly accessible HTTPS URL with auto-provisioned TLS cert |
+| Scale rule | HTTP concurrent requests | New replicas spawn when request concurrency exceeds threshold |
+
+**Scaling behavior:**
+```
+No traffic (idle)     First request           Sustained load          Traffic drops
+┌──────────────┐     ┌──────────────┐       ┌──────────────┐       ┌──────────────┐
+│  0 replicas   │────→│  1 replica    │──────→│  2-3 replicas │──────→│  1 → 0       │
+│  $0 cost      │     │  cold start   │       │  auto-scaled  │       │  scale down  │
+│               │     │  ~5-10s       │       │               │       │               │
+└──────────────┘     └──────────────┘       └──────────────┘       └──────────────┘
+```
+
+**Cold start:** When the container scales from 0 to 1, there's a ~5-10 second delay while Azure pulls the image and starts the Node.js process. On top of this, if the SQL database is also auto-paused, the first actual data query adds another 30-60 seconds of wake-up time. Subsequent requests are fast (milliseconds for the container, normal query time for SQL).
+
+### What Runs Inside the Container
+
+The container runs a single Node.js process executing `dist/index.js` with `MCP_TRANSPORT=http`. This starts an Express server exposing three endpoint groups:
+
+| Endpoint | Purpose | Who calls it |
+|----------|---------|-------------|
+| `GET /healthz` | Health probe — Container Apps pings this to verify the container is alive | Azure (automatic) |
+| `POST/GET/DELETE /mcp` | MCP protocol (Streamable HTTP) — tool discovery and invocation | MCP clients (Foundry, Copilot Studio, etc.) |
+| `POST /chat` | Natural language chat — GPT-4.1 with tool calling | Web SPA, curl, any HTTP client |
+
+### Environment & Secrets
+
+Environment variables are injected by Container Apps at runtime (not baked into the image):
+
+| Variable | Source | Purpose |
+|----------|--------|---------|
+| `MCP_TRANSPORT` | Set in Dockerfile | Selects HTTP mode (vs stdio) |
+| `PORT` | Set in Dockerfile | Express listen port |
+| `APIM_BASE_URL` | Container App env var | Where to send tool API calls |
+| `APIM_SUBSCRIPTION_KEY` | Container App secret (encrypted) | Auth for APIM gateway |
+| `AZURE_OPENAI_ENDPOINT` | Container App env var | Azure OpenAI endpoint for /chat |
+| `AZURE_OPENAI_DEPLOYMENT` | Container App env var | Model deployment name (gpt-4.1) |
+
+Secrets (like the APIM subscription key) are stored encrypted in Container Apps and exposed as environment variables at runtime. They never appear in the container image or in logs.
+
+### Managed Identity
+
+The Container App has a **system-assigned managed identity** — an Azure AD identity automatically created and tied to this specific resource. This identity (principal ID `11b19c22-85cc-4230-afa2-7979813c5571`) has been granted the "Cognitive Services OpenAI User" role on the AI Services account. When the Node.js code calls `new DefaultAzureCredential()`, the Azure SDK automatically detects it's running inside a Container App and obtains Azure AD tokens using this managed identity. No API keys or passwords needed.
+
+---
+
+## Agent Behavior: How the LLM Decides What to Do
+
+### The Tool-Calling Loop
+
+When a user sends a message to the `/chat` endpoint, the system doesn't just pass it to GPT-4.1 and return whatever text comes back. Instead, it runs an **agentic loop** where the LLM can iteratively call tools and reason about the results.
+
+Here's what happens for every message:
+
+```
+User: "Tell me about GEENA LLC"
+         │
+         ▼
+┌─────────────────────────────────────────────────────────┐
+│  1. Build message array:                                 │
+│     [system prompt] + [conversation history] + [user msg]│
+│                                                          │
+│  2. Send to GPT-4.1 with 12 tool definitions             │
+│     GPT-4.1 sees: "I have these tools available..."      │
+│                                                          │
+│  3. GPT-4.1 responds with either:                        │
+│     (a) A text response (done — return to user)          │
+│     (b) One or more tool_calls (continue loop)           │
+└─────────────────────────────────────────────────────────┘
+         │
+         │ GPT-4.1 chose: tool_calls
+         │   → search_entities({name: "GEENA LLC"})
+         ▼
+┌─────────────────────────────────────────────────────────┐
+│  4. Execute each tool call against APIM → Functions → SQL│
+│     Result: [{entity_id: "abc-123", property_count: 330}]│
+│                                                          │
+│  5. Append tool results to message array                 │
+│                                                          │
+│  6. Send ENTIRE conversation back to GPT-4.1             │
+│     (system + history + user msg + tool call + result)   │
+└─────────────────────────────────────────────────────────┘
+         │
+         │ GPT-4.1 chose: another tool_call
+         │   → get_entity_network({entityId: "abc-123"})
+         ▼
+┌─────────────────────────────────────────────────────────┐
+│  7. Execute tool, get full property network              │
+│     Result: 631 properties, 8426 failed violations, etc. │
+│                                                          │
+│  8. Send everything back to GPT-4.1 again                │
+│                                                          │
+│  9. GPT-4.1 now has enough data — responds with text     │
+│     "GEENA LLC is linked to 330 properties with..."      │
+└─────────────────────────────────────────────────────────┘
+         │
+         ▼
+    Return to user: {reply: "GEENA LLC is linked to...", toolCalls: [...]}
+```
+
+The loop runs up to **10 rounds**. In practice, most questions need 1-3 tool calls. Complex investigative questions ("compare two zip codes and identify the worst LLC in each") might need 5-6.
+
+### When Does the LLM Use Tools vs. Respond Directly?
+
+GPT-4.1 makes this decision autonomously based on the system prompt and the user's question. The tool definitions include descriptions that help the LLM understand when each tool is relevant.
+
+**LLM responds directly (no tools) when:**
+- The question is about general knowledge: "What is poverty profiteering?"
+- The question can be answered from prior tool results already in the conversation: "Can you summarize that in a table?"
+- The user asks for clarification or formatting: "Show that as bullet points"
+- The question is conversational: "Thanks, that's helpful"
+
+**LLM calls one tool when:**
+- The question maps directly to a single tool: "Who are the top 10 violators?" → `get_top_violators`
+- A specific entity or property is asked about with a known identifier: "What violations does parcel 405100505 have?" → `get_property_violations`
+
+**LLM chains multiple tools when:**
+- It needs to resolve a name to an ID first: "Tell me about GEENA LLC" → `search_entities` (get entity ID) → `get_entity_network` (get property details)
+- The question requires data from multiple sources: "What's happening at 2837 Kensington Ave?" → `run_query` (find parcel by address) → `get_property_profile` → `get_property_violations` → `get_property_demolitions`
+- Comparison questions: "Compare zip codes 19134 and 19140" → `get_area_stats(19134)` → `get_area_stats(19140)`
+- The first tool call reveals something interesting that warrants deeper investigation
+
+**LLM uses `run_query` (custom SQL) when:**
+- The question can't be answered by any of the 11 specific tools: "How many properties were built before 1900 and have more than 5 violations?"
+- The user asks for a specific aggregation or join that no tool covers
+- The LLM constructs a SQL query itself, including TOP(n), proper table names, and WHERE clauses
+
+### What the LLM Sees
+
+The system prompt tells GPT-4.1:
+- It's an investigative analyst specializing in Philadelphia property data
+- It should cite specific data (parcel numbers, violation counts, addresses)
+- It should call multiple tools when needed to build a complete picture
+- The scale of data available (584K properties, 2.8M entities, 1.6M violations, etc.)
+
+Each of the 12 tools has a `description` and `parameters` schema. GPT-4.1 reads these descriptions to decide which tool to call and what arguments to pass. For example, seeing the description "Search for entities (people, LLCs, corporations) by name" tells it to use `search_entities` when the user mentions a company or person name.
+
+### Example: Multi-Step Investigation
+
+User asks: **"Deep dive on 2837 Kensington Ave — who owns it, what violations, any demolitions?"**
+
+The agent typically chains 4-5 tool calls:
+
+| Round | Tool Called | Why | Result |
+|-------|-----------|-----|--------|
+| 1 | `run_query` | No tool finds properties by address, so it writes SQL: `SELECT TOP(1) parcel_number, owner_1 FROM opa_properties WHERE address_std LIKE '%2837%KENSINGTON%'` | parcel: 871533290, owner: A KENSINGTON JOINT LLC |
+| 2 | `get_property_profile` | Get full property details | Market value, building info, license/violation counts |
+| 3 | `get_property_violations` | Get violation detail | 20 violations, 14 failed, UNSAFE priority |
+| 4 | `get_property_demolitions` | Check for demolitions | 1 demolition record |
+| 5 | `search_entities` | Look up the owner LLC | A KENSINGTON JOINT LLC → 2 properties |
+
+Then GPT-4.1 synthesizes all results into a narrative response with specific data points.
+
+---
+
 ## Azure Infrastructure
 
 ### Resource Inventory
@@ -524,6 +741,10 @@ Fallback variables (for direct Function App access, bypassing APIM):
 | Container App Env | `philly-mcp-env` | Consumption | East US 2 | Container Apps environment |
 | Container App | `philly-mcp-server` | Consumption (0-3) | East US 2 | Remote MCP server (Streamable HTTP) |
 | App Insights | `philly-profiteering-func` | — | East US 2 | Function monitoring/logging |
+| AI Foundry Hub | `philly-ai-hub` | — | East US | AI project management |
+| AI Foundry Project | `philly-profiteering` | — | East US | Agent project under hub |
+| AI Services | `foundry-og-agents` | S0 | East US | GPT-4.1, Azure OpenAI |
+| Static Web App | `philly-profiteering-spa` | Free | East US 2 | Chat SPA interface |
 
 ### Cost Model
 
@@ -538,6 +759,7 @@ All compute tiers are serverless/consumption — scale to zero when idle:
 | App Insights | $0 | Free tier covers low volume |
 | Container Registry | ~$0.17/mo | Storage only (Basic tier) |
 | Container App | $0 | Pay per use (free grant: 180K vCPU-s/mo) |
+| Static Web App | $0 | Free tier |
 | **Total idle** | **~$1-2/month** | |
 
 No resources require manual start/stop. The SQL database auto-pauses after 60 minutes of inactivity and auto-resumes on first query (wake-up takes 30-60 seconds).
@@ -595,3 +817,54 @@ APIM policy (injecting function key) is applied via `infra/set-policy.ps1`:
 - **searchEntities query:** Uses correlated subquery for property count instead of LEFT JOIN + GROUP BY on 2.8M entities × 15.5M junction rows.
 - **Connection pooling:** Max 10 connections, 30s idle timeout. Shared across all function invocations within an instance.
 - **runQuery safety:** Requires TOP(n) or OFFSET/FETCH to prevent unbounded result sets. Max 1000 rows.
+
+---
+
+## Web Interface (Static Web App)
+
+A single-file dual-panel SPA (`web/index.html`) with a VS Code-style activity bar providing two views:
+
+### Panel 1: Investigative Agent (Chat)
+
+- Users type questions in plain English; GPT-4.1 decides which tools to call
+- Azure OpenAI tool calling loop (up to 10 rounds per query) via `/chat` endpoint
+- Displays agent responses with tool call badges showing which tools were used
+- Conversation history maintained client-side for multi-turn interactions
+- Suggestion prompts for common investigative queries
+
+```
+Browser → Container App /chat → Azure OpenAI GPT-4.1 (tool calling) → APIM → Functions → SQL
+```
+
+### Panel 2: MCP Tool Tester
+
+- Connects directly to the MCP server Container App via Streamable HTTP
+- Discovers all 12 tools via MCP `initialize` → `tools/list` protocol
+- Allows calling individual tools with specific parameters (parcel numbers, entity IDs, SQL queries)
+- Displays raw JSON results with elapsed time
+- Useful for debugging, demos, and understanding what each tool returns
+
+```
+Browser → Container App /mcp (Streamable HTTP, JSON-RPC 2.0) → APIM → Functions → SQL
+```
+
+### Layout
+
+- **Activity bar** (48px, left edge): Two icon buttons — chat bubble (Agent) and wrench (Tools)
+- Both panels can be open simultaneously side-by-side (50/50 split)
+- Closing one panel gives the other full width
+- Closing both shows a welcome screen with quick-open buttons
+- Responsive: on mobile (<768px), only one panel visible at a time
+- No build step or dependencies — open the HTML file directly or serve with any static file server
+
+### Chat Endpoint Architecture
+
+The `/chat` endpoint on the Container App:
+1. Receives a natural language message + conversation history
+2. Sends it to Azure OpenAI GPT-4.1 with 12 tool definitions
+3. GPT-4.1 decides which tools to call (may call multiple in sequence)
+4. Each tool call is executed against APIM → Functions → SQL
+5. Results are fed back to GPT-4.1 for synthesis
+6. Final natural language response returned to the browser
+
+Authentication: Container App's managed identity has "Cognitive Services OpenAI User" role on the AI Services account. Uses `DefaultAzureCredential` + `getBearerTokenProvider` (no API keys).

@@ -257,3 +257,134 @@ Azure AI Foundry / Copilot Studio / Any HTTP MCP client
 
 **Repo:** https://github.com/pogorman/mcp-apim
 **Branch:** main
+
+---
+
+## Session 8 — Documentation, SPA Test Harness (2026-02-15)
+
+### New Root Markdown Files
+- **README.md** — GitHub repo homepage with architecture overview, quick start, tools table, data summary, costs, project structure
+- **COMMANDS.md** — All CLI commands used across the project: build, infrastructure provisioning, Container App deployment, function deployment, API testing (curl), MCP testing, troubleshooting
+- **PROMPTS.md** — Reconstructed user prompts from all sessions (exact wording for sessions 7-8, summaries for sessions 1-6); includes example analysis prompts for the connected agent
+
+### SPA Test Harness (`web/index.html`)
+- Single-file HTML/CSS/JS — no build step, no dependencies
+- Connects to the MCP server Container App via Streamable HTTP
+- Dark theme UI with sidebar (tool list) and main panel (parameters + results)
+- Flow: Connect → Initialize session → List tools → Select tool → Fill params → Call → View JSON result
+- Pre-filled with Container App URL, auto-discovers all 12 tools
+- Displays elapsed time for each call
+- Handles SSE response format from Streamable HTTP transport
+
+### SPA Deployment to Azure
+- Added CORS middleware to `mcp-server/src/index.ts` (OPTIONS preflight, `Access-Control-Allow-Origin: *`, expose `mcp-session-id` header)
+- Rebuilt container image via `az acr build`, restarted Container App revision
+- Verified CORS preflight returns 204 with correct headers
+- Created Azure Static Web App: `philly-profiteering-spa` (Free tier)
+- Deployed via `swa deploy` — live at `https://kind-forest-06c4d3c0f.1.azurestaticapps.net/`
+
+### Root MD Updates
+- Updated all 7 root md files with Static Web App URL, resource, and deployment commands
+- Updated CLAUDE.md: added web/, README.md, COMMANDS.md, PROMPTS.md to project structure; added SWA to resources
+- Updated ARCHITECTURE.md: added web test harness section, SWA to resource inventory and cost model
+- Updated USAGE.md: added live SPA URL and redeploy command
+- Updated COMMANDS.md: added SWA creation and deployment commands
+- Updated SESSION_LOG.md: added Session 8
+
+### New Azure Resources
+| Resource | Name | SKU |
+|----------|------|-----|
+| Static Web App | `philly-profiteering-spa` | Free |
+
+**SPA URL:** https://kind-forest-06c4d3c0f.1.azurestaticapps.net/
+
+---
+
+## Session 9 — Azure AI Foundry, Chat Endpoint, Chat SPA (2026-02-15)
+
+### Problem: SPA Was Just a Tool Tester
+User feedback: the original SPA only allowed calling individual MCP tools with specific parameters (parcel numbers, SQL queries). There was no way to ask a natural language question and have an agent figure out which tools to call. Also, no AI Foundry project existed in Azure.
+
+### Azure AI Foundry Setup
+- Created AI Foundry Hub: `philly-ai-hub` (rg-foundry, eastus)
+- Connected existing AI Services account `foundry-og-agents` via YAML connection file
+- Created Foundry Project: `philly-profiteering` under the hub
+- Hit MSYS path conversion bug on `--hub-id` parameter — fixed with `MSYS_NO_PATHCONV=1`
+- API keys disabled on AI Services (`disableLocalAuth: true`) — must use Azure AD token auth
+
+### Container App Managed Identity for Azure OpenAI
+- Enabled system-assigned managed identity on Container App (principal: `11b19c22-85cc-4230-afa2-7979813c5571`)
+- Assigned "Cognitive Services OpenAI User" role on `foundry-og-agents` AI Services account
+- Container App can now authenticate to Azure OpenAI via DefaultAzureCredential
+
+### Chat Endpoint (`/chat`)
+- Created `mcp-server/src/chat.ts`:
+  - AzureOpenAI client using `DefaultAzureCredential` + `getBearerTokenProvider`
+  - System prompt: investigative analyst for Philadelphia property data
+  - 12 tool definitions as `ChatCompletionTool[]`
+  - `executeTool()` maps tool names to APIM client functions
+  - `chat()` function: tool-calling loop (up to 10 rounds), builds message history
+- Added `/chat` POST endpoint to `index.ts`
+- Fixed OpenAI SDK v6 union type error: `ChatCompletionMessageToolCall` is a union, needed `tc.type !== "function"` guard
+- Added `openai` and `@azure/identity` dependencies
+- Built and pushed new container image via `az acr build`
+- Updated Container App with new image + `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_DEPLOYMENT` env vars
+- Tested: `curl /chat` with "Who are the top 5 worst property owners?" — agent called `get_top_violators` and returned full analysis
+
+### SPA Rebuild as Chat Interface
+- Replaced tool-picker UI (`web/index.html`) with a chat interface
+- Features: natural language input, conversation history, tool call badges, suggestion prompts, thinking indicator, auto-resize textarea
+- Chat calls `/chat` endpoint which invokes Azure OpenAI GPT-4.1 with tool calling
+- Dark theme maintained, responsive design
+- Deployed to Static Web App (production): `https://kind-forest-06c4d3c0f.1.azurestaticapps.net/`
+
+### New Azure Resources
+| Resource | Name | Details |
+|----------|------|---------|
+| AI Foundry Hub | `philly-ai-hub` | rg-foundry, eastus |
+| AI Foundry Project | `philly-profiteering` | Under philly-ai-hub |
+| AI Services connection | `foundry-og-agents` | Linked to hub |
+
+### Architecture (updated)
+```
+Web Chat SPA → Container App /chat → Azure OpenAI GPT-4.1 (tool calling) → APIM → Functions → SQL
+Claude Code/Desktop → MCP Server (stdio) → APIM → Functions → SQL
+Foundry/Copilot Studio → Container App /mcp (Streamable HTTP) → APIM → Functions → SQL
+```
+
+### Key Lessons
+- OpenAI SDK v6 uses union types for tool calls — need `tc.type !== "function"` guard before accessing `tc.function`
+- Azure AI Services `disableLocalAuth: true` means no API keys — must use managed identity + Azure AD tokens
+- `getBearerTokenProvider(credential, "https://cognitiveservices.azure.com/.default")` is the correct scope for Azure OpenAI
+
+---
+
+## Session 10 — Documentation Deep-Dive, Dual-Panel SPA (2026-02-15)
+
+### ARCHITECTURE.md Enhancements
+- Added **Container App Deep Dive** section between MCP Server and Azure Infrastructure:
+  - What containers are (vs VMs), why Alpine, multi-stage Dockerfile build process with ASCII diagram
+  - Azure Container Registry cloud builds (`az acr build`)
+  - Container Apps: scaling behavior (0→1→3→0), cold start explanation, Consumption plan
+  - What runs inside the container (3 endpoint groups: `/healthz`, `/mcp`, `/chat`)
+  - Environment variables and secrets management (encrypted at rest, injected at runtime)
+  - Managed identity for Azure OpenAI auth (no API keys)
+- Added **Agent Behavior** section:
+  - Tool-calling loop with detailed ASCII flow diagram
+  - When LLM uses tools vs responds directly (4 categories: direct response, single tool, multi-tool chains, custom SQL)
+  - What the LLM sees (system prompt + 12 tool descriptions)
+  - Worked example: multi-step investigation of "2837 Kensington Ave" showing 5 sequential tool calls
+
+### Dual-Panel SPA (`web/index.html`)
+- Complete rewrite from single-view chat to dual-panel interface:
+  - **Activity bar** (48px, left edge): VS Code-style with two SVG icon buttons (chat bubble for Agent, wrench for Tools)
+  - **Panel 1 — Investigative Agent**: Natural language chat with GPT-4.1 tool calling, suggestion prompts, tool call badges, conversation history
+  - **Panel 2 — MCP Tool Tester**: Connect to MCP server, discover tools, call individual tools with parameter forms, raw JSON results with elapsed time
+  - **Layout**: Both panels can be open side-by-side (50/50 split) or individually (full width). Closing both shows welcome screen with quick-open buttons.
+  - **Responsive**: On mobile (<768px), only one panel visible at a time
+- Deployed to Azure Static Web App (production): `https://kind-forest-06c4d3c0f.1.azurestaticapps.net/`
+
+### Root MD Updates
+- Updated all 7 root md files (ARCHITECTURE.md, README.md, CLAUDE.md, USAGE.md, SESSION_LOG.md, COMMANDS.md, PROMPTS.md)
+- Replaced "Chat SPA" / "Chat Interface" references with "dual-panel SPA" / "Web Interface" across all files
+- Updated project structure descriptions to reflect Agent chat + MCP tool tester

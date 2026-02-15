@@ -10,8 +10,11 @@ An MCP (Model Context Protocol) server that lets AI agents investigate poverty p
 Claude Desktop / Claude Code (stdio)
     └→ MCP Server (local) → APIM → Functions → SQL
 
+Web Chat SPA (Static Web App)
+    └→ Container App /chat → Azure OpenAI GPT-4.1 (tool calling) → APIM → Functions → SQL
+
 Azure AI Foundry / Copilot Studio / Any HTTP MCP Client
-    └→ Container App (MCP Server, Streamable HTTP) → APIM → Functions → SQL
+    └→ Container App /mcp (Streamable HTTP) → APIM → Functions → SQL
 ```
 
 Detailed flow:
@@ -26,16 +29,23 @@ Azure Functions v4 (Node.js 20, Flex Consumption FC1)
     |  (Azure AD token auth via DefaultAzureCredential)
 Azure SQL Database (General Purpose Serverless, Gen5 2 vCores)
     (10 tables, 3 views, 20+ indexes)
+
+Chat endpoint (/chat):
+    Browser SPA → Container App /chat
+        → Azure OpenAI GPT-4.1 (tool calling, up to 10 rounds)
+        → APIM → Functions → SQL (per tool call)
+        → Natural language response
 ```
 
 ## Project Structure
 
 ```
 mcp-apim/
-├── mcp-server/              # MCP Server (dual transport: stdio + HTTP)
+├── mcp-server/              # MCP Server (dual transport: stdio + HTTP) + Chat API
 │   ├── src/
 │   │   ├── index.ts          # Entry point (stdio or Streamable HTTP via MCP_TRANSPORT env)
 │   │   ├── tools.ts          # 12 tool definitions for Claude
+│   │   ├── chat.ts           # /chat endpoint: Azure OpenAI GPT-4.1 with tool calling
 │   │   └── apim-client.ts    # HTTP client for APIM
 │   ├── Dockerfile            # Multi-stage Node 20 Alpine build
 │   └── .dockerignore
@@ -67,6 +77,8 @@ mcp-apim/
 │   ├── set-policy.ps1        # APIM policy (injects function key)
 │   ├── apim-policy.json      # APIM policy XML
 │   └── func-app-body.json    # Function app ARM template
+├── web/                      # Front-end dual-panel interface
+│   └── index.html            # Agent chat + MCP tool tester SPA
 ├── .mcp.json                 # MCP server config for Claude Code
 └── mcp-config-examples.json  # Config examples for Claude Desktop
 ```
@@ -85,6 +97,10 @@ mcp-apim/
 | Container Registry | `phillymcpacr` | Basic |
 | Container App Env | `philly-mcp-env` | Consumption (scale to zero) |
 | Container App | `philly-mcp-server` | Consumption, 0-3 replicas |
+| AI Foundry Hub | `philly-ai-hub` | — (rg-foundry, eastus) |
+| AI Foundry Project | `philly-profiteering` | — (under philly-ai-hub) |
+| AI Services | `foundry-og-agents` | S0 (eastus, GPT-4.1) |
+| Static Web App | `philly-profiteering-spa` | Free |
 
 ## Database (10 Tables, ~29M Rows)
 
@@ -190,7 +206,21 @@ All resources are on consumption/serverless tiers — **~$1-2/month when idle**:
 - Functions Flex Consumption: $0 when idle, pay-per-execution
 - APIM Consumption: $0 when idle, free tier 1M calls/mo
 - Storage Standard LRS: ~$0.50/mo each
+- Static Web Apps Free: $0
 - No resources need manual stop/start — everything scales to zero automatically
+
+## Web Interface (Static Web App)
+
+Dual-panel SPA with VS Code-style activity bar providing two views:
+- **Investigative Agent** — Natural language chat powered by GPT-4.1 with tool calling (`/chat` endpoint)
+- **MCP Tool Tester** — Direct MCP tool discovery and invocation via Streamable HTTP (`/mcp` endpoint)
+
+Both panels can be open side-by-side or individually. Deployed at: `https://kind-forest-06c4d3c0f.1.azurestaticapps.net/`
+
+Deploy updates:
+```bash
+npx @azure/static-web-apps-cli deploy web --app-name philly-profiteering-spa --env production
+```
 
 ## Remote MCP Server (Container App)
 
@@ -198,6 +228,7 @@ The MCP server supports dual transport: **stdio** (local, default) and **Streama
 
 - **Container App URL:** `https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io`
 - **MCP endpoint:** `/mcp` (POST for requests, GET for SSE, DELETE for session cleanup)
+- **Chat endpoint:** `/chat` (POST — natural language → Azure OpenAI GPT-4.1 with tool calling)
 - **Health check:** `/healthz`
 - **Scale:** 0-3 replicas (scales to zero when idle, ~$0 when not in use)
 
@@ -230,7 +261,7 @@ MCP is GA in Copilot Studio (May 2025). Now that the MCP server has Streamable H
 
 ## Conventions
 
-- Root `.md` files (`CLAUDE.md`, `SESSION_LOG.md`, `USAGE.md`, `ARCHITECTURE.md`) are collectively referred to as "root md files" — update all of them when wrapping up a session
+- Root `.md` files (`README.md`, `CLAUDE.md`, `SESSION_LOG.md`, `USAGE.md`, `ARCHITECTURE.md`, `COMMANDS.md`, `PROMPTS.md`) are collectively referred to as "root md files" — update all of them when wrapping up a session
 - `SESSION_LOG.md` is the chronological record — append new sessions at the bottom
 - Secrets go in gitignored files (`.mcp.json`, `infra/apim-policy.json`); committed `.example` templates have placeholders
 

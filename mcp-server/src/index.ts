@@ -5,12 +5,27 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import express from "express";
 import { registerTools } from "./tools.js";
+import { chat } from "./chat.js";
 
 const transportMode = process.env.MCP_TRANSPORT ?? "stdio";
 
 if (transportMode === "http") {
   const PORT = parseInt(process.env.PORT ?? "8080", 10);
   const app = express();
+
+  // CORS — allow browser-based SPA to call the MCP endpoint
+  app.use((_req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, mcp-session-id");
+    res.setHeader("Access-Control-Expose-Headers", "mcp-session-id");
+    if (_req.method === "OPTIONS") {
+      res.status(204).end();
+      return;
+    }
+    next();
+  });
+
   app.use(express.json());
 
   // Health probe for Container Apps
@@ -78,6 +93,22 @@ if (transportMode === "http") {
       return;
     }
     await transports[sessionId].handleRequest(req, res);
+  });
+
+  // Chat endpoint — natural language interface powered by Azure OpenAI
+  app.post("/chat", async (req, res) => {
+    try {
+      const { message, history } = req.body;
+      if (!message || typeof message !== "string") {
+        res.status(400).json({ error: "message is required" });
+        return;
+      }
+      const result = await chat({ message, history });
+      res.json(result);
+    } catch (err) {
+      console.error("Chat error:", err);
+      res.status(500).json({ error: String(err) });
+    }
   });
 
   app.delete("/mcp", async (req, res) => {

@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Philly Poverty Profiteering</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface-raised: #222532;
+      --bar: #13151c;
+      --border: #2a2d3a;
+      --text: #e1e4ed;
+      --muted: #8b8fa3;
+      --accent: #6c8aff;
+      --accent-dim: #3d4f8a;
+      --accent-hover: #5a7aff;
+      --success: #4ade80;
+      --error: #f87171;
+      --warning: #facc15;
+      --user-bg: #1e2a4a;
+      --agent-bg: #1a1d27;
+      --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Header ──────────────────────────────────────── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 0.5rem 1rem 0.5rem 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      background: var(--bar);
+      height: 42px;
+    }
+
+    header h1 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    header h1 span { color: var(--muted); font-weight: 400; font-size: 0.8rem; margin-left: 0.25rem; }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      flex-shrink: 0;
+    }
+
+    /* ── Main Layout ─────────────────────────────────── */
+    .app-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* ── Activity Bar ────────────────────────────────── */
+    .activity-bar {
+      width: 48px;
+      flex-shrink: 0;
+      background: var(--bar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 6px;
+      gap: 2px;
+    }
+
+    .activity-tab {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all 0.15s;
+      border: none;
+      background: none;
+      position: relative;
+    }
+
+    .activity-tab:hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.04);
+    }
+
+    .activity-tab.active {
+      color: var(--accent);
+      background: rgba(108,138,255,0.1);
+    }
+
+    .activity-tab.active::before {
+      content: '';
+      position: absolute;
+      left: -4px;
+      top: 8px;
+      bottom: 8px;
+      width: 3px;
+      background: var(--accent);
+      border-radius: 0 2px 2px 0;
+    }
+
+    .activity-tab svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .tab-label {
+      font-size: 0.55rem;
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── Panel Area ───────────────────────────────────── */
+    .panel-area {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .panel {
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+    }
+
+    .panel.visible {
+      display: flex;
+      flex: 1;
+    }
+
+    .panel + .panel.visible {
+      border-left: 1px solid var(--border);
+    }
+
+    /* ── Welcome Screen ──────────────────────────────── */
+    .welcome-screen {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .welcome-screen.hidden { display: none; }
+
+    .welcome-inner {
+      max-width: 480px;
+      text-align: center;
+      padding: 2rem;
+      color: var(--muted);
+    }
+
+    .welcome-inner h2 {
+      font-size: 1.15rem;
+      color: var(--text);
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+    }
+
+    .welcome-inner p {
+      font-size: 0.82rem;
+      line-height: 1.55;
+      margin-bottom: 1.25rem;
+    }
+
+    .welcome-actions {
+      display: flex;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+
+    .welcome-btn {
+      padding: 0.55rem 1.1rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .welcome-btn:hover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    .welcome-btn svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ── Panel Headers ───────────────────────────────── */
+    .panel-header {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      background: var(--surface);
+      height: 38px;
+    }
+
+    .panel-header-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+
+    .btn-small {
+      padding: 0.2rem 0.55rem;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.7rem;
+      transition: all 0.15s;
+    }
+
+    .btn-small:hover { color: var(--text); border-color: var(--muted); }
+
+    /* ── Chat Panel ──────────────────────────────────── */
+    .chat-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.75rem 0;
+      scroll-behavior: smooth;
+    }
+
+    .chat-scroll::-webkit-scrollbar { width: 5px; }
+    .chat-scroll::-webkit-scrollbar-track { background: transparent; }
+    .chat-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .chat-welcome {
+      padding: 2rem 1.25rem;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .chat-welcome h3 {
+      font-size: 1rem;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    .chat-welcome p {
+      font-size: 0.8rem;
+      line-height: 1.55;
+      margin-bottom: 1rem;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .suggestions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      text-align: left;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .suggestion {
+      padding: 0.5rem 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+
+    .suggestion:hover {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+
+    .message {
+      padding: 0.6rem 1rem;
+    }
+
+    .message + .message { margin-top: 0.15rem; }
+
+    .msg-user {
+      background: var(--user-bg);
+      border-radius: 10px;
+      margin-left: 2.5rem;
+      margin-right: 0.75rem;
+    }
+
+    .msg-assistant {
+      margin-left: 0.75rem;
+      margin-right: 2.5rem;
+    }
+
+    .msg-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+      font-weight: 600;
+    }
+
+    .msg-content {
+      font-size: 0.85rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .msg-content p { margin-bottom: 0.4em; }
+    .msg-content p:last-child { margin-bottom: 0; }
+
+    .msg-tools {
+      margin-top: 0.4rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.3rem;
+    }
+
+    .tool-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.15rem 0.45rem;
+      background: var(--accent-dim);
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-family: var(--font-mono);
+      color: var(--accent);
+    }
+
+    .tool-badge::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    /* Thinking indicator */
+    .thinking {
+      padding: 0.6rem 1rem;
+      margin-left: 0.75rem;
+    }
+
+    .thinking-inner {
+      display: flex;
+      align-items: center;
+    }
+
+    .thinking-dots {
+      display: flex;
+      gap: 3px;
+      align-items: center;
+    }
+
+    .thinking-dots span {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--muted);
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    .thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    .thinking-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-left: 0.5rem;
+    }
+
+    @keyframes pulse {
+      0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+      40% { opacity: 1; transform: scale(1); }
+    }
+
+    .error-toast {
+      margin: 0.4rem 0.75rem;
+      padding: 0.5rem 0.75rem;
+      background: #2d1515;
+      border: 1px solid #5c2020;
+      border-radius: 7px;
+      color: var(--error);
+      font-size: 0.78rem;
+    }
+
+    /* Chat input */
+    .chat-input-area {
+      border-top: 1px solid var(--border);
+      padding: 0.6rem 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 0.6rem;
+      align-items: flex-end;
+    }
+
+    .chat-input-wrap {
+      flex: 1;
+      position: relative;
+    }
+
+    .chat-input-wrap textarea {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.85rem;
+      font-family: inherit;
+      resize: none;
+      min-height: 40px;
+      max-height: 140px;
+      line-height: 1.4;
+      overflow-y: auto;
+    }
+
+    .chat-input-wrap textarea:focus { outline: none; border-color: var(--accent); }
+    .chat-input-wrap textarea::placeholder { color: var(--muted); }
+
+    .btn-send {
+      padding: 0.5rem 1rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 500;
+      transition: background 0.15s;
+      white-space: nowrap;
+      height: 40px;
+    }
+
+    .btn-send:hover { background: var(--accent-hover); }
+    .btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .chat-input-hint {
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-align: center;
+      margin-top: 0.25rem;
+    }
+
+    /* ── Tools Panel ─────────────────────────────────── */
+    .tools-connect {
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .connect-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .connect-row input {
+      flex: 1;
+      padding: 0.45rem 0.65rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+    }
+
+    .connect-row input:focus { outline: none; border-color: var(--accent); }
+
+    .btn-connect {
+      padding: 0.45rem 0.85rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 500;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-connect:hover { background: var(--accent-hover); }
+    .btn-connect:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .connect-status {
+      font-size: 0.7rem;
+      margin-top: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .connect-status.connected { color: var(--success); }
+    .connect-status.disconnected { color: var(--muted); }
+    .connect-status.error { color: var(--error); }
+
+    .tools-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* Tool list */
+    .tool-list {
+      width: 220px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      background: var(--bg);
+    }
+
+    .tool-list::-webkit-scrollbar { width: 4px; }
+    .tool-list::-webkit-scrollbar-track { background: transparent; }
+    .tool-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .tool-list-header {
+      padding: 0.5rem 0.65rem;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .tool-list-item {
+      padding: 0.45rem 0.65rem;
+      cursor: pointer;
+      font-size: 0.78rem;
+      border-bottom: 1px solid rgba(42,45,58,0.5);
+      transition: all 0.1s;
+      color: var(--text);
+    }
+
+    .tool-list-item:hover {
+      background: var(--surface);
+    }
+
+    .tool-list-item.active {
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .tool-list-item .tool-desc {
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tool-list-empty {
+      padding: 1.5rem 0.75rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    /* Tool detail */
+    .tool-detail {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.75rem;
+      min-width: 0;
+    }
+
+    .tool-detail::-webkit-scrollbar { width: 4px; }
+    .tool-detail::-webkit-scrollbar-track { background: transparent; }
+    .tool-detail::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .tool-detail-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .tool-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      font-family: var(--font-mono);
+    }
+
+    .tool-full-desc {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 0.85rem;
+    }
+
+    .param-group {
+      margin-bottom: 0.6rem;
+    }
+
+    .param-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      margin-bottom: 0.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .param-label code {
+      font-family: var(--font-mono);
+      color: var(--accent);
+    }
+
+    .param-required {
+      font-size: 0.6rem;
+      color: var(--error);
+      font-weight: 400;
+    }
+
+    .param-optional {
+      font-size: 0.6rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .param-desc {
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-bottom: 0.2rem;
+    }
+
+    .param-input {
+      width: 100%;
+      padding: 0.4rem 0.6rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-size: 0.78rem;
+      font-family: var(--font-mono);
+    }
+
+    .param-input:focus { outline: none; border-color: var(--accent); }
+
+    .tool-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      margin-top: 0.85rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .btn-call {
+      padding: 0.45rem 1rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+
+    .btn-call:hover { background: var(--accent-hover); }
+    .btn-call:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .call-timer {
+      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      color: var(--muted);
+    }
+
+    .call-timer.active { color: var(--warning); }
+
+    .tool-result-area {
+      margin-top: 0.5rem;
+    }
+
+    .tool-result-label {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+
+    .tool-result {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.6rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 400px;
+      overflow-y: auto;
+      color: var(--text);
+    }
+
+    .tool-result::-webkit-scrollbar { width: 4px; }
+    .tool-result::-webkit-scrollbar-track { background: transparent; }
+    .tool-result::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .tool-result.error {
+      border-color: #5c2020;
+      color: var(--error);
+    }
+
+    /* ── Responsive ───────────────────────────────────── */
+    @media (max-width: 768px) {
+      .activity-bar {
+        width: 42px;
+      }
+
+      .activity-tab {
+        width: 34px;
+        height: 34px;
+      }
+
+      .activity-tab svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      /* On mobile, only show one panel at a time */
+      .panel.visible ~ .panel.visible {
+        display: none;
+      }
+
+      .tool-list {
+        width: 160px;
+      }
+
+      .msg-user { margin-left: 1.5rem; margin-right: 0.5rem; }
+      .msg-assistant { margin-left: 0.5rem; margin-right: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Philly Poverty Profiteering<span>Investigative Agent</span></h1>
+    <div class="header-right">
+      <div class="status">
+        <div class="status-dot"></div>
+        <span>GPT-4.1 + 12 tools + 29M rows</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <!-- Activity Bar -->
+    <nav class="activity-bar">
+      <button class="activity-tab" id="tabAgent" onclick="togglePanel('agent')" title="Investigative Agent">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </button>
+      <button class="activity-tab" id="tabTools" onclick="togglePanel('tools')" title="MCP Tool Tester">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
+      </button>
+    </nav>
+
+    <!-- Panel Area -->
+    <div class="panel-area">
+      <!-- Welcome screen (shown when no panels are open) -->
+      <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-inner">
+          <h2>Philadelphia Property Data</h2>
+          <p>
+            Investigate property ownership, code violations, demolitions, business licenses,
+            and poverty profiteering patterns across Philadelphia using 29 million rows of public data.
+          </p>
+          <div class="welcome-actions">
+            <button class="welcome-btn" onclick="togglePanel('agent')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              Open Agent
+            </button>
+            <button class="welcome-btn" onclick="togglePanel('tools')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+              </svg>
+              Open Tools
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 1: Investigative Agent -->
+      <div class="panel" id="panelAgent">
+        <div class="panel-header">
+          <span class="panel-header-title">Investigative Agent</span>
+          <button class="btn-small" onclick="clearChat()">Clear</button>
+        </div>
+        <div class="chat-scroll" id="chatScroll">
+          <div class="chat-welcome" id="chatWelcome">
+            <h3>Ask a Question</h3>
+            <p>
+              Query property ownership, code violations, demolitions, business licenses,
+              and poverty profiteering patterns. The agent uses 12 tools over 29M rows.
+            </p>
+            <div class="suggestions">
+              <div class="suggestion" onclick="useSuggestion(this)">Who are the top 10 worst property owners by code violations?</div>
+              <div class="suggestion" onclick="useSuggestion(this)">What check cashing businesses operate in zip code 19134?</div>
+              <div class="suggestion" onclick="useSuggestion(this)">Tell me about GEENA LLC - how many properties and violations?</div>
+              <div class="suggestion" onclick="useSuggestion(this)">Compare vacancy and violation rates between zip codes 19134 and 19140</div>
+              <div class="suggestion" onclick="useSuggestion(this)">Find LLCs that own more than 50 properties with demolition records</div>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <div class="chat-input-row">
+            <div class="chat-input-wrap">
+              <textarea id="chatInput" rows="1" placeholder="Ask about Philadelphia property data..."
+                onkeydown="handleChatKey(event)" oninput="autoResize(this)"></textarea>
+            </div>
+            <button class="btn-send" id="chatSendBtn" onclick="sendChatMessage()">Send</button>
+          </div>
+          <div class="chat-input-hint">Enter to send, Shift+Enter for new line</div>
+        </div>
+      </div>
+
+      <!-- Panel 2: MCP Tool Tester -->
+      <div class="panel" id="panelTools">
+        <div class="panel-header">
+          <span class="panel-header-title">MCP Tool Tester</span>
+          <span id="toolCount" style="font-size:0.7rem;color:var(--muted);"></span>
+        </div>
+        <div class="tools-connect">
+          <div class="connect-row">
+            <input type="text" id="mcpUrl" value="https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io/mcp" placeholder="MCP endpoint URL" />
+            <button class="btn-connect" id="btnConnect" onclick="mcpConnect()">Connect</button>
+          </div>
+          <div class="connect-status disconnected" id="connectStatus">
+            Not connected
+          </div>
+        </div>
+        <div class="tools-body">
+          <div class="tool-list" id="toolList">
+            <div class="tool-list-empty">Connect to an MCP server to discover tools.</div>
+          </div>
+          <div class="tool-detail" id="toolDetail">
+            <div class="tool-detail-empty">Select a tool from the list.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ================================================================
+       CONSTANTS & STATE
+       ================================================================ */
+    const API_BASE = 'https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io';
+
+    const state = {
+      panels: { agent: false, tools: false },
+      chat: { history: [], isLoading: false },
+      mcp: {
+        sessionId: null,
+        connected: false,
+        tools: [],
+        selectedTool: null,
+        callInProgress: false,
+        timerInterval: null,
+        timerStart: 0,
+      },
+    };
+
+    const $ = (id) => document.getElementById(id);
+
+    /* ================================================================
+       ESCAPING & FORMATTING
+       ================================================================ */
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function formatContent(text) {
+      let html = escapeHtml(text);
+      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      html = html.replace(/^### (.+)$/gm, '<strong style="font-size:0.92em;">$1</strong>');
+      html = html.replace(/^## (.+)$/gm, '<strong style="font-size:0.98em;">$1</strong>');
+      html = html.replace(/^- (.+)$/gm, '\u2022 $1');
+      html = html.replace(/\n\n/g, '</p><p>');
+      html = '<p>' + html + '</p>';
+      return html;
+    }
+
+    /* ================================================================
+       PANEL MANAGEMENT
+       ================================================================ */
+    function togglePanel(name) {
+      state.panels[name] = !state.panels[name];
+      updatePanels();
+      if (name === 'agent' && state.panels.agent) {
+        setTimeout(() => $('chatInput') && $('chatInput').focus(), 50);
+      }
+    }
+
+    function updatePanels() {
+      const agentOpen = state.panels.agent;
+      const toolsOpen = state.panels.tools;
+
+      // Activity bar tabs
+      $('tabAgent').classList.toggle('active', agentOpen);
+      $('tabTools').classList.toggle('active', toolsOpen);
+
+      // Panels
+      $('panelAgent').classList.toggle('visible', agentOpen);
+      $('panelTools').classList.toggle('visible', toolsOpen);
+
+      // Welcome screen
+      const anyOpen = agentOpen || toolsOpen;
+      $('welcomeScreen').classList.toggle('hidden', anyOpen);
+    }
+
+    /* ================================================================
+       CHAT - AGENT PANEL
+       ================================================================ */
+    function addChatMessage(role, content, toolCalls) {
+      const welcome = $('chatWelcome');
+      if (welcome) welcome.remove();
+
+      const container = $('chatScroll');
+      const div = document.createElement('div');
+
+      if (role === 'user') {
+        div.className = 'message msg-user';
+        div.innerHTML =
+          '<div class="msg-label">You</div>' +
+          '<div class="msg-content">' + escapeHtml(content) + '</div>';
+      } else {
+        div.className = 'message msg-assistant';
+        let toolsHtml = '';
+        if (toolCalls && toolCalls.length > 0) {
+          toolsHtml = '<div class="msg-tools">' + toolCalls.map(function(tc) {
+            return '<span class="tool-badge">' + escapeHtml(tc.name) + '</span>';
+          }).join('') + '</div>';
+        }
+        div.innerHTML =
+          '<div class="msg-label">Agent</div>' +
+          '<div class="msg-content">' + formatContent(content) + '</div>' +
+          toolsHtml;
+      }
+
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function showThinking() {
+      const container = $('chatScroll');
+      const div = document.createElement('div');
+      div.className = 'thinking';
+      div.id = 'thinkingIndicator';
+      div.innerHTML =
+        '<div class="thinking-inner">' +
+          '<div class="thinking-dots"><span></span><span></span><span></span></div>' +
+          '<span class="thinking-label">Analyzing data...</span>' +
+        '</div>';
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function hideThinking() {
+      const el = $('thinkingIndicator');
+      if (el) el.remove();
+    }
+
+    function showChatError(msg) {
+      const container = $('chatScroll');
+      const div = document.createElement('div');
+      div.className = 'error-toast';
+      div.textContent = msg;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+      setTimeout(function() { div.remove(); }, 10000);
+    }
+
+    async function sendChatMessage() {
+      const input = $('chatInput');
+      const message = input.value.trim();
+      if (!message || state.chat.isLoading) return;
+
+      state.chat.isLoading = true;
+      $('chatSendBtn').disabled = true;
+      input.value = '';
+      autoResize(input);
+
+      addChatMessage('user', message);
+      showThinking();
+
+      try {
+        const resp = await fetch(API_BASE + '/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: message, history: state.chat.history }),
+        });
+
+        hideThinking();
+
+        if (!resp.ok) {
+          const errText = await resp.text();
+          throw new Error('Server error (' + resp.status + '): ' + errText);
+        }
+
+        const data = await resp.json();
+        addChatMessage('assistant', data.reply, data.toolCalls);
+
+        state.chat.history.push({ role: 'user', content: message });
+        state.chat.history.push({ role: 'assistant', content: data.reply });
+
+        if (state.chat.history.length > 40) {
+          state.chat.history = state.chat.history.slice(-40);
+        }
+      } catch (err) {
+        hideThinking();
+        showChatError(err.message);
+      } finally {
+        state.chat.isLoading = false;
+        $('chatSendBtn').disabled = false;
+        input.focus();
+      }
+    }
+
+    function handleChatKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChatMessage();
+      }
+    }
+
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+    }
+
+    function useSuggestion(el) {
+      $('chatInput').value = el.textContent;
+      sendChatMessage();
+    }
+
+    function clearChat() {
+      state.chat.history = [];
+      $('chatScroll').innerHTML =
+        '<div class="chat-welcome" id="chatWelcome">' +
+          '<h3>Ask a Question</h3>' +
+          '<p>Query property ownership, code violations, demolitions, business licenses, ' +
+          'and poverty profiteering patterns. The agent uses 12 tools over 29M rows.</p>' +
+          '<div class="suggestions">' +
+            '<div class="suggestion" onclick="useSuggestion(this)">Who are the top 10 worst property owners by code violations?</div>' +
+            '<div class="suggestion" onclick="useSuggestion(this)">What check cashing businesses operate in zip code 19134?</div>' +
+            '<div class="suggestion" onclick="useSuggestion(this)">Tell me about GEENA LLC - how many properties and violations?</div>' +
+            '<div class="suggestion" onclick="useSuggestion(this)">Compare vacancy and violation rates between zip codes 19134 and 19140</div>' +
+            '<div class="suggestion" onclick="useSuggestion(this)">Find LLCs that own more than 50 properties with demolition records</div>' +
+          '</div>' +
+        '</div>';
+    }
+
+    /* ================================================================
+       MCP - TOOL TESTER PANEL
+       ================================================================ */
+    async function mcpSend(method, params, expectSse) {
+      const url = $('mcpUrl').value.trim();
+      if (!url) throw new Error('No MCP URL provided');
+
+      const id = Date.now();
+      const body = { jsonrpc: '2.0', id: id, method: method, params: params || {} };
+      const headers = { 'Content-Type': 'application/json', 'Accept': 'application/json, text/event-stream' };
+      if (state.mcp.sessionId) {
+        headers['mcp-session-id'] = state.mcp.sessionId;
+      }
+
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(body),
+      });
+
+      // Capture session ID
+      const sid = resp.headers.get('mcp-session-id');
+      if (sid) state.mcp.sessionId = sid;
+
+      if (!resp.ok) {
+        const errText = await resp.text();
+        throw new Error('MCP error (' + resp.status + '): ' + errText);
+      }
+
+      const contentType = resp.headers.get('content-type') || '';
+
+      if (contentType.includes('text/event-stream')) {
+        // Parse SSE response
+        const text = await resp.text();
+        const lines = text.split('\n');
+        let lastData = null;
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          if (line.startsWith('data: ')) {
+            try {
+              lastData = JSON.parse(line.substring(6));
+            } catch (e) { /* skip non-JSON lines */ }
+          }
+        }
+        if (lastData) return lastData;
+        throw new Error('No valid data in SSE response');
+      }
+
+      return await resp.json();
+    }
+
+    async function mcpNotify(method, params) {
+      const url = $('mcpUrl').value.trim();
+      if (!url) return;
+
+      const body = { jsonrpc: '2.0', method: method, params: params || {} };
+      const headers = { 'Content-Type': 'application/json' };
+      if (state.mcp.sessionId) {
+        headers['mcp-session-id'] = state.mcp.sessionId;
+      }
+
+      await fetch(url, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(body),
+      });
+    }
+
+    function setConnectStatus(cls, text) {
+      const el = $('connectStatus');
+      el.className = 'connect-status ' + cls;
+      el.textContent = text;
+    }
+
+    async function mcpConnect() {
+      const btn = $('btnConnect');
+      btn.disabled = true;
+      setConnectStatus('disconnected', 'Connecting...');
+      state.mcp.sessionId = null;
+      state.mcp.connected = false;
+      state.mcp.tools = [];
+      state.mcp.selectedTool = null;
+
+      try {
+        // Initialize
+        const initResult = await mcpSend('initialize', {
+          protocolVersion: '2024-11-05',
+          capabilities: {},
+          clientInfo: { name: 'philly-harness', version: '1.0' },
+        });
+
+        // Send initialized notification
+        await mcpNotify('notifications/initialized', {});
+
+        // List tools
+        const toolsResult = await mcpSend('tools/list', {});
+        const tools = (toolsResult.result && toolsResult.result.tools) ? toolsResult.result.tools : [];
+
+        state.mcp.tools = tools;
+        state.mcp.connected = true;
+
+        setConnectStatus('connected', 'Connected \u2014 ' + tools.length + ' tools discovered');
+        $('toolCount').textContent = tools.length + ' tools';
+        renderToolList();
+      } catch (err) {
+        setConnectStatus('error', 'Failed: ' + err.message);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function renderToolList() {
+      const container = $('toolList');
+      const tools = state.mcp.tools;
+
+      if (tools.length === 0) {
+        container.innerHTML = '<div class="tool-list-empty">No tools discovered.</div>';
+        return;
+      }
+
+      let html = '<div class="tool-list-header">Discovered Tools (' + tools.length + ')</div>';
+      for (let i = 0; i < tools.length; i++) {
+        const t = tools[i];
+        const isActive = state.mcp.selectedTool === t.name;
+        const desc = t.description ? t.description.substring(0, 60) : '';
+        html += '<div class="tool-list-item' + (isActive ? ' active' : '') + '" onclick="selectTool(\'' + escapeHtml(t.name) + '\')">' +
+          '<div>' + escapeHtml(t.name) + '</div>' +
+          '<div class="tool-desc">' + escapeHtml(desc) + '</div>' +
+        '</div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function selectTool(name) {
+      state.mcp.selectedTool = name;
+      renderToolList();
+      renderToolDetail();
+    }
+
+    function renderToolDetail() {
+      const container = $('toolDetail');
+      const name = state.mcp.selectedTool;
+
+      if (!name) {
+        container.innerHTML = '<div class="tool-detail-empty">Select a tool from the list.</div>';
+        return;
+      }
+
+      const tool = state.mcp.tools.find(function(t) { return t.name === name; });
+      if (!tool) return;
+
+      let html = '<div class="tool-name">' + escapeHtml(tool.name) + '</div>';
+      html += '<div class="tool-full-desc">' + escapeHtml(tool.description || '') + '</div>';
+
+      // Parameters
+      const schema = tool.inputSchema;
+      if (schema && schema.properties) {
+        const required = schema.required || [];
+        const props = Object.keys(schema.properties);
+
+        for (let i = 0; i < props.length; i++) {
+          const pName = props[i];
+          const pDef = schema.properties[pName];
+          const isReq = required.indexOf(pName) >= 0;
+
+          html += '<div class="param-group">';
+          html += '<div class="param-label"><code>' + escapeHtml(pName) + '</code> ';
+          html += isReq
+            ? '<span class="param-required">required</span>'
+            : '<span class="param-optional">optional</span>';
+          html += '</div>';
+          if (pDef.description) {
+            html += '<div class="param-desc">' + escapeHtml(pDef.description) + '</div>';
+          }
+          html += '<input class="param-input" data-param="' + escapeHtml(pName) + '" ' +
+            'data-type="' + escapeHtml(pDef.type || 'string') + '" ' +
+            'placeholder="' + escapeHtml(pDef.type || 'string') + '" />';
+          html += '</div>';
+        }
+      }
+
+      html += '<div class="tool-actions">' +
+        '<button class="btn-call" id="btnCallTool" onclick="callTool()">Call Tool</button>' +
+        '<span class="call-timer" id="callTimer"></span>' +
+      '</div>';
+      html += '<div class="tool-result-area" id="toolResultArea"></div>';
+
+      container.innerHTML = html;
+    }
+
+    async function callTool() {
+      if (state.mcp.callInProgress) return;
+      const name = state.mcp.selectedTool;
+      if (!name || !state.mcp.connected) return;
+
+      const tool = state.mcp.tools.find(function(t) { return t.name === name; });
+      if (!tool) return;
+
+      // Gather params
+      const args = {};
+      const inputs = $('toolDetail').querySelectorAll('.param-input');
+      for (let i = 0; i < inputs.length; i++) {
+        const inp = inputs[i];
+        const val = inp.value.trim();
+        if (val === '') continue;
+
+        const pType = inp.getAttribute('data-type');
+        const pName = inp.getAttribute('data-param');
+
+        if (pType === 'number') {
+          args[pName] = Number(val);
+        } else if (pType === 'boolean') {
+          args[pName] = val === 'true' || val === '1';
+        } else {
+          args[pName] = val;
+        }
+      }
+
+      state.mcp.callInProgress = true;
+      $('btnCallTool').disabled = true;
+
+      // Start timer
+      state.mcp.timerStart = Date.now();
+      const timerEl = $('callTimer');
+      timerEl.className = 'call-timer active';
+      timerEl.textContent = '0.0s';
+      state.mcp.timerInterval = setInterval(function() {
+        const elapsed = ((Date.now() - state.mcp.timerStart) / 1000).toFixed(1);
+        timerEl.textContent = elapsed + 's';
+      }, 100);
+
+      const resultArea = $('toolResultArea');
+      resultArea.innerHTML =
+        '<div class="tool-result-label">Result</div>' +
+        '<div class="tool-result" style="color:var(--muted);">Calling ' + escapeHtml(name) + '...</div>';
+
+      try {
+        const resp = await mcpSend('tools/call', { name: name, arguments: args });
+
+        clearInterval(state.mcp.timerInterval);
+        const elapsed = ((Date.now() - state.mcp.timerStart) / 1000).toFixed(1);
+        timerEl.className = 'call-timer';
+        timerEl.textContent = elapsed + 's';
+
+        const formatted = JSON.stringify(resp.result || resp, null, 2);
+        resultArea.innerHTML =
+          '<div class="tool-result-label">Result (' + elapsed + 's)</div>' +
+          '<div class="tool-result">' + escapeHtml(formatted) + '</div>';
+      } catch (err) {
+        clearInterval(state.mcp.timerInterval);
+        const elapsed = ((Date.now() - state.mcp.timerStart) / 1000).toFixed(1);
+        timerEl.className = 'call-timer';
+        timerEl.textContent = elapsed + 's';
+
+        resultArea.innerHTML =
+          '<div class="tool-result-label">Error (' + elapsed + 's)</div>' +
+          '<div class="tool-result error">' + escapeHtml(err.message) + '</div>';
+      } finally {
+        state.mcp.callInProgress = false;
+        $('btnCallTool').disabled = false;
+      }
+    }
+
+    /* ================================================================
+       INIT
+       ================================================================ */
+    updatePanels();
+  </script>
+</body>
+</html>
