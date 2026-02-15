@@ -157,9 +157,20 @@ Once the MCP server is connected, try asking Claude:
 - "Find LLCs that own more than 50 properties and have demolition records"
 - "What properties at 19134 have both vacant land licenses and failed inspections?"
 
+## Copilot Studio (Future)
+
+The APIM endpoints can be consumed by Copilot Studio. Two integration paths are under consideration:
+
+1. **Custom connector (no code changes):** Point a Copilot Studio custom connector at `https://philly-profiteering-apim.azure-api.net/api` with API key auth using the APIM subscription key. Import each endpoint as an action.
+
+2. **MCP server (requires code changes):** Add Streamable HTTP transport to the MCP server, deploy it as a hosted service, and connect Copilot Studio via its native MCP integration (GA since May 2025). SSE transport is deprecated — must use Streamable HTTP.
+
+See [MCP in Copilot Studio docs](https://learn.microsoft.com/en-us/microsoft-copilot-studio/agent-extend-action-mcp) for details.
+
 ## Notes
 
 - **First request may be slow (~30-60s):** The Azure SQL database auto-pauses after 60 minutes of inactivity. The first query wakes it up.
 - **Query timeout:** Complex queries have a 120-second timeout. If a custom SQL query times out, add more restrictive filters or reduce the result set.
 - **Read-only:** The `run_query` tool only allows SELECT statements with TOP(n) or OFFSET/FETCH. INSERT, UPDATE, DELETE, and DDL are blocked.
 - **Rate limits:** APIM is configured with standard Consumption tier limits.
+- **Azure costs when idle:** ~$1-2/month. All compute is serverless/consumption — scales to zero automatically. No manual start/stop needed.

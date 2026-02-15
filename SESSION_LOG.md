@@ -145,9 +145,44 @@ All resources are on cheapest viable tiers:
 6. **`az apim create --sku-name Basicv2`** is not valid — allowed values are Developer, Standard, Premium, Basic, Consumption, Isolated
 7. **CSV parsing edge cases** — Philadelphia public data has backslash-escaped quotes and unescaped quotes mid-field; standard CSV parsers choke on these
 
+## Session 6 (continued) — Testing, Cost Review, Copilot Studio Research
+
+### Live API Testing
+- Verified all endpoints still responding through APIM
+- Tested `search_entities` for GEENA LLC (330 properties) — confirmed working
+- Tested `get_top_violators` — top 5 are all government entities (Land Bank, Housing Auth, City)
+- Deep-dive on 2837 Kensington Ave (parcel 871533290):
+  - Owned by A Kensington Joint LLC (2 properties), bought Dec 2022 for $22,500
+  - Previously owned by Birds Nest LLC
+  - 20 violations (14 failed), 1 demolition, 1 appeal
+  - UNSAFE priority case failed 8 times before passing
+  - Pattern: distressed property flip between LLCs with ongoing violation history
+
+### Azure Cost Review
+- Confirmed all resources on cheapest viable tiers
+- No resources need manual start/stop — everything auto-scales to zero
+- Estimated idle cost: ~$1-2/month (just storage)
+
+### Copilot Studio + MCP Discussion
+- MCP is GA in Copilot Studio (May 2025)
+- **Problem:** Our MCP server uses stdio transport; Copilot Studio needs remote HTTP (Streamable HTTP — SSE deprecated Aug 2025)
+- **Option A:** Add Streamable HTTP transport to MCP server, deploy as hosted service
+- **Option B:** Skip MCP, create Copilot Studio custom connector pointing directly at APIM (no code changes)
+- **Status:** Open — user researching further before deciding
+
+### Documentation Updates
+- Updated all root md files (CLAUDE.md, SESSION_LOG.md, USAGE.md)
+- Established convention: "root md files" = all root-level .md files, update at end of each session
+- Added Copilot Studio section to CLAUDE.md and USAGE.md
+
+---
+
 ## Current State (as of 2026-02-14)
 
 Everything is deployed and operational. System is idle (SQL auto-paused). First query will take ~30-60s to wake the database, then subsequent queries are fast.
+
+**Open items:**
+- Copilot Studio integration approach (Streamable HTTP MCP vs direct APIM connector)
 
 **Repo:** https://github.com/pogorman/mcp-apim
 **Branch:** main

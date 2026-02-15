@@ -153,6 +153,36 @@ The workspace hoists all packages to root `node_modules/`, leaving `functions/no
 - **APIM policy injects function key** — MCP server only needs the APIM subscription key, never sees the function key
 - **`runQuery` safety validation** — blocks INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, TRUNCATE, EXEC, XP_, SP_; requires TOP(n) or OFFSET/FETCH
 
+## Azure Costs
+
+All resources are on consumption/serverless tiers — **~$1-2/month when idle**:
+- SQL Serverless auto-pauses after 60min, $0 when paused (pay ~$0.75/vCore-hour when active)
+- Functions Flex Consumption: $0 when idle, pay-per-execution
+- APIM Consumption: $0 when idle, free tier 1M calls/mo
+- Storage Standard LRS: ~$0.50/mo each
+- No resources need manual stop/start — everything scales to zero automatically
+
+## Copilot Studio Integration (Open Item)
+
+MCP is GA in Copilot Studio (May 2025), but our MCP server uses **stdio transport** (local process). Copilot Studio requires a remote HTTP endpoint using **Streamable HTTP** transport (SSE was deprecated Aug 2025).
+
+**Two paths to Copilot Studio:**
+1. **Add Streamable HTTP transport** to the MCP server and deploy it as a hosted service (Azure App Service, Container App, etc.) — Copilot Studio discovers tools dynamically via MCP
+2. **Skip MCP, use APIM directly** — create a custom connector in Copilot Studio pointing at the APIM endpoints. No new code needed since APIM already exposes all 12 REST endpoints with subscription key auth
+
+Option 2 is faster (no code changes). Option 1 preserves MCP tool discovery. Research needed to decide.
+
+**References:**
+- [MCP GA in Copilot Studio](https://www.microsoft.com/en-us/microsoft-copilot/blog/copilot-studio/model-context-protocol-mcp-is-now-generally-available-in-microsoft-copilot-studio/)
+- [Connect existing MCP server](https://learn.microsoft.com/en-us/microsoft-copilot-studio/mcp-add-existing-server-to-agent)
+- [Create new MCP server for Copilot Studio](https://learn.microsoft.com/en-us/microsoft-copilot-studio/mcp-create-new-server)
+
+## Conventions
+
+- Root `.md` files (`CLAUDE.md`, `SESSION_LOG.md`, `USAGE.md`) are collectively referred to as "root md files" — update all of them when wrapping up a session
+- `SESSION_LOG.md` is the chronological record — append new sessions at the bottom
+- Secrets go in gitignored files (`.mcp.json`, `infra/apim-policy.json`); committed `.example` templates have placeholders
+
 ## Data Source
 
 Based on [davew-msft/PhillyStats](https://github.com/davew-msft/PhillyStats) which used 10 Philadelphia public datasets. Original used Fabric/Synapse; this project uses Azure SQL + Azure Functions for a production-ready API.
