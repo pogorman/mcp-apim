@@ -4,9 +4,9 @@
 
 This system enables AI agents to investigate poverty profiteering patterns in Philadelphia by querying 10 public datasets (~29 million rows, ~4.4GB) through a standardized API. It connects property ownership networks, code violations, demolitions, business licenses, and tax assessments to surface exploitative LLCs and property owners.
 
-The architecture follows a four-tier pattern: a local **MCP Server** translates AI tool calls into HTTPS requests to **Azure API Management**, which authenticates and routes them to **Azure Functions**, which query an **Azure SQL Database**. All compute tiers are serverless/consumption-based, costing ~$1-2/month when idle.
+The architecture follows a four-tier pattern: an **MCP Server** translates AI tool calls into HTTPS requests to **Azure API Management**, which authenticates and routes them to **Azure Functions**, which query an **Azure SQL Database**. All compute tiers are serverless/consumption-based, costing ~$1-2/month when idle.
 
-The system was designed for use with Claude (via Claude Code or Claude Desktop) but the APIM layer also supports direct REST access and future integration with Microsoft Copilot Studio.
+The MCP server supports dual transport: **stdio** (local, for Claude Code/Desktop) and **Streamable HTTP** (remote, deployed on Azure Container Apps for Azure AI Foundry, Copilot Studio, and other remote MCP clients).
 
 ---
 
@@ -16,20 +16,20 @@ The system was designed for use with Claude (via Claude Code or Claude Desktop) 
 ┌─────────────────────────────────────────────────────────────────────┐
 │                         AI Client Layer                            │
 │  ┌──────────────┐  ┌───────────────┐  ┌──────────────────────┐     │
-│  │ Claude Code   │  │ Claude Desktop│  │ Copilot Studio (future)│  │
+│  │ Claude Code   │  │ Claude Desktop│  │ AI Foundry / Copilot │     │
 │  └──────┬───────┘  └───────┬───────┘  └──────────┬───────────┘     │
 │         │ stdio            │ stdio               │ HTTP             │
 └─────────┼──────────────────┼─────────────────────┼─────────────────┘
           │                  │                     │
-          ▼                  ▼                     │
-┌─────────────────────────────────────┐            │
-│        MCP Server (local)           │            │
-│  TypeScript, stdio transport        │            │
-│  12 tools → HTTP calls              │            │
-│  Adds Ocp-Apim-Subscription-Key    │            │
-└──────────────┬──────────────────────┘            │
-               │ HTTPS                             │
-               ▼                                   ▼
+          ▼                  ▼                     ▼
+┌─────────────────────────────────────┐  ┌──────────────────────────┐
+│        MCP Server (local)           │  │ MCP Server (Container App)│
+│  TypeScript, stdio transport        │  │ Streamable HTTP transport │
+│  12 tools → HTTP calls              │  │ philly-mcp-server         │
+│  Adds Ocp-Apim-Subscription-Key    │  │ Scale: 0-3 replicas       │
+└──────────────┬──────────────────────┘  └────────────┬─────────────┘
+               │ HTTPS                                │ HTTPS
+               ▼                                      ▼
 ┌─────────────────────────────────────────────────────────────────────┐
 │              Azure API Management (Consumption)                     │
 │  philly-profiteering-apim.azure-api.net/api                        │
@@ -472,8 +472,10 @@ Execute a custom read-only SQL query.
 The MCP server is a local TypeScript process that bridges AI agents to the APIM-backed API.
 
 ### Transport
-- **stdio** — JSON-RPC over stdin/stdout, compatible with Claude Code and Claude Desktop
-- Future: Streamable HTTP transport for Copilot Studio (see Copilot Studio section in CLAUDE.md)
+- **stdio** (default) — JSON-RPC over stdin/stdout, for Claude Code and Claude Desktop
+- **Streamable HTTP** (`MCP_TRANSPORT=http`) — JSON-RPC over HTTP with SSE responses, session-based via `mcp-session-id` header. Deployed on Azure Container Apps for Azure AI Foundry, Copilot Studio, and any remote MCP client.
+  - Health probe: `GET /healthz`
+  - MCP endpoint: `POST /mcp` (requests), `GET /mcp` (SSE stream), `DELETE /mcp` (session cleanup)
 
 ### Tools (12)
 
@@ -518,6 +520,9 @@ Fallback variables (for direct Function App access, bypassing APIM):
 | APIM | `philly-profiteering-apim` | Consumption | East US 2 | API gateway, auth, rate limiting |
 | Storage | `phillyprofiteersa` | Standard_LRS | East US | CSV data storage |
 | Storage | `phillyfuncsa` | Standard_LRS | East US 2 | Function App deployment storage |
+| Container Registry | `phillymcpacr` | Basic | East US 2 | Docker images for MCP server |
+| Container App Env | `philly-mcp-env` | Consumption | East US 2 | Container Apps environment |
+| Container App | `philly-mcp-server` | Consumption (0-3) | East US 2 | Remote MCP server (Streamable HTTP) |
 | App Insights | `philly-profiteering-func` | — | East US 2 | Function monitoring/logging |
 
 ### Cost Model
@@ -531,6 +536,8 @@ All compute tiers are serverless/consumption — scale to zero when idle:
 | APIM | $0 | ~$3.50/million calls (free tier: 1M/month) |
 | Storage (x2) | ~$1/mo total | Minimal additional for operations |
 | App Insights | $0 | Free tier covers low volume |
+| Container Registry | ~$0.17/mo | Storage only (Basic tier) |
+| Container App | $0 | Pay per use (free grant: 180K vCPU-s/mo) |
 | **Total idle** | **~$1-2/month** | |
 
 No resources require manual start/stop. The SQL database auto-pauses after 60 minutes of inactivity and auto-resumes on first query (wake-up takes 30-60 seconds).

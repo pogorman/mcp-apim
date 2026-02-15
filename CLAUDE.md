@@ -7,9 +7,18 @@ An MCP (Model Context Protocol) server that lets AI agents investigate poverty p
 ## Architecture
 
 ```
-Claude Desktop / Claude Code / Any MCP Client
-    |  (stdio / MCP Protocol)
-MCP Server (TypeScript, local process)
+Claude Desktop / Claude Code (stdio)
+    └→ MCP Server (local) → APIM → Functions → SQL
+
+Azure AI Foundry / Copilot Studio / Any HTTP MCP Client
+    └→ Container App (MCP Server, Streamable HTTP) → APIM → Functions → SQL
+```
+
+Detailed flow:
+```
+MCP Client (stdio or HTTP)
+    |
+MCP Server (TypeScript, dual transport: stdio + Streamable HTTP)
     |  (HTTPS + Ocp-Apim-Subscription-Key header)
 Azure API Management (Consumption tier)
     |  (HTTPS + x-functions-key header, injected by APIM policy)
@@ -23,11 +32,13 @@ Azure SQL Database (General Purpose Serverless, Gen5 2 vCores)
 
 ```
 mcp-apim/
-├── mcp-server/              # MCP Server (local stdio process)
-│   └── src/
-│       ├── index.ts          # Entry point, stdio transport
-│       ├── tools.ts          # 12 tool definitions for Claude
-│       └── apim-client.ts    # HTTP client for APIM
+├── mcp-server/              # MCP Server (dual transport: stdio + HTTP)
+│   ├── src/
+│   │   ├── index.ts          # Entry point (stdio or Streamable HTTP via MCP_TRANSPORT env)
+│   │   ├── tools.ts          # 12 tool definitions for Claude
+│   │   └── apim-client.ts    # HTTP client for APIM
+│   ├── Dockerfile            # Multi-stage Node 20 Alpine build
+│   └── .dockerignore
 ├── functions/                # Azure Functions app (12 endpoints)
 │   └── src/
 │       ├── functions/        # One file per endpoint
@@ -45,10 +56,14 @@ mcp-apim/
 │       │   └── runQuery.ts
 │       └── shared/
 │           └── db.ts         # SQL connection pool (mssql + AAD)
+├── agent/                    # Azure AI Foundry agent
+│   ├── foundry_agent.py      # Agent with MCP tools + optional Bing grounding
+│   └── requirements.txt      # Python dependencies
 ├── sql/
 │   └── schema.sql            # 10 tables, 3 views, 20+ indexes
 ├── infra/
 │   ├── deploy.sh             # az CLI infrastructure provisioning
+│   ├── deploy-agent.sh       # ACR + Container App deployment
 │   ├── set-policy.ps1        # APIM policy (injects function key)
 │   ├── apim-policy.json      # APIM policy XML
 │   └── func-app-body.json    # Function app ARM template
@@ -67,6 +82,9 @@ mcp-apim/
 | APIM | `philly-profiteering-apim` | Consumption |
 | Storage (CSVs) | `phillyprofiteersa` | Standard LRS |
 | Storage (Functions) | `phillyfuncsa` | Standard LRS |
+| Container Registry | `phillymcpacr` | Basic |
+| Container App Env | `philly-mcp-env` | Consumption (scale to zero) |
+| Container App | `philly-mcp-server` | Consumption, 0-3 replicas |
 
 ## Database (10 Tables, ~29M Rows)
 
@@ -118,13 +136,25 @@ npm run build -w mcp-server   # Compile MCP server
 ```
 
 ### Run MCP Server Locally
-The MCP server is configured in `.mcp.json` for Claude Code. It starts automatically when Claude Code uses the `philly-stats` tools.
 
-To test manually:
+**stdio mode** (Claude Code / Claude Desktop — default):
 ```bash
 node mcp-server/dist/index.js
 ```
-Environment variables: `APIM_BASE_URL`, `APIM_SUBSCRIPTION_KEY`
+
+**HTTP mode** (Streamable HTTP for remote clients):
+```bash
+MCP_TRANSPORT=http APIM_BASE_URL=https://philly-profiteering-apim.azure-api.net/api APIM_SUBSCRIPTION_KEY=<key> node mcp-server/dist/index.js
+```
+
+The MCP server is configured in `.mcp.json` for Claude Code. It starts automatically when Claude Code uses the `philly-stats` tools.
+
+### Deploy Container App (MCP Server as Remote HTTP)
+```bash
+# Requires: az CLI logged in, APIM_SUBSCRIPTION_KEY env var set
+./infra/deploy-agent.sh
+```
+This creates ACR, builds the Docker image, and deploys to Container Apps. The MCP server is then accessible at `https://philly-mcp-server.<env>.azurecontainerapps.io/mcp`.
 
 ### Deploy Functions
 
@@ -162,20 +192,41 @@ All resources are on consumption/serverless tiers — **~$1-2/month when idle**:
 - Storage Standard LRS: ~$0.50/mo each
 - No resources need manual stop/start — everything scales to zero automatically
 
-## Copilot Studio Integration (Open Item)
+## Remote MCP Server (Container App)
 
-MCP is GA in Copilot Studio (May 2025), but our MCP server uses **stdio transport** (local process). Copilot Studio requires a remote HTTP endpoint using **Streamable HTTP** transport (SSE was deprecated Aug 2025).
+The MCP server supports dual transport: **stdio** (local, default) and **Streamable HTTP** (remote, via `MCP_TRANSPORT=http`). The HTTP transport is deployed as a Container App for use with Azure AI Foundry, Copilot Studio, or any remote MCP client.
 
-**Two paths to Copilot Studio:**
-1. **Add Streamable HTTP transport** to the MCP server and deploy it as a hosted service (Azure App Service, Container App, etc.) — Copilot Studio discovers tools dynamically via MCP
-2. **Skip MCP, use APIM directly** — create a custom connector in Copilot Studio pointing at the APIM endpoints. No new code needed since APIM already exposes all 12 REST endpoints with subscription key auth
+- **Container App URL:** `https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io`
+- **MCP endpoint:** `/mcp` (POST for requests, GET for SSE, DELETE for session cleanup)
+- **Health check:** `/healthz`
+- **Scale:** 0-3 replicas (scales to zero when idle, ~$0 when not in use)
 
-Option 2 is faster (no code changes). Option 1 preserves MCP tool discovery. Research needed to decide.
+## Azure AI Foundry Agent
+
+The `agent/` directory contains a Python script for creating an Azure AI Foundry agent that uses the MCP server:
+
+```bash
+cd agent
+pip install -r requirements.txt
+az login
+export PROJECT_ENDPOINT=<your-foundry-project-endpoint>
+export MCP_SERVER_URL=https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io/mcp
+# Optional: export BING_CONNECTION_NAME=<bing-connection-id>
+python foundry_agent.py
+```
+
+The agent combines MCP tools (12 property data tools) with optional Bing web search grounding for real-time internet data.
+
+## Copilot Studio Integration
+
+MCP is GA in Copilot Studio (May 2025). Now that the MCP server has Streamable HTTP transport and is deployed on Container Apps, it can be connected directly:
+
+1. **MCP integration:** Point Copilot Studio at `https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io/mcp` — it auto-discovers all 12 tools
+2. **Direct APIM (alternative):** Create a custom connector pointing at APIM endpoints — no MCP needed
 
 **References:**
 - [MCP GA in Copilot Studio](https://www.microsoft.com/en-us/microsoft-copilot/blog/copilot-studio/model-context-protocol-mcp-is-now-generally-available-in-microsoft-copilot-studio/)
 - [Connect existing MCP server](https://learn.microsoft.com/en-us/microsoft-copilot-studio/mcp-add-existing-server-to-agent)
-- [Create new MCP server for Copilot Studio](https://learn.microsoft.com/en-us/microsoft-copilot-studio/mcp-create-new-server)
 
 ## Conventions
 

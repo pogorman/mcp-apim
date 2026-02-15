@@ -157,15 +157,57 @@ Once the MCP server is connected, try asking Claude:
 - "Find LLCs that own more than 50 properties and have demolition records"
 - "What properties at 19134 have both vacant land licenses and failed inspections?"
 
-## Copilot Studio (Future)
+## Remote MCP Server (Container App)
 
-The APIM endpoints can be consumed by Copilot Studio. Two integration paths are under consideration:
+The MCP server is also deployed as a Container App with Streamable HTTP transport, accessible to any remote MCP client (Azure AI Foundry, Copilot Studio, etc.):
 
-1. **Custom connector (no code changes):** Point a Copilot Studio custom connector at `https://philly-profiteering-apim.azure-api.net/api` with API key auth using the APIM subscription key. Import each endpoint as an action.
+**MCP Endpoint:** `https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io/mcp`
+**Health Check:** `https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io/healthz`
 
-2. **MCP server (requires code changes):** Add Streamable HTTP transport to the MCP server, deploy it as a hosted service, and connect Copilot Studio via its native MCP integration (GA since May 2025). SSE transport is deprecated — must use Streamable HTTP.
+```bash
+# Test health
+curl https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io/healthz
 
-See [MCP in Copilot Studio docs](https://learn.microsoft.com/en-us/microsoft-copilot-studio/agent-extend-action-mcp) for details.
+# Initialize MCP session
+curl -X POST https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0"}}}'
+```
+
+The response includes a `mcp-session-id` header — use it for subsequent requests (tools/list, tools/call).
+
+## Azure AI Foundry Agent
+
+The `agent/` directory contains a Python agent that connects to the MCP server and optionally adds Bing web search:
+
+```bash
+cd agent
+pip install -r requirements.txt
+az login
+
+export PROJECT_ENDPOINT=<your-foundry-project-endpoint>
+export MCP_SERVER_URL=https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io/mcp
+# Optional: export BING_CONNECTION_NAME=<bing-connection-id>
+
+# Interactive mode
+python foundry_agent.py
+
+# Single query
+python foundry_agent.py --query "Who are the top 5 worst property owners by violations?"
+```
+
+**Prerequisites:**
+- Azure AI Foundry project with a model deployment (e.g., gpt-4o)
+- (Optional) Grounding with Bing Search resource connected to the project
+
+## Copilot Studio
+
+The MCP server is deployed and ready for Copilot Studio. Point Copilot Studio at the MCP endpoint:
+
+`https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io/mcp`
+
+Copilot Studio will auto-discover all 12 tools. See [MCP in Copilot Studio docs](https://learn.microsoft.com/en-us/microsoft-copilot-studio/agent-extend-action-mcp) for setup.
 
 ## Notes
 
