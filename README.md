@@ -198,6 +198,8 @@ All resources are serverless/consumption — scale to zero when idle:
 ## Documentation
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) — Full technical reference: schema, ERD, API specs, agent behavior, infrastructure, Container App deep dive
+- [CLI_CHEATSHEET.md](CLI_CHEATSHEET.md) — Day-to-day management commands (Foundry agents, Container App, APIM, SQL, MCAPS troubleshooting)
+- [FAQ.md](FAQ.md) — Common questions: agent architecture, MCAPS policies, model deployments, costs, deployment gotchas
 - [USAGE.md](USAGE.md) — Quick start guides, curl examples, example prompts
 - [COMMANDS.md](COMMANDS.md) — All CLI commands used to build and deploy this project
 - [SESSION_LOG.md](SESSION_LOG.md) — Chronological build log with lessons learned

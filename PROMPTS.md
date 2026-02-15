@@ -84,6 +84,24 @@ User prompts from each session of building this project, reconstructed from sess
 - "is there a reason i can't open the azure foundry project? i get this error Error loading Azure AI hub You are attempting to access a restricted resource from an unauthorized network location. Please contact your administrator or follow the troubleshooting instructions"
 - "i would like to change the model, or at least have the option to use other models. like o4 mini, gpt 5.2, and phi-4.... there should be a dropdown where the model is currently displayed in the web page that allows me to choose"
 
+## Session 12 — Documentation, Foundry Deep-Dive, FAQ
+
+- "were you able to recover those jupityr notebook files from my colleague? there were 3 of them i think. it would be great to have those and save them in a folder called jupyter-notebooks ... they are on this repo https://github.com/davew-msft/PhillyStats/tree/main"
+- "push everything to git"
+- "are the resource groups and all azure resources listed in the architecture document? just checking."
+- "put in some clarification around the rg-foundry resource group, including what is specifically being used in that resource group so i can maybe clean up some stuff that isn't being used."
+- "ok...lets take another shot at the readme now. the opening line says it's an mcp server... but it's so much more. let's start the readme out with an executive summary, then a highlevel architecture diagram, then all the other content. just make sure all the other content is current."
+- "push everything to git"
+- "i'm still getting this error when i try to look at the agent in azure. Error loading Microsoft Foundry project You are attempting to access a restricted resource from an unauthorized network location. am i looking in the right place? do we need to add my ip address somewhere?"
+- "the account we're using is azure admin... or is there a higher azure admin for our dev tenants"
+- "can you teach me a few things about managing it from the cli? like even simple things like just seeing its name and setting its instructions and description. i can't see any of that"
+- "let's create a cli cheat sheet md for my root."
+- "can you explain why i can open the default foundry-deployments project no problem...but i can't open philly-profiteering foundry project"
+- "you mentioned in my philly profiteering foundry project there were no agents. if there are no agents how am i asking the model/deployment questions using the spa investigative agent? what is the investigative agent if not an agent in azure?"
+- "it would be great to capture all these q and a's in an md"
+- "in the world of ai agents today, are people building tools like we built or do they specifically build agents. or does it depend? and if so on what? what are the pros and cons to each approach?"
+- "make sure all this is in the appropriate mds.... then push everything to github and i'm gonna take a break. nice job!"
+
 ---
 
 ## Example Analysis Prompts (for use with the connected agent)

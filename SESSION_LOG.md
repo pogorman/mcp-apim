@@ -422,3 +422,52 @@ Note: gpt-5.2 was only available as `GlobalProvisionedManaged` (pay-per-hour, ex
 
 ### Key Lesson
 - Phi-4 uses `Microsoft` model format (MaaS) but deploys on the same AI Services account as OpenAI models. Same Azure OpenAI endpoint, same `DefaultAzureCredential` auth — just a different deployment name.
+
+---
+
+## Session 12 — Documentation, Foundry Deep-Dive, FAQ (2026-02-15)
+
+### Jupyter Notebooks
+- Found and downloaded 3 original PhillyStats Fabric/Synapse notebooks from `davew-msft/PhillyStats` repo via GitHub API
+- Saved to new `jupyter-notebooks/` directory:
+  - `PhillyStat 01-Setup.ipynb` (1.8 MB) — data setup and loading
+  - `PhillyStats-Analytics.ipynb` (45 KB) — analytics queries
+  - `PhillyStats02-LLC-Analytics.ipynb` (237 KB) — LLC-specific analysis
+
+### README Rewrite
+- Replaced opening line ("An MCP server that...") with executive summary describing the full platform
+- Rebuilt architecture diagram showing all tiers: Web SPA, Claude Code/Desktop, Foundry, Container App endpoints (`/chat`, `/mcp`, `/models`), APIM, Functions, SQL
+- Reordered sections: Web Interface moved above Quick Start
+- Added missing entries: `chat.ts`, `data/`, `jupyter-notebooks/` in project structure
+- Added `PROMPTS.md` to documentation links
+
+### ARCHITECTURE.md Resource Group Clarification
+- Split Resource Inventory into two sections by resource group (`rg-philly-profiteering` and `rg-foundry`)
+- Documented all 8 resources in `rg-foundry` with "Used by This Project?" column
+- Identified 3 cleanup candidates: `og-foundry-eus2`, `foundry-deployments`, `claude-foundry`
+- Noted `gpt-5-pro` on `og-foundry-eus2` uses GlobalProvisionedManaged (potential cost)
+
+### MCAPS Policy Investigation
+- Confirmed `AIFoundryHub_PublicNetwork_Modify` policy (Modify effect) actively rewrites `publicNetworkAccess = Disabled` on ML workspaces
+- Policy assigned at management group scope (`MCAPSGovDeployPolicies`) — subscription admin cannot override
+- Setting reverts to `Disabled` within seconds of being changed
+- This is why `foundry-deployments` (CognitiveServices project) works in portal but `philly-profiteering` (ML workspace project) doesn't — different resource types, policy only targets `MachineLearningServices/workspaces`
+
+### CLI Cheat Sheet (`CLI_CHEATSHEET.md`)
+- Created new root md for day-to-day management commands
+- Sections: Quick Status Check, AI Foundry (full agent lifecycle via REST API), Container App, APIM, SQL, MCAPS Policy Checks, Smoke Tests
+- Covers managing Foundry agents entirely via CLI since portal is blocked
+
+### FAQ (`FAQ.md`)
+- Created new root md capturing Q&As from this session
+- Architecture & Design: What is the Investigative Agent, why two resource groups
+- Azure Foundry & MCAPS: Why portal is blocked, management group hierarchy, resource type differences
+- Agent Patterns: Chat Completions + Tools vs Platform Agents vs Frameworks — when to use each, pros/cons, what production systems use
+- Model Deployments: What's deployed, why no GPT-5.2, model selection end-to-end
+- Infrastructure & Costs: Idle costs, cold start, cleanup candidates
+- Development & Deployment: Staging dir, zip backslash bug, MSYS path conversion
+
+### Key Lessons
+- MCAPS `Modify` policies cannot be overridden at subscription level — they actively rewrite resource properties, not just block changes
+- Azure has two types of "Foundry projects": `CognitiveServices/accounts/projects` (newer, not affected by ML workspace policies) and `MachineLearningServices/workspaces` (older, subject to MCAPS ML workspace policies)
+- Most production AI systems use Chat Completions + Tools (Pattern 1), not platform-managed agents — control, debuggability, and model flexibility outweigh convenience of managed state
