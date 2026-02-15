@@ -1,0 +1,37 @@
+{
+  "location": "eastus2",
+  "kind": "functionapp,linux",
+  "identity": {
+    "type": "SystemAssigned"
+  },
+  "properties": {
+    "reserved": true,
+    "serverFarmId": "/subscriptions/5f88e6f4-a18f-4154-b55e-03165ed460b7/resourceGroups/rg-philly-profiteering/providers/Microsoft.Web/serverfarms/philly-func-flex-plan",
+    "siteConfig": {
+      "appSettings": [
+        {"name": "AzureWebJobsStorage__accountName", "value": "phillyfuncsa"},
+        {"name": "SQL_SERVER", "value": "philly-stats-sql-01.database.windows.net"},
+        {"name": "SQL_DATABASE", "value": "phillystats"}
+      ]
+    },
+    "functionAppConfig": {
+      "deployment": {
+        "storage": {
+          "type": "blobContainer",
+          "value": "https://phillyfuncsa.blob.core.windows.net/deployments",
+          "authentication": {
+            "type": "SystemAssignedIdentity"
+          }
+        }
+      },
+      "scaleAndConcurrency": {
+        "maximumInstanceCount": 40,
+        "instanceMemoryMB": 2048
+      },
+      "runtime": {
+        "name": "node",
+        "version": "20"
+      }
+    }
+  }
+}

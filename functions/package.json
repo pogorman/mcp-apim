@@ -1,0 +1,23 @@
+{
+  "name": "philly-functions",
+  "version": "1.0.0",
+  "private": true,
+  "main": "dist/functions/*.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "start": "func start",
+    "prestart": "npm run build"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.5.0",
+    "@azure/identity": "^4.13.0",
+    "mssql": "^11.0.1",
+    "philly-functions": "file:"
+  },
+  "devDependencies": {
+    "@types/mssql": "^9.1.9",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0"
+  }
+}

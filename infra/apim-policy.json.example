@@ -1,0 +1,1 @@
+{"properties":{"format":"xml","value":"<policies><inbound><base /><set-header name=\"x-functions-key\" exists-action=\"override\"><value>YOUR_FUNCTION_KEY_HERE</value></set-header></inbound><backend><base /></backend><outbound><base /></outbound><on-error><base /></on-error></policies>"}}

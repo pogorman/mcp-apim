@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "philly-stats": {
+      "command": "node",
+      "args": ["mcp-server/dist/index.js"],
+      "env": {
+        "APIM_BASE_URL": "https://philly-profiteering-apim.azure-api.net/api",
+        "APIM_SUBSCRIPTION_KEY": "<your-apim-subscription-key>"
+      }
+    }
+  }
+}

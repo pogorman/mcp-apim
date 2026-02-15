@@ -1,0 +1,11 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "SQL_SERVER": "philly-profiteering-sql.database.windows.net",
+    "SQL_DATABASE": "phillystats",
+    "SQL_USER": "phillyadmin",
+    "SQL_PASSWORD": "YOUR_PASSWORD_HERE"
+  }
+}

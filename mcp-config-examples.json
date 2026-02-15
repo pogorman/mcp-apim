@@ -1,0 +1,31 @@
+{
+  "_comment": "MCP client configuration examples",
+
+  "claude_desktop_config": {
+    "_location": "~/Library/Application Support/Claude/claude_desktop_config.json (Mac) or %APPDATA%/Claude/claude_desktop_config.json (Windows)",
+    "mcpServers": {
+      "philly-profiteering": {
+        "command": "node",
+        "args": ["C:/Users/pogorman/source/repos/mcp-apim/mcp-server/dist/index.js"],
+        "env": {
+          "APIM_BASE_URL": "https://philly-profiteering-apim.azure-api.net/philly",
+          "APIM_SUBSCRIPTION_KEY": "your-key-here"
+        }
+      }
+    }
+  },
+
+  "claude_code_mcp_json": {
+    "_location": "Place .mcp.json in the project root (c:/Users/pogorman/source/repos/mcp-apim/.mcp.json)",
+    "mcpServers": {
+      "philly-profiteering": {
+        "command": "node",
+        "args": ["./mcp-server/dist/index.js"],
+        "env": {
+          "APIM_BASE_URL": "https://philly-profiteering-apim.azure-api.net/philly",
+          "APIM_SUBSCRIPTION_KEY": "your-key-here"
+        }
+      }
+    }
+  }
+}
