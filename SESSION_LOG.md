@@ -172,7 +172,8 @@ All resources are on cheapest viable tiers:
 
 ### Documentation Updates
 - Updated all root md files (CLAUDE.md, SESSION_LOG.md, USAGE.md)
-- Established convention: "root md files" = all root-level .md files, update at end of each session
+- Created `ARCHITECTURE.md` — comprehensive technical reference with executive summary, ASCII architecture diagrams, entity relationship diagram, full database schema documentation, all 12 API endpoint specifications (request/response), MCP tool listing, Azure resource inventory, cost model, security model, deployment procedures, and performance notes
+- Established convention: "root md files" = all root-level .md files (CLAUDE.md, SESSION_LOG.md, USAGE.md, ARCHITECTURE.md), update at end of each session
 - Added Copilot Studio section to CLAUDE.md and USAGE.md
 
 ---

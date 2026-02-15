@@ -179,7 +179,7 @@ Option 2 is faster (no code changes). Option 1 preserves MCP tool discovery. Res
 
 ## Conventions
 
-- Root `.md` files (`CLAUDE.md`, `SESSION_LOG.md`, `USAGE.md`) are collectively referred to as "root md files" — update all of them when wrapping up a session
+- Root `.md` files (`CLAUDE.md`, `SESSION_LOG.md`, `USAGE.md`, `ARCHITECTURE.md`) are collectively referred to as "root md files" — update all of them when wrapping up a session
 - `SESSION_LOG.md` is the chronological record — append new sessions at the bottom
 - Secrets go in gitignored files (`.mcp.json`, `infra/apim-policy.json`); committed `.example` templates have placeholders
 
