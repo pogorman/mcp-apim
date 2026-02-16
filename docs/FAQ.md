@@ -4,6 +4,18 @@ Questions and answers that came up while building and managing this project.
 
 ---
 
+## Table of Contents
+
+- [Architecture & Design](#architecture--design)
+- [Azure Foundry & MCAPS](#azure-foundry--mcaps)
+- [Model Deployments](#model-deployments)
+- [Tokens, Context & Model Behavior](#tokens-context--model-behavior)
+- [Infrastructure & Costs](#infrastructure--costs)
+- [Agent Patterns: Tools vs Platform Agents vs Frameworks](#agent-patterns-tools-vs-platform-agents-vs-frameworks)
+- [Development & Deployment](#development--deployment)
+
+---
+
 ## Architecture & Design
 
 ### What is the "Investigative Agent" in the SPA if there's no agent in Azure?
@@ -17,7 +29,7 @@ The SPA's Investigative Agent is **custom code**, not an Azure Foundry Agent. It
 
 There's no persistent agent resource in Azure for the Investigative Agent — it's a stateless function that rebuilds context from scratch each request. The conversation history is maintained client-side in the browser and sent with each message.
 
-The **City Portal** panel, by contrast, uses a real **Foundry Agent** (Assistants API): a persistent assistant (`philly-investigator`, ID `asst_CiN7zyMnsQxEcgG5JdTRXOpZ`) stored in Azure with a name, instructions, and tool configurations. It creates threads (conversations) and runs, and Azure manages the tool-calling loop with GPT-5. Both patterns use the same 12 tools and APIM backend.
+The **City Portal** panel, by contrast, uses a real **Foundry Agent** (Assistants API): a persistent assistant (`philly-investigator`, ID `asst_CiN7zyMnsQxEcgG5JdTRXOpZ`) stored in Azure with a name, instructions, and tool configurations. It creates threads (conversations) and runs, and Azure manages the tool-calling loop with GPT-4.1. Both patterns use the same 12 tools and APIM backend.
 
 ```
 What we built (Chat Completions):          What a Foundry Agent is (Assistants):
@@ -148,6 +160,96 @@ GPT-5.2 *is* deployed on the separate `og-foundry-eus2` AI Services account in E
 
 ---
 
+## Tokens, Context & Model Behavior
+
+### What are tokens and why do they matter?
+
+Tokens are the unit of measurement for AI models. A token is roughly 3/4 of a word — "Philadelphia" is 4 tokens, "LLC" is 1 token. Everything the model reads (your question, the system prompt, tool definitions, tool results) and writes (the response) is counted in tokens. You pay per token consumed.
+
+This matters for cost and performance:
+- **GPT-4.1**: ~$2/million input tokens, ~$8/million output tokens
+- **GPT-5**: ~$10/million input tokens, ~$30/million output tokens
+- **Phi-4**: Cheapest (Microsoft's small language model)
+
+A typical question that chains 3 tool calls might use 5,000-15,000 tokens total. At GPT-4.1 prices, that's about $0.01-0.05 per question.
+
+### What is a context window?
+
+The context window is how much text the AI can "see" at once — its working memory. For GPT-4.1, it's ~128,000 tokens (~96,000 words). Everything needs to fit in this window:
+
+1. **System prompt** (~500 tokens) — tells the model who it is and how to behave
+2. **12 tool definitions** (~3,000 tokens) — descriptions of every tool the model can call
+3. **Conversation history** — grows with each exchange
+4. **Tool results** — database query results can be large (thousands of tokens per call)
+
+After a long conversation with many tool calls, you can approach the limit. That's why fresh conversations sometimes give better results than long threads — the model has more room to think.
+
+### What is temperature and how does it affect responses?
+
+Temperature controls randomness in the model's output. It's a number from 0 to 2:
+
+- **0**: Deterministic — always picks the most likely next word. Same input = same output.
+- **0.7-1.0**: Balanced — mostly predictable with some variety. Good for investigations.
+- **2.0**: Very random — can produce incoherent output.
+
+In our system:
+- The **Investigative Agent** uses the model's default temperature (~1.0)
+- The **City Portal** uses the assistant's default temperature (1.0)
+- **Reasoning models** (o4-mini, o3-mini) ignore temperature entirely — they always reason deterministically
+
+This is why you can ask the same question twice and get differently worded answers. The underlying data is the same, but the model phrases its analysis differently each time.
+
+### What are reasoning models and why are they different?
+
+Reasoning models (o4-mini, o3-mini, GPT-5) "think" internally before answering. They use hidden **reasoning tokens** — tokens you pay for but never see in the output. The model works through the problem step by step in its head, then gives you just the final answer.
+
+Key differences from standard models:
+- **Ignore temperature** — always reason deterministically
+- **Require explicit `max_completion_tokens`** — without it, the model may spend its entire token budget on internal reasoning and return an empty response (this happened to our Foundry Agent with GPT-5)
+- **More expensive** — you pay for both the visible output and the hidden reasoning
+- **More thorough** — they tend to catch nuances that standard models miss
+
+### Why does each panel give different answers to the same question?
+
+Five factors combine to produce different responses:
+
+1. **Different models**: GPT-4.1 is methodical, GPT-5 reasons deeply, o4-mini is concise, Phi-4 sometimes misses nuance. Each model has its own personality.
+
+2. **Different context management**: The Investigative Agent sends full conversation history every time (maximum context). The City Portal lets Azure manage context — Azure may summarize or trim older messages. Copilot Studio manages its own context.
+
+3. **Different tool output sizes**: The Investigative Agent gets full, untruncated tool results. The City Portal truncates results over 200KB (an Assistants API limit — combined tool outputs must be under 512KB). Large result sets may lose data in the City Portal.
+
+4. **Different system prompts**: Each client has slightly different instructions. Copilot Studio adds its own system prompt on top of ours.
+
+5. **Temperature randomness**: Even with the same model and data, the exact wording varies each time. Facts should be consistent; narrative structure will differ.
+
+### Why did the City Portal switch from GPT-5 to GPT-4.1?
+
+GPT-5 was initially configured as the City Portal's model (Assistants API), but we hit three issues:
+
+1. **Empty responses**: GPT-5 is a reasoning model that requires explicit `max_completion_tokens`. Without it, the Assistants API run "completes" in 0-1 seconds with zero tool calls and no response — the model spends its entire budget on internal reasoning.
+
+2. **Tool output limits**: The Assistants API has a 512KB combined limit on tool outputs. Some of our tools return large JSON payloads (property networks can be 2MB+). We added truncation at 200KB per tool result.
+
+3. **Server errors**: Even after fixing the above, GPT-5 would successfully make 4 rounds of tool calls, then crash with `server_error` when generating the final response. Simple "hello" queries also failed. GPT-5 on the Assistants API was unstable.
+
+GPT-4.1 works reliably on the Assistants API and produces excellent results. GPT-5 still works fine via the Investigative Agent (Chat Completions API) — the instability is specific to the Assistants API.
+
+### How much does a typical question cost in tokens?
+
+It varies by complexity:
+
+| Question Type | Tool Calls | Approximate Tokens | GPT-4.1 Cost |
+|--------------|-----------|-------------------|--------------|
+| Simple lookup ("top 5 violators") | 1 | 4,000-6,000 | ~$0.01 |
+| Entity investigation ("tell me about GEENA LLC") | 2-3 | 8,000-15,000 | ~$0.03 |
+| Deep dive ("everything about 2837 Kensington Ave") | 4-5 | 15,000-30,000 | ~$0.05 |
+| Complex comparison ("compare two zip codes") | 2-4 | 10,000-20,000 | ~$0.04 |
+
+The biggest token consumers are tool results — a single `get_entity_network` call for an entity with 300+ properties can return 200KB of JSON. The system prompt + 12 tool definitions add ~3,500 tokens of overhead to every request.
+
+---
+
 ## Infrastructure & Costs
 
 ### What does this cost when idle?
@@ -253,7 +355,7 @@ Most teams start with agent frameworks, then simplify down to raw Chat Completio
 Our system demonstrates all four client patterns side-by-side in the SPA:
 
 - **Investigative Agent** (Chat Completions + Tools) — our code runs the loop in `chat.ts`. Stateless, full control, model-selectable (6 models).
-- **City Portal** (Assistants API / Foundry Agent) — Azure runs the loop via `foundry-agent.ts` with GPT-5. Stateful threads, follow-ups remember context.
+- **City Portal** (Assistants API / Foundry Agent) — Azure runs the loop via `foundry-agent.ts` with GPT-4.1. Stateful threads, follow-ups remember context.
 - **Copilot Studio** (MCP via Low-Code) — Microsoft Copilot Studio agent connected to the MCP endpoint. Demonstrates the low-code/no-code path. Embedded as a floating widget.
 - **MCP Tool Tester** (Raw MCP Protocol) — direct tool calls, no AI in the loop.
 

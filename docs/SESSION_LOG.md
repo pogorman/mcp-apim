@@ -4,6 +4,28 @@ Chronological record of what was built, what broke, and how it was fixed. Keeps 
 
 ---
 
+## Table of Contents
+
+- [Session 1 — Project Setup & Planning](#session-1--project-setup--planning)
+- [Session 2 — SQL Schema & Infrastructure](#session-2--sql-schema--infrastructure)
+- [Session 3 — Azure Functions](#session-3--azure-functions)
+- [Session 4 — MCP Server](#session-4--mcp-server)
+- [Session 5 — Deployment & Debugging](#session-5--deployment--debugging-longest-session)
+- [Session 6 — Documentation & Git](#session-6--documentation--git)
+- [Session 7 — Streamable HTTP, Container App, Foundry Agent](#session-7--streamable-http-transport-container-app-foundry-agent-2026-02-15)
+- [Session 8 — Documentation, SPA Test Harness](#session-8--documentation-spa-test-harness-2026-02-15)
+- [Session 9 — Azure AI Foundry, Chat Endpoint, Chat SPA](#session-9--azure-ai-foundry-chat-endpoint-chat-spa-2026-02-15)
+- [Session 10 — Documentation Deep-Dive, Dual-Panel SPA](#session-10--documentation-deep-dive-dual-panel-spa-2026-02-15)
+- [Session 11 — Model Selector, AI Foundry Fix](#session-11--model-selector-ai-foundry-fix-2026-02-15)
+- [Session 12 — Documentation, Foundry Deep-Dive, FAQ](#session-12--documentation-foundry-deep-dive-faq-2026-02-15)
+- [Session 13 — City Portal + Foundry Agent](#session-13--city-portal--foundry-agent-2026-02-16)
+- [Session 14 — UI Polish, Copilot Studio, Docs Reorganization](#session-14--ui-polish-copilot-studio-integration-docs-reorganization-2026-02-16)
+- [Session 15 — Copilot Studio Panel, User Guide, Wake-Up Script](#session-15--copilot-studio-panel-user-guide-wake-up-script)
+- [Session 16 — ELI5 Documentation, Doc Updates](#session-16--eli5-documentation-doc-updates-2026-02-15)
+- [Session 17 — Foundry Agent Fix, Token Docs, TOCs](#session-17--foundry-agent-fix-token-docs-tocs-2026-02-15)
+
+---
+
 ## Session 1 — Project Setup & Planning
 
 - Designed full architecture: MCP Server → APIM → Azure Functions → Azure SQL
@@ -665,3 +687,85 @@ Pattern 4: MCP Tool Tester (Raw MCP Protocol)
 - Dark-themed tiles (`carto/dark_all`) match the SPA's dark theme; custom popup styling overrides Leaflet defaults
 - Did NOT load all 583K properties on welcome screen (would crash browser). Welcome map is just a clean visual.
 - Documented upgrade path in USER_GUIDE.md: marker clustering, heatmaps, Azure Maps, Power BI Embedded, Mapbox GL, GeoJSON boundaries
+
+---
+
+## Session 16 — ELI5 Documentation, Doc Updates (2026-02-15)
+
+### ELI5.md
+- Created `docs/ELI5.md` — a plain-English explainer designed for demos and presentations
+- Includes: one-liner, elevator pitch, 5-minute demo walkthrough script, data overview, no-jargon architecture, some-jargon architecture, four-pattern comparison table, the "why it matters" story, non-technical FAQ, cost breakdown, and a glossary of every technical term
+- Written so the user can hand it to anyone — executives, journalists, community organizers, other engineers — and they can understand the platform at whatever depth they need
+
+### Documentation Updates
+- Updated `CLAUDE.md`:
+  - Added ELI5.md to project structure and conventions
+  - Added "ELI5.md must be kept current" convention
+  - Replaced stale USAGE.md reference with USER_GUIDE.md
+  - Updated Copilot Studio description (own panel, not global float)
+  - Added maps mention
+- Updated `README.md`:
+  - Added ELI5.md as first item in Documentation section ("start here if you're new")
+  - Added maps mention to chat agent description
+  - Updated project structure docs line
+- Updated `docs/USER_GUIDE.md`:
+  - Added ELI5.md to developer docs table
+- Updated `docs/SESSION_LOG.md`: added Session 16
+- Updated `docs/PROMPTS.md`: added Session 16 prompts
+
+---
+
+## Session 17 — Foundry Agent Fix, Token Docs, TOCs (2026-02-15)
+
+### Foundry Agent Debugging & Fix
+
+The City Portal (Assistants API) was returning "(no response)" with empty tool calls. Three root causes were identified and fixed:
+
+**Issue 1 — GPT-5 needs `max_completion_tokens`:**
+GPT-5 is a reasoning model that requires explicit `max_completion_tokens`. Without it, the Assistants API run "completes" in 0-1 seconds — the model spends its entire token budget on internal reasoning and produces empty output.
+- Fix: Added `max_completion_tokens: 16000` to `client.beta.threads.runs.create()` in `foundry-agent.ts`
+- Also removed `temperature: 0.7` from assistant creation (reasoning models don't support custom temperature)
+
+**Issue 2 — Tool output exceeds Assistants API limits:**
+The Assistants API has a 512KB combined limit on tool outputs (stricter than the individual 1MB limit documented). Some tools (e.g., `get_entity_network` for entities with 300+ properties) return 2MB+ of JSON.
+- Fix: Added `truncateOutput()` function in `foundry-agent.ts` capping each tool result at 200KB
+- Constant: `MAX_TOOL_OUTPUT = 200_000`
+
+**Issue 3 — GPT-5 unstable on Assistants API:**
+Even after fixing issues 1 and 2, GPT-5 would successfully make 4 rounds of tool calls, then crash with `server_error: "Sorry, something went wrong."` on the final response. Simple "hello" queries also failed. GPT-5 works fine via Chat Completions API but is unreliable on the Assistants API.
+- Fix: Changed `AGENT_MODEL` from `"gpt-5"` to `"gpt-4.1"` in `foundry-agent.ts`
+- Updated live assistant via REST API to use gpt-4.1
+
+**Deployment note:** Container App `az containerapp update --image` with same tag (`latest`) doesn't create a new revision. Required `--revision-suffix "fix$(date +%s)"` to force new revisions.
+
+### ELI5.md Updates — Tokens, Context, Temperature
+- Added "How AI Models Think — Tokens, Context, and Temperature" section
+- Added "Why Each Panel Gives Different Answers" section with comparison table
+- Fixed City Portal model reference from GPT-5 to GPT-4.1
+- Added glossary terms: Token, Context window, Temperature, Reasoning model
+
+### FAQ.md Updates — Token/Model Behavior Q&As
+- Added new "Tokens, Context & Model Behavior" section with 7 Q&As:
+  - What are tokens, what is a context window, what is temperature, reasoning models, why panels differ, why GPT-5→GPT-4.1 switch, token cost per question type
+- Fixed GPT-5 → GPT-4.1 in City Portal references
+
+### GPT-5 → GPT-4.1 Reference Updates
+Fixed stale GPT-5 references for the City Portal across all docs:
+- `CLAUDE.md`: architecture diagram, web interface section, agent endpoints
+- `README.md`: City Portal description
+- `ARCHITECTURE.md`: executive summary, Container App endpoints table, City Portal section
+- `FAQ.md`: architecture Q&A, four-patterns comparison
+- `ELI5.md`: four-ways comparison table (fixed in prior session segment)
+
+### Table of Contents
+Added TOCs to all markdown files that didn't have them:
+- `docs/ARCHITECTURE.md`, `docs/CLI_CHEATSHEET.md`, `docs/COMMANDS.md`
+- `docs/SESSION_LOG.md`, `docs/PROMPTS.md`, `docs/FAQ.md`
+- `CLAUDE.md`, `README.md`
+(ELI5.md and USER_GUIDE.md already had TOCs)
+
+### Key Lessons
+- GPT-5 (reasoning model) on the Assistants API requires explicit `max_completion_tokens` — without it, the model exhausts its budget on internal reasoning and returns nothing
+- Assistants API combined tool output limit is 512KB (stricter than the documented 1MB per-output limit)
+- GPT-5 is unstable on the Assistants API (server_error after tool rounds) but works fine via Chat Completions — use GPT-4.1 for the Foundry Agent
+- Container App image updates with same tag need `--revision-suffix` to force new revisions

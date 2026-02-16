@@ -421,9 +421,10 @@ For building, deploying, and operating the system:
 
 | Document | What It Covers |
 |----------|---------------|
+| [ELI5.md](ELI5.md) | Plain-English explainer for demos and presentations |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Full system architecture, database schema, API specs, security model |
 | [COMMANDS.md](COMMANDS.md) | Every CLI command used to build and deploy the system |
 | [CLI_CHEATSHEET.md](CLI_CHEATSHEET.md) | Day-to-day management commands (status checks, deployments, troubleshooting) |
 | [FAQ.md](FAQ.md) | Technical Q&A (MCAPS policies, Foundry portal, agent patterns, Azure SQL vs Dataverse) |
-| [SESSION_LOG.md](SESSION_LOG.md) | Chronological build log (14 sessions, what was built, what broke, how it was fixed) |
+| [SESSION_LOG.md](SESSION_LOG.md) | Chronological build log with lessons learned |
 | [PROMPTS.md](PROMPTS.md) | User prompts from each build session |

@@ -4,6 +4,29 @@ User prompts from each session of building this project, reconstructed from sess
 
 ---
 
+## Table of Contents
+
+- [Session 1 — Project Setup & Planning](#session-1--project-setup--planning)
+- [Session 2 — SQL Schema & Infrastructure](#session-2--sql-schema--infrastructure)
+- [Session 3 — Azure Functions](#session-3--azure-functions)
+- [Session 4 — MCP Server](#session-4--mcp-server)
+- [Session 5 — Deployment & Debugging](#session-5--deployment--debugging)
+- [Session 6 — Documentation & Git](#session-6--documentation--git)
+- [Session 7 — Streamable HTTP, Container App, Foundry Agent](#session-7--streamable-http-container-app-foundry-agent)
+- [Session 8 — Documentation & SPA](#session-8--documentation--spa)
+- [Session 9 — Azure AI Foundry, Chat Endpoint, Chat SPA](#session-9--azure-ai-foundry-chat-endpoint-chat-spa)
+- [Session 10 — Documentation Deep-Dive, Dual-Panel SPA](#session-10--documentation-deep-dive-dual-panel-spa)
+- [Session 11 — Model Selector, AI Foundry Fix](#session-11--model-selector-ai-foundry-fix)
+- [Session 12 — Documentation, Foundry Deep-Dive, FAQ](#session-12--documentation-foundry-deep-dive-faq)
+- [Session 13 — City Portal + Foundry Agent](#session-13--city-portal--foundry-agent)
+- [Session 14 — UI Polish, Copilot Studio, Docs Reorganization](#session-14--ui-polish-copilot-studio-docs-reorganization)
+- [Session 15 — Copilot Studio Panel, User Guide, Wake-Up Script](#session-15--copilot-studio-panel-user-guide-wake-up-script)
+- [Session 16 — ELI5 Documentation](#session-16--eli5-documentation)
+- [Session 17 — Foundry Agent Fix, Token Docs](#session-17--foundry-agent-fix-token-docs)
+- [Example Analysis Prompts](#example-analysis-prompts-for-use-with-the-connected-agent)
+
+---
+
 ## Session 1 — Project Setup & Planning
 
 - Initial project briefing describing the goal: build an MCP server for investigating poverty profiteering in Philadelphia, using public property data from davew-msft/PhillyStats
@@ -137,6 +160,23 @@ User prompts from each session of building this project, reconstructed from sess
 - "also... the copilot studio agent needs to go back to having it's own left hand navigation. once that is selected, then show the floating icon for launching the agent ...but not on every page"
 - "right...get all this into a set of release notes and put it wherever it makes sense w the other release notes based on this next comment. i need a user guide for the spa... can we rebrand and consolidate some of our mds in the docs folder and provide a super easy to use hey here's how this works and what each interface is for so a 12 year old could simply open up the url and do it? the doc should have a toc at the top and of course start with a summary, but then immediately get into what people can do with the app right from jump street assuming they have the url. i'm not going to hand this document out, so feel free to lump whatever other content from the other mds you feel we can consolidate and make easily findable from a toc."
 - "also, is there anyway to have a script that wakes everything up or is it best just to go in and run a prompt?"
+- "that's great, get ride/delete any mds we no longer need if you didn't do so already"
+- "i would love to incorporate maps somehow into this.. something simple at first like if i ask for addresses i get a list accompanied by a map. i have access to power bi... or whatever you suggest. is this possible? what do you suggest?"
+- "dude build it hell yeah but make sure to include in our mds the information above and how we can upgrade to something more sophisticated later. on the home page for the spa put a map with all the addresses unless you think that's crazy resource wise. but then come up w wherever we can use a map to embed it and make it more visually appealing"
+
+## Session 16 — ELI5 Documentation
+
+- "go through all or mds... all our code whatever you need to. make me a no kidding file called ELI5.md that explains this solution to me in a manner that allows me to easily explain it to others"
+- "add whatever instructions you need to so that you always update this file"
+- "i will use this for my demos/presentations when i need to dumb things down depending on my audience"
+- "and for gods sake make sure you're updating all our mds in the docs folder and the root, ie claude.md and readme.md"
+
+## Session 17 — Foundry Agent Fix, Token Docs
+
+- "i know how to use the custom spa and the copilot studio agent....but how do i try the actual foundry agent? is that an option on our spa?"
+- "something is wrong w the foundry agent on the portal. keeps telling me (no response)"
+- (Extensive debugging of Foundry Agent — GPT-5 reasoning model issues, tool output limits, server errors. Switched to GPT-4.1.)
+- "in the eli5, make sure you cover context and how tokens work and why we get such different responses across the clients. explain temperature to me and anything about token consumption, both generically and how that applies to the models in our solutions, and make sure it goes in the faq. update everything esp the md files and your memory, check into git, and we'll pick this back up tomorrow. make sure all mds have a toc if you didn't do that already. hey and can you make a note in your memory that when we pick things up tomorrow we need to talk about authentication so not just anyone can use this spa? we don't need to do anything now, but reminder for next session to remind me?"
 
 ---
 

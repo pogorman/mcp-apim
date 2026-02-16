@@ -1,12 +1,29 @@
 # Architecture & Technical Reference
 
+## Table of Contents
+
+- [Executive Summary](#executive-summary)
+- [System Architecture](#system-architecture)
+- [Data Sources](#data-sources)
+- [Database Schema](#database-schema)
+- [Azure Functions API](#azure-functions-api)
+- [MCP Server](#mcp-server)
+- [Container App Deep Dive](#container-app-deep-dive)
+- [Agent Behavior: How the LLM Decides What to Do](#agent-behavior-how-the-llm-decides-what-to-do)
+- [Azure Infrastructure](#azure-infrastructure)
+- [Deployment](#deployment)
+- [Performance Considerations](#performance-considerations)
+- [Web Interface (Static Web App)](#web-interface-static-web-app)
+
+---
+
 ## Executive Summary
 
 This system enables AI agents to investigate poverty profiteering patterns in Philadelphia by querying 10 public datasets (~29 million rows, ~4.4GB) through a standardized API. It connects property ownership networks, code violations, demolitions, business licenses, and tax assessments to surface exploitative LLCs and property owners.
 
 The architecture follows a four-tier pattern: an **MCP Server** translates AI tool calls into HTTPS requests to **Azure API Management**, which authenticates and routes them to **Azure Functions**, which query an **Azure SQL Database**. All compute tiers are serverless/consumption-based, costing ~$1-2/month when idle.
 
-The MCP server supports dual transport: **stdio** (local, for Claude Code/Desktop) and **Streamable HTTP** (remote, deployed on Azure Container Apps for Azure AI Foundry, Copilot Studio, and other remote MCP clients). A **chat endpoint** (`/chat`) powered by Azure OpenAI (6 selectable models) with tool calling enables natural language interaction via a web SPA. An **agent endpoint** (`/agent`) uses the Assistants API with GPT-5 for stateful, thread-based conversations. A **Copilot Studio** agent connects via MCP for a low-code integration path. The LLM autonomously selects and invokes tools to answer user questions across all patterns.
+The MCP server supports dual transport: **stdio** (local, for Claude Code/Desktop) and **Streamable HTTP** (remote, deployed on Azure Container Apps for Azure AI Foundry, Copilot Studio, and other remote MCP clients). A **chat endpoint** (`/chat`) powered by Azure OpenAI (6 selectable models) with tool calling enables natural language interaction via a web SPA. An **agent endpoint** (`/agent`) uses the Assistants API with GPT-4.1 for stateful, thread-based conversations. A **Copilot Studio** agent connects via MCP for a low-code integration path. The LLM autonomously selects and invokes tools to answer user questions across all patterns.
 
 ---
 
@@ -593,7 +610,7 @@ The container runs a single Node.js process executing `dist/index.js` with `MCP_
 | `POST/GET/DELETE /mcp` | MCP protocol (Streamable HTTP) — tool discovery and invocation | MCP clients (Foundry, Copilot Studio, etc.) |
 | `POST /chat` | Natural language chat — 6 selectable models with tool calling (Chat Completions) | Web SPA (Investigative Agent), curl, any HTTP client |
 | `POST /agent/thread` | Create a new Assistants API thread | Web SPA (City Portal) |
-| `POST /agent/message` | Send message to thread — GPT-5 Assistants API with tool calling | Web SPA (City Portal) |
+| `POST /agent/message` | Send message to thread — GPT-4.1 Assistants API with tool calling | Web SPA (City Portal) |
 | `GET /models` | List available model deployments | Web SPA (model selector dropdown) |
 
 ### Environment & Secrets
@@ -863,12 +880,12 @@ Browser → Container App /chat → Azure OpenAI (tool calling) → APIM → Fun
 
 - Philadelphia-branded government page with navy/yellow color scheme
 - Floating chat widget (FAB icon, bottom-right of the City Portal panel)
-- Azure manages the tool-calling loop using GPT-5 via the Assistants API
+- Azure manages the tool-calling loop using GPT-4.1 via the Assistants API
 - Threads persist server-side — follow-up questions remember context without resending history
 - Agent named `philly-investigator` (assistant ID: `asst_CiN7zyMnsQxEcgG5JdTRXOpZ`)
 
 ```
-Browser → Container App /agent/thread + /agent/message → Azure OpenAI Assistants API (GPT-5) → APIM → Functions → SQL
+Browser → Container App /agent/thread + /agent/message → Azure OpenAI Assistants API (GPT-4.1) → APIM → Functions → SQL
 ```
 
 ### Pattern 3: Copilot Studio (MCP via Low-Code)

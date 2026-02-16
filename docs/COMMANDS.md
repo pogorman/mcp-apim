@@ -4,6 +4,25 @@ All CLI commands used to build, deploy, and manage this project. Grouped by cate
 
 ---
 
+## Table of Contents
+
+- [Build & Development](#build--development)
+- [Azure Infrastructure](#azure-infrastructure-infradeploysh)
+- [Container App Deployment](#container-app-deployment-infradeploy-agentsh)
+- [Function App Deployment](#function-app-deployment)
+- [Data Loading](#data-loading)
+- [SQL Administration](#sql-administration)
+- [API Testing (curl)](#api-testing-curl)
+- [MCP Testing (Container App)](#mcp-testing-container-app)
+- [Azure AI Foundry Agent](#azure-ai-foundry-agent)
+- [Chat API Testing](#chat-api-testing)
+- [Azure AI Foundry Setup](#azure-ai-foundry-setup)
+- [Static Web App (Chat SPA)](#static-web-app-chat-spa)
+- [Git & GitHub](#git--github)
+- [Troubleshooting](#troubleshooting)
+
+---
+
 ## Build & Development
 
 ```bash

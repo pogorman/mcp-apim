@@ -10,7 +10,7 @@ import { SYSTEM_PROMPT, TOOLS, executeTool } from "./tool-executor.js";
 
 const AZURE_OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT ?? "https://foundry-og-agents.cognitiveservices.azure.com/";
 const AZURE_OPENAI_API_VERSION = "2025-01-01-preview";
-const AGENT_MODEL = "gpt-5";
+const AGENT_MODEL = "gpt-4.1";
 const AGENT_NAME = "philly-investigator";
 
 let clientInstance: AzureOpenAI | null = null;
@@ -59,7 +59,6 @@ export async function ensureAgent(): Promise<string> {
         type: "function" as const,
         function: t.function,
       })),
-    temperature: 0.7,
   });
 
   agentId = assistant.id;
@@ -80,6 +79,16 @@ export interface AgentResponse {
   toolCalls: Array<{ name: string; args: Record<string, unknown> }>;
 }
 
+// Assistants API: combined tool outputs must be < 512KB. Keep each output under 200KB.
+const MAX_TOOL_OUTPUT = 200_000;
+
+function truncateOutput(output: string): string {
+  if (output.length <= MAX_TOOL_OUTPUT) return output;
+  // Try to truncate JSON arrays cleanly — keep first portion and close the array
+  const truncated = output.slice(0, MAX_TOOL_OUTPUT - 100);
+  return truncated + '\n\n... [truncated — output exceeded 1MB limit. Ask a more specific question to narrow results.]';
+}
+
 /** Send a message to a thread and run the assistant. Polls until complete. */
 export async function sendMessage(threadId: string, message: string): Promise<AgentResponse> {
   const client = getClient();
@@ -92,9 +101,10 @@ export async function sendMessage(threadId: string, message: string): Promise<Ag
     content: message,
   });
 
-  // Create a run
+  // Create a run — GPT-5 is a reasoning model and requires explicit max_completion_tokens
   let run = await client.beta.threads.runs.create(threadId, {
     assistant_id: assistantId,
+    max_completion_tokens: 16000,
   });
 
   console.log(`[agent] Run ${run.id} started (status: ${run.status})`);
@@ -127,7 +137,7 @@ export async function sendMessage(threadId: string, message: string): Promise<Ag
 
           toolOutputs.push({
             tool_call_id: tc.id,
-            output: result,
+            output: truncateOutput(result),
           });
         }
 

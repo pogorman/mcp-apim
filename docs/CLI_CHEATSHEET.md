@@ -4,6 +4,19 @@ Day-to-day management commands for the Philly Poverty Profiteering platform. For
 
 ---
 
+## Table of Contents
+
+- [Quick Status Check](#quick-status-check)
+- [AI Foundry (Portal Blocked by MCAPS)](#ai-foundry-portal-blocked-by-mcaps)
+- [Container App Management](#container-app-management)
+- [APIM](#apim)
+- [SQL Database](#sql-database)
+- [MCAPS Policy Checks](#mcaps-policy-checks)
+- [Quick API Smoke Tests](#quick-api-smoke-tests)
+- [Resource Costs (Quick Check)](#resource-costs-quick-check)
+
+---
+
 ## Quick Status Check
 
 ```bash

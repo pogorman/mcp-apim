@@ -1,5 +1,25 @@
 # Philly Poverty Profiteering - MCP + APIM + Azure Functions + Azure SQL
 
+## Table of Contents
+
+- [What This Is](#what-this-is)
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Azure Resources](#azure-resources)
+- [Database (10 Tables, ~29M Rows)](#database-10-tables-29m-rows)
+- [MCP Tools (12)](#mcp-tools-12)
+- [Building & Running](#building--running)
+- [Key Design Decisions](#key-design-decisions)
+- [Azure Costs](#azure-costs)
+- [Web Interface (Static Web App)](#web-interface-static-web-app)
+- [Remote MCP Server (Container App)](#remote-mcp-server-container-app)
+- [Azure AI Foundry Agent](#azure-ai-foundry-agent)
+- [Copilot Studio Integration](#copilot-studio-integration)
+- [Conventions](#conventions)
+- [Data Source](#data-source)
+
+---
+
 ## What This Is
 
 An MCP (Model Context Protocol) server that lets AI agents investigate poverty profiteering patterns in Philadelphia using 10 public datasets (~29M rows, ~4.4GB). The agent queries property ownership networks, code violations, demolitions, business licenses, and assessment data to identify exploitative LLCs and property owners.
@@ -14,7 +34,7 @@ Web Chat SPA — Investigative Agent (Static Web App)
     └→ Container App /chat → Azure OpenAI (6 models, tool calling) → APIM → Functions → SQL
 
 Web Chat SPA — City Portal / Foundry Agent (Static Web App)
-    └→ Container App /agent → Azure OpenAI GPT-5 (Assistants API, persistent threads) → APIM → Functions → SQL
+    └→ Container App /agent → Azure OpenAI GPT-4.1 (Assistants API, persistent threads) → APIM → Functions → SQL
 
 Microsoft Copilot Studio (floating widget in SPA)
     └→ Container App /mcp (Streamable HTTP) → APIM → Functions → SQL
@@ -44,7 +64,7 @@ Chat endpoint (/chat — Investigative Agent):
 
 Agent endpoint (/agent — City Portal / Foundry Agent):
     Browser SPA → Container App /agent/thread + /agent/message
-        → Azure OpenAI GPT-5 (Assistants API, persistent threads)
+        → Azure OpenAI GPT-4.1 (Assistants API, persistent threads)
         → APIM → Functions → SQL (per tool call)
         → Natural language response with thread context
 ```
@@ -97,10 +117,11 @@ mcp-apim/
 │   ├── ARCHITECTURE.md       # Full technical reference
 │   ├── CLI_CHEATSHEET.md     # Day-to-day management commands
 │   ├── COMMANDS.md           # All CLI commands used to build/deploy
+│   ├── ELI5.md               # Plain-English explainer for demos/presentations
 │   ├── FAQ.md                # Common questions and answers
 │   ├── PROMPTS.md            # User prompts from each session
 │   ├── SESSION_LOG.md        # Chronological build log
-│   └── USAGE.md              # Quick start guides, examples
+│   └── USER_GUIDE.md         # How to use the web app (non-technical)
 ├── .mcp.json                 # MCP server config for Claude Code
 └── mcp-config-examples.json  # Config examples for Claude Desktop
 ```
@@ -235,11 +256,11 @@ All resources are on consumption/serverless tiers — **~$1-2/month when idle**:
 
 SPA with VS Code-style activity bar demonstrating four client patterns using the same APIM backend:
 - **Investigative Agent** — Chat Completions + Tools. Natural language chat with model selector (6 models). Our code runs the agentic loop (`/chat` endpoint).
-- **City Portal** — Assistants API (Foundry Agent). Philadelphia-branded page with floating chat widget. Azure manages the tool-calling loop with GPT-5 and threads persist server-side (`/agent` endpoints).
-- **Copilot Studio** — Microsoft Copilot Studio agent connected via MCP. Floating widget (purple star icon, bottom-right) accessible from any page. Demonstrates the low-code/no-code integration path.
+- **City Portal** — Assistants API (Foundry Agent). Philadelphia-branded page with floating chat widget. Azure manages the tool-calling loop with GPT-4.1 and threads persist server-side (`/agent` endpoints).
+- **Copilot Studio** — Microsoft Copilot Studio agent connected via MCP. Has its own panel with a floating chat widget. Demonstrates the low-code/no-code integration path.
 - **MCP Tool Tester** — Raw MCP protocol. Direct tool discovery and invocation via Streamable HTTP (`/mcp` endpoint).
 
-Panels can be open side-by-side or individually. The Copilot Studio widget floats above all panels.
+Panels can be open side-by-side or individually. Chat responses in the Investigative Agent include inline maps powered by Leaflet.js when properties have coordinates (99.97% do).
 
 Deployed at: `https://kind-forest-06c4d3c0f.1.azurestaticapps.net/`
 
@@ -255,7 +276,7 @@ The MCP server supports dual transport: **stdio** (local, default) and **Streama
 - **Container App URL:** `https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io`
 - **MCP endpoint:** `/mcp` (POST for requests, GET for SSE, DELETE for session cleanup)
 - **Chat endpoint:** `/chat` (POST — natural language → Azure OpenAI with tool calling, 6 models)
-- **Agent endpoints:** `/agent/thread` (POST — create thread), `/agent/message` (POST — Assistants API with GPT-5)
+- **Agent endpoints:** `/agent/thread` (POST — create thread), `/agent/message` (POST — Assistants API with GPT-4.1)
 - **Health check:** `/healthz`
 - **Scale:** 0-3 replicas (scales to zero when idle, ~$0 when not in use)
 
@@ -288,8 +309,9 @@ MCP is GA in Copilot Studio (May 2025). Now that the MCP server has Streamable H
 
 ## Conventions
 
-- Documentation files live in `docs/` (`SESSION_LOG.md`, `USAGE.md`, `ARCHITECTURE.md`, `COMMANDS.md`, `PROMPTS.md`, `CLI_CHEATSHEET.md`, `FAQ.md`). `README.md` and `CLAUDE.md` stay in root. Update docs when wrapping up a session.
+- Documentation files live in `docs/` (`SESSION_LOG.md`, `USER_GUIDE.md`, `ARCHITECTURE.md`, `COMMANDS.md`, `PROMPTS.md`, `CLI_CHEATSHEET.md`, `FAQ.md`, `ELI5.md`). `README.md` and `CLAUDE.md` stay in root. Update docs when wrapping up a session.
 - `docs/SESSION_LOG.md` is the chronological record — append new sessions at the bottom
+- **`docs/ELI5.md` must be kept current** — it's used for demos and presentations. Update it whenever features, panels, data, architecture, or costs change.
 - Secrets go in gitignored files (`.mcp.json`, `infra/apim-policy.json`); committed `.example` templates have placeholders
 
 ## Data Source
