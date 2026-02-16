@@ -6,6 +6,7 @@ import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import express from "express";
 import { registerTools } from "./tools.js";
 import { chat, getAvailableModels } from "./chat.js";
+import { ensureAgent, createThread, sendMessage } from "./foundry-agent.js";
 
 const transportMode = process.env.MCP_TRANSPORT ?? "stdio";
 
@@ -116,6 +117,36 @@ if (transportMode === "http") {
     }
   });
 
+  // Foundry Agent endpoints (Assistants API)
+  app.post("/agent/thread", async (_req, res) => {
+    try {
+      const threadId = await createThread();
+      res.json({ threadId });
+    } catch (err) {
+      console.error("Agent thread error:", err);
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
+  app.post("/agent/message", async (req, res) => {
+    try {
+      const { threadId, message } = req.body;
+      if (!threadId || typeof threadId !== "string") {
+        res.status(400).json({ error: "threadId is required" });
+        return;
+      }
+      if (!message || typeof message !== "string") {
+        res.status(400).json({ error: "message is required" });
+        return;
+      }
+      const result = await sendMessage(threadId, message);
+      res.json(result);
+    } catch (err) {
+      console.error("Agent message error:", err);
+      res.status(500).json({ error: String(err) });
+    }
+  });
+
   app.delete("/mcp", async (req, res) => {
     const sessionId = req.headers["mcp-session-id"] as string | undefined;
     if (!sessionId || !transports[sessionId]) {
@@ -127,6 +158,8 @@ if (transportMode === "http") {
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`MCP Streamable HTTP server listening on port ${PORT}`);
+    // Eagerly create/find the Foundry Agent on startup (non-fatal if it fails)
+    ensureAgent().catch(err => console.warn("[agent] Startup init deferred:", err.message));
   });
 
   process.on("SIGINT", async () => {

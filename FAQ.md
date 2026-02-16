@@ -234,13 +234,13 @@ Most teams start with agent frameworks, then simplify down to raw Chat Completio
 
 ### Why did we choose Chat Completions + Tools?
 
-Our system is a hybrid:
+Our system demonstrates all three patterns side-by-side in the SPA:
 
-- **Chat Completions + Tools** for the runtime — simple, fast, portable
-- **MCP** for tool discovery — standardized, any client can use the same 12 tools
-- **Foundry infrastructure** available if we want platform-managed features later
+- **Investigative Agent** (Chat Completions + Tools) — our code runs the loop in `chat.ts`. Stateless, full control, model-selectable.
+- **City Portal** (Assistants API / Foundry Agent) — Azure runs the loop via `foundry-agent.ts`. Stateful threads, follow-ups remember context.
+- **MCP Tool Tester** (Raw MCP Protocol) — direct tool calls, no AI in the loop.
 
-For an investigative tool where transparency matters (you want to see *exactly* which tools were called and why), the direct approach is the better fit. The `chat.ts` loop is ~80 lines. A Foundry Agent would eliminate that code but add platform dependency and less control over tool-calling behavior.
+All three use the same 12 tools hitting the same APIM → Functions → SQL backend. The shared tool definitions live in `tool-executor.ts`.
 
 ---
 

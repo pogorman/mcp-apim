@@ -471,3 +471,85 @@ Note: gpt-5.2 was only available as `GlobalProvisionedManaged` (pay-per-hour, ex
 - MCAPS `Modify` policies cannot be overridden at subscription level — they actively rewrite resource properties, not just block changes
 - Azure has two types of "Foundry projects": `CognitiveServices/accounts/projects` (newer, not affected by ML workspace policies) and `MachineLearningServices/workspaces` (older, subject to MCAPS ML workspace policies)
 - Most production AI systems use Chat Completions + Tools (Pattern 1), not platform-managed agents — control, debuggability, and model flexibility outweigh convenience of managed state
+
+---
+
+## Session 13 — City Portal + Foundry Agent (2026-02-16)
+
+### Goal
+Add a 3rd panel to the SPA demonstrating a third client pattern: the **Assistants API** (Foundry Agent), where Azure manages the tool-calling loop and threads persist server-side. The panel should look like a City of Philadelphia government page with a floating chat widget, contrasting with the existing dark-themed panels.
+
+### Shared Tool Definitions (`tool-executor.ts`)
+- Extracted `SYSTEM_PROMPT`, `TOOLS` (12 tool definitions), and `executeTool()` from `chat.ts` into a new shared module `mcp-server/src/tool-executor.ts`
+- Both `chat.ts` and the new `foundry-agent.ts` import from this module
+- `chat.ts` refactored to use imports — no behavioral change
+
+### Foundry Agent (`foundry-agent.ts`)
+- Created `mcp-server/src/foundry-agent.ts` implementing the Assistants API lifecycle:
+  - `ensureAgent()` — searches for existing assistant named `philly-investigator`, creates one if not found. Caches agent ID in memory. Uses `gpt-4.1` deployment.
+  - `createThread()` — creates a new Assistants API thread
+  - `sendMessage(threadId, message)` — adds user message, creates a run, polls status in a loop:
+    - `requires_action` → executes requested tools via `executeTool()`, submits results
+    - `completed` → extracts assistant response from thread messages
+    - `failed` / `cancelled` / `expired` → throws error
+  - Returns `{ reply, toolCalls }` matching the Chat Completions response shape
+- Key difference from `chat.ts`: Azure decides when/which tools to call; we just execute them. Thread state persists server-side.
+- Fixed openai v6 type issues:
+  - `ChatCompletionTool` is a union type (`ChatCompletionFunctionTool | ChatCompletionCustomTool`) — needed type guard filter
+  - `runs.retrieve(runId, { thread_id })` and `runs.submitToolOutputs(runId, { thread_id, tool_outputs })` — v6 uses params object instead of positional args for thread ID
+
+### Express Endpoints
+- Added to `mcp-server/src/index.ts`:
+  - `POST /agent/thread` — creates a new thread, returns `{ threadId }`
+  - `POST /agent/message` — accepts `{ threadId, message }`, returns `{ reply, toolCalls }`
+- `ensureAgent()` called eagerly on startup (non-fatal if it fails)
+
+### City Portal Panel (`web/index.html`)
+- Added 3rd panel with Philadelphia city government branding:
+  - **Color scheme**: Navy blue (`#004785`), warm yellow (`#f2c94c`), light gray background
+  - **Header**: SVG city seal + "City of Philadelphia" / "Property Data Transparency Portal"
+  - **Content**: Intro text, stats grid (584K Properties, 1.6M Code Investigations, 13.5K Demolitions), "About This Data" card
+  - **FAB**: 56px floating action button (bottom-right), navy blue with chat icon, hover scale effect
+  - **Chat widget**: 400x500px overlay above FAB with:
+    - Header with title + close button
+    - Message area with user (blue right-aligned) / assistant (gray left-aligned) / system (centered) bubbles
+    - Text input with send button
+    - Thinking indicator while waiting for agent response
+  - Thread created on first widget open; subsequent messages use same thread for persistent context
+- Added 3rd activity bar tab with building icon
+- Added "City Portal" to welcome screen quick-open buttons
+- Updated `state.panels` and `updatePanels()` to handle `city` panel
+
+### Three Client Patterns Demonstrated
+```
+Pattern 1: Investigative Agent (Chat Completions + Tools)
+  → Our code runs the agentic loop in chat.ts
+  → Stateless — client sends full history each request
+  → User selects model via dropdown
+
+Pattern 2: City Portal (Assistants API / Foundry Agent)
+  → Azure manages the tool-calling loop
+  → Stateful — threads persist server-side, follow-ups remember context
+  → Fixed model (gpt-4.1) configured in the assistant
+
+Pattern 3: MCP Tool Tester (Raw MCP Protocol)
+  → Direct tool calls via MCP Streamable HTTP
+  → No AI — user manually selects tools and fills parameters
+```
+
+### Deployment
+- Built TypeScript: `npm run build -w mcp-server` (clean)
+- Built container image: `az acr build` → `phillymcpacr.azurecr.io/mcp-server:latest`
+- Updated Container App: `az containerapp update`
+- Deployed SPA: `swa deploy` → `https://kind-forest-06c4d3c0f.1.azurestaticapps.net/`
+
+### Verification
+- `POST /agent/thread` → returns `{ threadId: "thread_..." }`
+- `POST /agent/message` with "Who are the top 3 worst property owners?" → agent called `get_top_violators`, returned detailed analysis
+- Follow-up "Tell me more about the second one" → agent responded from thread context without making additional tool calls (thread persistence confirmed)
+
+### Key Lessons
+- OpenAI SDK v6 Assistants API: `runs.retrieve()` and `runs.submitToolOutputs()` take `(runId, { thread_id, ... })` — thread_id goes in params object, not as a positional argument
+- `ChatCompletionTool` is a union type in v6 — can't access `.function` without narrowing to `ChatCompletionFunctionTool` first
+- Assistants API on Azure uses the same `AzureOpenAI` client and `DefaultAzureCredential` — no separate client needed
+- Thread persistence is the key differentiator: follow-up questions work without re-sending history or making tool calls

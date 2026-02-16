@@ -102,6 +102,11 @@ User prompts from each session of building this project, reconstructed from sess
 - "in the world of ai agents today, are people building tools like we built or do they specifically build agents. or does it depend? and if so on what? what are the pros and cons to each approach?"
 - "make sure all this is in the appropriate mds.... then push everything to github and i'm gonna take a break. nice job!"
 
+## Session 13 — City Portal + Foundry Agent
+
+- "i want to keep everything as is with respect to what we have. but now i want to add an agent in foundry for no other reason than to demonstrate to my colleagues the different clients/agents a mcp/apim set up can have. i would like this to be a 3rd 'tab' if you will on the spa web weve built...make it look like a cool simple web page for the city of philadelphia...but then host the new foundry agent as a floater icon in the bottom right that i can click and launch the agent. this should tie right into what we have now w the investigative agent. does that make sense?"
+- "awesome, update your root files and push to git"
+
 ---
 
 ## Example Analysis Prompts (for use with the connected agent)
