@@ -369,12 +369,75 @@
     .msg-content {
       font-size: 0.85rem;
       line-height: 1.6;
-      white-space: pre-wrap;
       word-break: break-word;
     }
 
-    .msg-content p { margin-bottom: 0.4em; }
+    .msg-content p { margin: 0 0 0.5em; }
     .msg-content p:last-child { margin-bottom: 0; }
+
+    .msg-content .md-h {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 0.8em 0 0.3em;
+    }
+    .msg-content .md-h:first-child { margin-top: 0; }
+
+    .msg-content .md-list {
+      margin: 0.3em 0 0.5em 1.2em;
+      padding: 0;
+    }
+    .msg-content .md-list li {
+      margin-bottom: 0.2em;
+    }
+
+    .msg-content .md-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 0.5em 0;
+      font-size: 0.8rem;
+    }
+    .msg-content .md-table th,
+    .msg-content .md-table td {
+      padding: 0.35em 0.6em;
+      border: 1px solid var(--border);
+      text-align: left;
+    }
+    .msg-content .md-table th {
+      background: rgba(255,255,255,0.05);
+      font-weight: 600;
+      color: var(--accent);
+    }
+    .msg-content .md-table tr:nth-child(even) td {
+      background: rgba(255,255,255,0.02);
+    }
+
+    .msg-content .md-code {
+      background: var(--bar);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.6em 0.8em;
+      margin: 0.4em 0;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.78rem;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .msg-content .md-inline-code {
+      background: var(--bar);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.1em 0.35em;
+      font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.8em;
+    }
+
+    .msg-content .md-hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 0.6em 0;
+    }
 
     .msg-tools {
       margin-top: 0.4rem;
@@ -1134,6 +1197,85 @@
       }
     }
 
+    /* ── Copilot Studio Floating Widget ──────────────── */
+    .copilot-fab {
+      position: fixed;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7b2ff7, #2b88d8);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(123,47,247,0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .copilot-fab:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 24px rgba(123,47,247,0.5);
+    }
+    .copilot-fab svg { width: 24px; height: 24px; }
+
+    .copilot-widget {
+      position: fixed;
+      bottom: 5rem;
+      right: 1.25rem;
+      width: 420px;
+      height: 560px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      z-index: 1001;
+      display: none;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .copilot-widget.open {
+      display: flex;
+    }
+
+    .copilot-widget-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 0.8rem;
+      background: linear-gradient(135deg, #7b2ff7, #2b88d8);
+      color: #fff;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .copilot-widget-header button {
+      background: none;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+      font-size: 1.1rem;
+      opacity: 0.8;
+      padding: 0;
+    }
+    .copilot-widget-header button:hover { opacity: 1; }
+
+    .copilot-widget iframe {
+      flex: 1;
+      border: none;
+      width: 100%;
+    }
+
+    @media (max-width: 768px) {
+      .copilot-widget {
+        width: calc(100vw - 2rem);
+        height: 65vh;
+        right: 1rem;
+        bottom: 4.5rem;
+      }
+    }
+
     /* ── Responsive ───────────────────────────────────── */
     @media (max-width: 768px) {
       .activity-bar {
@@ -1191,16 +1333,17 @@
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
       </button>
-      <button class="activity-tab" id="tabTools" onclick="togglePanel('tools')" title="MCP Tool Tester">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-        </svg>
-      </button>
       <button class="activity-tab" id="tabCity" onclick="togglePanel('city')" title="City Portal">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
           <line x1="12" y1="22" x2="12" y2="2"/>
           <path d="M8 6h.01M8 10h.01M8 14h.01M8 18h.01M16 6h.01M16 10h.01M16 14h.01M16 18h.01"/>
+        </svg>
+      </button>
+      <div style="flex:1;"></div>
+      <button class="activity-tab" id="tabTools" onclick="togglePanel('tools')" title="MCP Tool Tester" style="margin-bottom:6px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
         </svg>
       </button>
     </nav>
@@ -1402,6 +1545,7 @@
 
     const state = {
       panels: { agent: false, tools: false, city: false },
+      copilotOpen: false,
       chat: { history: [], isLoading: false, model: 'gpt-4.1' },
       city: { threadId: null, chatOpen: false, isLoading: false },
       mcp: {
@@ -1426,14 +1570,123 @@
     }
 
     function formatContent(text) {
-      let html = escapeHtml(text);
-      html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-      html = html.replace(/^### (.+)$/gm, '<strong style="font-size:0.92em;">$1</strong>');
-      html = html.replace(/^## (.+)$/gm, '<strong style="font-size:0.98em;">$1</strong>');
-      html = html.replace(/^- (.+)$/gm, '\u2022 $1');
-      html = html.replace(/\n\n/g, '</p><p>');
-      html = '<p>' + html + '</p>';
-      return html;
+      if (!text) return '';
+      var escaped = escapeHtml(text);
+      var lines = escaped.split('\n');
+      var out = [];
+      var i = 0;
+
+      while (i < lines.length) {
+        var line = lines[i];
+
+        // Code block
+        if (line.match(/^```/)) {
+          var code = [];
+          i++;
+          while (i < lines.length && !lines[i].match(/^```/)) {
+            code.push(lines[i]);
+            i++;
+          }
+          i++; // skip closing ```
+          out.push('<pre class="md-code">' + code.join('\n') + '</pre>');
+          continue;
+        }
+
+        // Table — detect header row with | separators
+        if (line.indexOf('|') !== -1 && i + 1 < lines.length && lines[i + 1].match(/^\|?\s*[-:]+[-|\s:]*$/)) {
+          var rows = [];
+          while (i < lines.length && lines[i].indexOf('|') !== -1) {
+            rows.push(lines[i]);
+            i++;
+          }
+          // rows[0] = header, rows[1] = separator, rows[2+] = data
+          var headerCells = rows[0].split('|').map(function(c) { return c.trim(); }).filter(Boolean);
+          var html = '<table class="md-table"><thead><tr>';
+          headerCells.forEach(function(c) { html += '<th>' + inlineFormat(c) + '</th>'; });
+          html += '</tr></thead><tbody>';
+          for (var r = 2; r < rows.length; r++) {
+            var cells = rows[r].split('|').map(function(c) { return c.trim(); }).filter(Boolean);
+            html += '<tr>';
+            cells.forEach(function(c) { html += '<td>' + inlineFormat(c) + '</td>'; });
+            html += '</tr>';
+          }
+          html += '</tbody></table>';
+          out.push(html);
+          continue;
+        }
+
+        // Horizontal rule
+        if (line.match(/^[-*_]{3,}\s*$/)) {
+          out.push('<hr class="md-hr"/>');
+          i++;
+          continue;
+        }
+
+        // Headers
+        if (line.match(/^### /)) {
+          out.push('<h4 class="md-h">' + inlineFormat(line.slice(4)) + '</h4>');
+          i++;
+          continue;
+        }
+        if (line.match(/^## /)) {
+          out.push('<h3 class="md-h">' + inlineFormat(line.slice(3)) + '</h3>');
+          i++;
+          continue;
+        }
+        if (line.match(/^# /)) {
+          out.push('<h3 class="md-h">' + inlineFormat(line.slice(2)) + '</h3>');
+          i++;
+          continue;
+        }
+
+        // Unordered list
+        if (line.match(/^\s*[-*] /)) {
+          var items = [];
+          while (i < lines.length && lines[i].match(/^\s*[-*] /)) {
+            items.push(lines[i].replace(/^\s*[-*] /, ''));
+            i++;
+          }
+          out.push('<ul class="md-list">' + items.map(function(it) { return '<li>' + inlineFormat(it) + '</li>'; }).join('') + '</ul>');
+          continue;
+        }
+
+        // Ordered list
+        if (line.match(/^\s*\d+\.\s/)) {
+          var items = [];
+          while (i < lines.length && lines[i].match(/^\s*\d+\.\s/)) {
+            items.push(lines[i].replace(/^\s*\d+\.\s/, ''));
+            i++;
+          }
+          out.push('<ol class="md-list">' + items.map(function(it) { return '<li>' + inlineFormat(it) + '</li>'; }).join('') + '</ol>');
+          continue;
+        }
+
+        // Blank line
+        if (line.trim() === '') {
+          i++;
+          continue;
+        }
+
+        // Paragraph — collect consecutive non-blank, non-special lines
+        var para = [];
+        while (i < lines.length && lines[i].trim() !== '' && !lines[i].match(/^```/) && !lines[i].match(/^#{1,3} /) && !lines[i].match(/^\s*[-*] /) && !lines[i].match(/^\s*\d+\.\s/) && !lines[i].match(/^[-*_]{3,}\s*$/) && !(lines[i].indexOf('|') !== -1 && i + 1 < lines.length && lines[i + 1] && lines[i + 1].match(/^\|?\s*[-:]+[-|\s:]*$/))) {
+          para.push(lines[i]);
+          i++;
+        }
+        out.push('<p>' + inlineFormat(para.join(' ')) + '</p>');
+      }
+
+      return out.join('');
+    }
+
+    function inlineFormat(text) {
+      // Bold
+      text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      // Italic
+      text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      // Inline code
+      text = text.replace(/`([^`]+)`/g, '<code class="md-inline-code">$1</code>');
+      return text;
     }
 
     /* ================================================================
@@ -2000,10 +2253,37 @@
     }
 
     /* ================================================================
+       COPILOT STUDIO FLOATING WIDGET
+       ================================================================ */
+    function toggleCopilotWidget() {
+      state.copilotOpen = !state.copilotOpen;
+      $('copilotWidget').classList.toggle('open', state.copilotOpen);
+      // Lazy-load iframe on first open
+      var frame = $('copilotFrame');
+      if (state.copilotOpen && !frame.src.includes('copilotstudio')) {
+        frame.src = 'https://copilotstudio.microsoft.com/environments/0582014c-9a6d-e35b-8705-5168c385f413/bots/copilots_header_80f1b/webchat?__version__=2';
+      }
+    }
+
+    /* ================================================================
        INIT
        ================================================================ */
     updatePanels();
     loadModels();
   </script>
+
+  <!-- Copilot Studio Floating Widget -->
+  <button class="copilot-fab" onclick="toggleCopilotWidget()" title="Copilot Studio">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+    </svg>
+  </button>
+  <div class="copilot-widget" id="copilotWidget">
+    <div class="copilot-widget-header">
+      <span>Copilot Studio</span>
+      <button onclick="toggleCopilotWidget()">&times;</button>
+    </div>
+    <iframe id="copilotFrame" src="" allow="microphone *"></iframe>
+  </div>
 </body>
 </html>

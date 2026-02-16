@@ -15,9 +15,9 @@ The SPA's Investigative Agent is **custom code**, not an Azure Foundry Agent. It
 3. Feeds the results back to the model
 4. Repeats up to 10 rounds until the model returns a text response
 
-There's no persistent agent resource in Azure — it's a stateless function that rebuilds context from scratch each request. The conversation history is maintained client-side in the browser and sent with each message.
+There's no persistent agent resource in Azure for the Investigative Agent — it's a stateless function that rebuilds context from scratch each request. The conversation history is maintained client-side in the browser and sent with each message.
 
-A **Foundry Agent** (Assistants API) would be different: a persistent resource stored in Azure with a name, instructions, and tool configurations. You'd create threads (conversations) and runs, and Azure would manage the tool-calling loop. The Foundry project infrastructure was set up for this, but the running system uses the simpler Chat Completions approach.
+The **City Portal** panel, by contrast, uses a real **Foundry Agent** (Assistants API): a persistent assistant (`philly-investigator`, ID `asst_CiN7zyMnsQxEcgG5JdTRXOpZ`) stored in Azure with a name, instructions, and tool configurations. It creates threads (conversations) and runs, and Azure manages the tool-calling loop with GPT-5. Both patterns use the same 12 tools and APIM backend.
 
 ```
 What we built (Chat Completions):          What a Foundry Agent is (Assistants):
@@ -185,6 +185,22 @@ Three resources in `rg-foundry` are not used by this project:
 
 If nothing else depends on them, they can be deleted. Check `og-foundry-eus2` first since its `gpt-5-pro` deployment could be incurring costs.
 
+### Why Azure SQL instead of Dataverse?
+
+This project has 10 tables, ~29M rows, and 4.4GB of data. Azure SQL Serverless was the right fit for several reasons:
+
+**Scale and performance.** The junction table `master_entity_address` alone has 15.5M rows. Queries like "find all properties linked to an entity" join across this table with aggregations over 1.6M violation records. Azure SQL handles this in seconds thanks to 25 custom nonclustered indexes tuned to our query patterns (e.g., `IX_mea_entity_id`, `IX_ci_opa`, composite `IX_assess_parcel` on `(parcel_number, year)`). Dataverse doesn't expose index management — Microsoft controls indexing internally, and analytical joins at this scale would be significantly slower.
+
+**Storage overhead.** Dataverse adds mandatory system columns to every table (`createdon`, `modifiedon`, `createdby`, `modifiedby`, `ownerid`, `statecode`, `statuscode`, etc.). For 29M rows, this overhead is substantial. Our 4.4GB in SQL would likely require 10-15GB+ in Dataverse. Default tenant capacity is often 10GB.
+
+**Schema flexibility.** Our `opa_properties` table has ~118 columns. Dataverse supports this but performance degrades with wide tables. We also use 3 SQL views (`vw_entity_properties`, `vw_property_violation_summary`, `vw_owner_portfolio`) for common query patterns — Dataverse has no equivalent to SQL views. These would need to be reimplemented as FetchXML queries or handled at the app layer.
+
+**Cost.** Azure SQL Serverless auto-pauses after 60 minutes of inactivity — $0 when paused, ~$0.75/vCore-hour when active. Total idle cost is ~$0.50/month for storage. Dataverse capacity is licensed per-GB and doesn't scale to zero.
+
+**Custom SQL.** The `run_query` tool lets the AI write and execute arbitrary SELECT queries. This is a powerful investigation tool — the model can explore the data in ways we didn't anticipate. Dataverse would require FetchXML or the Web API, which are far more constrained than SQL.
+
+**When Dataverse would make sense.** If the goal were a Power Apps front-end with Copilot Studio integration, row-level security per user, or a transactional CRUD workflow (not analytical), Dataverse would be the better choice. It's purpose-built for the Power Platform ecosystem. Our use case — an AI agent running complex analytical queries across millions of rows — is what SQL databases are designed for.
+
 ---
 
 ## Agent Patterns: Tools vs Platform Agents vs Frameworks
@@ -234,13 +250,14 @@ Most teams start with agent frameworks, then simplify down to raw Chat Completio
 
 ### Why did we choose Chat Completions + Tools?
 
-Our system demonstrates all three patterns side-by-side in the SPA:
+Our system demonstrates all four client patterns side-by-side in the SPA:
 
-- **Investigative Agent** (Chat Completions + Tools) — our code runs the loop in `chat.ts`. Stateless, full control, model-selectable.
-- **City Portal** (Assistants API / Foundry Agent) — Azure runs the loop via `foundry-agent.ts`. Stateful threads, follow-ups remember context.
+- **Investigative Agent** (Chat Completions + Tools) — our code runs the loop in `chat.ts`. Stateless, full control, model-selectable (6 models).
+- **City Portal** (Assistants API / Foundry Agent) — Azure runs the loop via `foundry-agent.ts` with GPT-5. Stateful threads, follow-ups remember context.
+- **Copilot Studio** (MCP via Low-Code) — Microsoft Copilot Studio agent connected to the MCP endpoint. Demonstrates the low-code/no-code path. Embedded as a floating widget.
 - **MCP Tool Tester** (Raw MCP Protocol) — direct tool calls, no AI in the loop.
 
-All three use the same 12 tools hitting the same APIM → Functions → SQL backend. The shared tool definitions live in `tool-executor.ts`.
+All four use the same 12 tools hitting the same APIM → Functions → SQL backend. The shared tool definitions live in `tool-executor.ts`.
 
 ---
 

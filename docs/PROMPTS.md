@@ -107,6 +107,30 @@ User prompts from each session of building this project, reconstructed from sess
 - "i want to keep everything as is with respect to what we have. but now i want to add an agent in foundry for no other reason than to demonstrate to my colleagues the different clients/agents a mcp/apim set up can have. i would like this to be a 3rd 'tab' if you will on the spa web weve built...make it look like a cool simple web page for the city of philadelphia...but then host the new foundry agent as a floater icon in the bottom right that i can click and launch the agent. this should tie right into what we have now w the investigative agent. does that make sense?"
 - "awesome, update your root files and push to git"
 
+## Session 14 — UI Polish, Copilot Studio, Docs Reorganization
+
+- "on the portal page i still see the selector for the model. does that not apply to the philly-investigator agent? if not can we at least update the philly-investigator agent to use gpt 5."
+- "lets put all the root mds, except the readme, into a new docs folder... it's getting cluttered in the root."
+- "yep push to git"
+- "so what's my agents name? description? instructions? what all information can i set?"
+- "on the left nav, move the tools icon to the bottom"
+- "the results on the investigative agent page (not the portal) are kind of ugly. i know that's not technically an agent, but is there a way to control the format/prettiness of the output"
+- "you mentioned there might be someway to visualize my agent in the portal...versus using the cli. can you run through that w me again"
+- "right but i get this error. please make note of this so you dont forget again. Error loading Microsoft Foundry project..."
+- "i'm not saying to do it yet... but could you take the exact setup of the sql azure tables and data and set them up in dataverse and migrate the data?"
+- "do we have custom indexes in our sql server?"
+- "can you put something in the faq about why azure sql was a better choice for this effort than dataverse"
+- "i want to go into copilot studio and configure an agent to use our tools... i want it to be able to interact w the data and answer questions just like our foundry agent and investigative agent web page..."
+- "what is the server name and desc"
+- "where do i get the api key?"
+- "got it. bam. nice! let me ask you this. is there anyway to host the copilot studio agent on our site on another 'tab'..."
+- "my agent's authentication in copilot studio is set to 'authenticate w microsoft'... is that ok"
+- "give me a good paragraph for description and a few paragraphs for instructions for this copilot studio agent"
+- [Provided iframe embed code] "get it done"
+- "the copilot studio pane is visible on the home page... it shouldn't be... also the agent is now giving me a javascript error"
+- "the copilot studio agent should be accessible anywhere on the spa with a little floating icon in the bottom right"
+- "ok update all our mds. i think they probably all need updating but you tell me. then check everything in"
+
 ---
 
 ## Example Analysis Prompts (for use with the connected agent)

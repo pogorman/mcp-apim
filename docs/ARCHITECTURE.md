@@ -6,7 +6,7 @@ This system enables AI agents to investigate poverty profiteering patterns in Ph
 
 The architecture follows a four-tier pattern: an **MCP Server** translates AI tool calls into HTTPS requests to **Azure API Management**, which authenticates and routes them to **Azure Functions**, which query an **Azure SQL Database**. All compute tiers are serverless/consumption-based, costing ~$1-2/month when idle.
 
-The MCP server supports dual transport: **stdio** (local, for Claude Code/Desktop) and **Streamable HTTP** (remote, deployed on Azure Container Apps for Azure AI Foundry, Copilot Studio, and other remote MCP clients). A **chat endpoint** (`/chat`) powered by Azure OpenAI GPT-4.1 with tool calling enables natural language interaction via a web SPA — the LLM autonomously selects and invokes tools to answer user questions.
+The MCP server supports dual transport: **stdio** (local, for Claude Code/Desktop) and **Streamable HTTP** (remote, deployed on Azure Container Apps for Azure AI Foundry, Copilot Studio, and other remote MCP clients). A **chat endpoint** (`/chat`) powered by Azure OpenAI (6 selectable models) with tool calling enables natural language interaction via a web SPA. An **agent endpoint** (`/agent`) uses the Assistants API with GPT-5 for stateful, thread-based conversations. A **Copilot Studio** agent connects via MCP for a low-code integration path. The LLM autonomously selects and invokes tools to answer user questions across all patterns.
 
 ---
 
@@ -591,7 +591,10 @@ The container runs a single Node.js process executing `dist/index.js` with `MCP_
 |----------|---------|-------------|
 | `GET /healthz` | Health probe — Container Apps pings this to verify the container is alive | Azure (automatic) |
 | `POST/GET/DELETE /mcp` | MCP protocol (Streamable HTTP) — tool discovery and invocation | MCP clients (Foundry, Copilot Studio, etc.) |
-| `POST /chat` | Natural language chat — GPT-4.1 with tool calling | Web SPA, curl, any HTTP client |
+| `POST /chat` | Natural language chat — 6 selectable models with tool calling (Chat Completions) | Web SPA (Investigative Agent), curl, any HTTP client |
+| `POST /agent/thread` | Create a new Assistants API thread | Web SPA (City Portal) |
+| `POST /agent/message` | Send message to thread — GPT-5 Assistants API with tool calling | Web SPA (City Portal) |
+| `GET /models` | List available model deployments | Web SPA (model selector dropdown) |
 
 ### Environment & Secrets
 
@@ -604,7 +607,7 @@ Environment variables are injected by Container Apps at runtime (not baked into 
 | `APIM_BASE_URL` | Container App env var | Where to send tool API calls |
 | `APIM_SUBSCRIPTION_KEY` | Container App secret (encrypted) | Auth for APIM gateway |
 | `AZURE_OPENAI_ENDPOINT` | Container App env var | Azure OpenAI endpoint for /chat |
-| `AZURE_OPENAI_DEPLOYMENT` | Container App env var | Model deployment name (gpt-4.1) |
+| `AZURE_OPENAI_DEPLOYMENT` | Container App env var | Default model deployment name (gpt-4.1 for /chat) |
 
 Secrets (like the APIM subscription key) are stored encrypted in Container Apps and exposed as environment variables at runtime. They never appear in the container image or in logs.
 
@@ -841,27 +844,51 @@ APIM policy (injecting function key) is applied via `infra/set-policy.ps1`:
 
 ## Web Interface (Static Web App)
 
-A single-file dual-panel SPA (`web/index.html`) with a VS Code-style activity bar providing two views:
+A single-file SPA (`web/index.html`) with a VS Code-style activity bar demonstrating four client patterns that all consume the same APIM backend:
 
-### Panel 1: Investigative Agent (Chat)
+### Pattern 1: Investigative Agent (Chat Completions + Tools)
 
-- Users type questions in plain English; GPT-4.1 decides which tools to call
+- Users type questions in plain English; the selected model decides which tools to call
 - Azure OpenAI tool calling loop (up to 10 rounds per query) via `/chat` endpoint
-- Displays agent responses with tool call badges showing which tools were used
+- 6 selectable models via dropdown: GPT-4.1 (default), GPT-5, GPT-5 Mini, o4-mini, o3-mini, Phi-4
+- Displays agent responses with rich markdown rendering (tables, lists, code blocks) and tool call badges
 - Conversation history maintained client-side for multi-turn interactions
-- Suggestion prompts for common investigative queries
+- Stateless — our code runs the agentic loop in `chat.ts`
 
 ```
-Browser → Container App /chat → Azure OpenAI GPT-4.1 (tool calling) → APIM → Functions → SQL
+Browser → Container App /chat → Azure OpenAI (tool calling) → APIM → Functions → SQL
 ```
 
-### Panel 2: MCP Tool Tester
+### Pattern 2: City Portal (Assistants API / Foundry Agent)
+
+- Philadelphia-branded government page with navy/yellow color scheme
+- Floating chat widget (FAB icon, bottom-right of the City Portal panel)
+- Azure manages the tool-calling loop using GPT-5 via the Assistants API
+- Threads persist server-side — follow-up questions remember context without resending history
+- Agent named `philly-investigator` (assistant ID: `asst_CiN7zyMnsQxEcgG5JdTRXOpZ`)
+
+```
+Browser → Container App /agent/thread + /agent/message → Azure OpenAI Assistants API (GPT-5) → APIM → Functions → SQL
+```
+
+### Pattern 3: Copilot Studio (MCP via Low-Code)
+
+- Microsoft Copilot Studio agent connected directly to the MCP server endpoint
+- Embedded as an iframe widget — floating purple star icon (bottom-right) accessible from any page
+- Demonstrates the low-code/no-code path: Copilot Studio auto-discovers all 12 tools via MCP protocol
+- No custom code needed on the Copilot Studio side — just point it at the MCP endpoint
+
+```
+Copilot Studio → Container App /mcp (Streamable HTTP) → APIM → Functions → SQL
+```
+
+### Pattern 4: MCP Tool Tester (Raw Protocol)
 
 - Connects directly to the MCP server Container App via Streamable HTTP
 - Discovers all 12 tools via MCP `initialize` → `tools/list` protocol
 - Allows calling individual tools with specific parameters (parcel numbers, entity IDs, SQL queries)
 - Displays raw JSON results with elapsed time
-- Useful for debugging, demos, and understanding what each tool returns
+- No AI in the loop — user manually selects tools and fills parameters
 
 ```
 Browser → Container App /mcp (Streamable HTTP, JSON-RPC 2.0) → APIM → Functions → SQL
@@ -869,22 +896,29 @@ Browser → Container App /mcp (Streamable HTTP, JSON-RPC 2.0) → APIM → Func
 
 ### Layout
 
-- **Activity bar** (48px, left edge): Two icon buttons — chat bubble (Agent) and wrench (Tools)
-- Both panels can be open simultaneously side-by-side (50/50 split)
+- **Activity bar** (48px, left edge): Three icon buttons — chat bubble (Investigative Agent), building (City Portal), wrench (MCP Tools, pinned to bottom)
+- Panels can be open simultaneously side-by-side (50/50 split)
 - Closing one panel gives the other full width
-- Closing both shows a welcome screen with quick-open buttons
+- Closing all shows a welcome screen with quick-open buttons
+- **Copilot Studio widget**: Floats above all panels (purple star icon, bottom-right). Independent of the panel system.
 - Responsive: on mobile (<768px), only one panel visible at a time
 - No build step or dependencies — open the HTML file directly or serve with any static file server
 
 ### Chat Endpoint Architecture
 
 The `/chat` endpoint on the Container App:
-1. Receives a natural language message + conversation history
-2. Sends it to Azure OpenAI GPT-4.1 with 12 tool definitions
-3. GPT-4.1 decides which tools to call (may call multiple in sequence)
+1. Receives a natural language message + conversation history + model selection
+2. Sends it to Azure OpenAI (selected model) with 12 tool definitions
+3. The model decides which tools to call (may call multiple in sequence)
 4. Each tool call is executed against APIM → Functions → SQL
-5. Results are fed back to GPT-4.1 for synthesis
+5. Results are fed back to the model for synthesis
 6. Final natural language response returned to the browser
+
+The `/agent` endpoints use the Assistants API instead:
+1. `POST /agent/thread` creates a persistent thread
+2. `POST /agent/message` adds a user message, creates a run, polls until completion
+3. Azure manages the tool-calling loop — our code just executes requested tools
+4. Thread state persists server-side — follow-up questions have full context
 
 Authentication: Container App's managed identity has "Cognitive Services OpenAI User" role on the AI Services account. Uses `DefaultAzureCredential` + `getBearerTokenProvider` (no API keys).
 

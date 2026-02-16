@@ -10,10 +10,16 @@ An MCP (Model Context Protocol) server that lets AI agents investigate poverty p
 Claude Desktop / Claude Code (stdio)
     └→ MCP Server (local) → APIM → Functions → SQL
 
-Web Chat SPA (Static Web App)
-    └→ Container App /chat → Azure OpenAI GPT-4.1 (tool calling) → APIM → Functions → SQL
+Web Chat SPA — Investigative Agent (Static Web App)
+    └→ Container App /chat → Azure OpenAI (6 models, tool calling) → APIM → Functions → SQL
 
-Azure AI Foundry / Copilot Studio / Any HTTP MCP Client
+Web Chat SPA — City Portal / Foundry Agent (Static Web App)
+    └→ Container App /agent → Azure OpenAI GPT-5 (Assistants API, persistent threads) → APIM → Functions → SQL
+
+Microsoft Copilot Studio (floating widget in SPA)
+    └→ Container App /mcp (Streamable HTTP) → APIM → Functions → SQL
+
+Azure AI Foundry / Any HTTP MCP Client
     └→ Container App /mcp (Streamable HTTP) → APIM → Functions → SQL
 ```
 
@@ -30,11 +36,17 @@ Azure Functions v4 (Node.js 20, Flex Consumption FC1)
 Azure SQL Database (General Purpose Serverless, Gen5 2 vCores)
     (10 tables, 3 views, 20+ indexes)
 
-Chat endpoint (/chat):
+Chat endpoint (/chat — Investigative Agent):
     Browser SPA → Container App /chat
-        → Azure OpenAI GPT-4.1 (tool calling, up to 10 rounds)
+        → Azure OpenAI (6 models, default GPT-4.1, tool calling, up to 10 rounds)
         → APIM → Functions → SQL (per tool call)
         → Natural language response
+
+Agent endpoint (/agent — City Portal / Foundry Agent):
+    Browser SPA → Container App /agent/thread + /agent/message
+        → Azure OpenAI GPT-5 (Assistants API, persistent threads)
+        → APIM → Functions → SQL (per tool call)
+        → Natural language response with thread context
 ```
 
 ## Project Structure
@@ -79,8 +91,8 @@ mcp-apim/
 │   ├── set-policy.ps1        # APIM policy (injects function key)
 │   ├── apim-policy.json      # APIM policy XML
 │   └── func-app-body.json    # Function app ARM template
-├── web/                      # Front-end three-panel interface
-│   └── index.html            # Agent chat + City Portal + MCP tool tester SPA
+├── web/                      # Front-end multi-panel interface
+│   └── index.html            # Agent chat + City Portal + Copilot Studio widget + MCP tool tester SPA
 ├── docs/                     # Project documentation
 │   ├── ARCHITECTURE.md       # Full technical reference
 │   ├── CLI_CHEATSHEET.md     # Day-to-day management commands
@@ -221,11 +233,15 @@ All resources are on consumption/serverless tiers — **~$1-2/month when idle**:
 
 ## Web Interface (Static Web App)
 
-Dual-panel SPA with VS Code-style activity bar providing two views:
-- **Investigative Agent** — Natural language chat powered by GPT-4.1 with tool calling (`/chat` endpoint)
-- **MCP Tool Tester** — Direct MCP tool discovery and invocation via Streamable HTTP (`/mcp` endpoint)
+SPA with VS Code-style activity bar demonstrating four client patterns using the same APIM backend:
+- **Investigative Agent** — Chat Completions + Tools. Natural language chat with model selector (6 models). Our code runs the agentic loop (`/chat` endpoint).
+- **City Portal** — Assistants API (Foundry Agent). Philadelphia-branded page with floating chat widget. Azure manages the tool-calling loop with GPT-5 and threads persist server-side (`/agent` endpoints).
+- **Copilot Studio** — Microsoft Copilot Studio agent connected via MCP. Floating widget (purple star icon, bottom-right) accessible from any page. Demonstrates the low-code/no-code integration path.
+- **MCP Tool Tester** — Raw MCP protocol. Direct tool discovery and invocation via Streamable HTTP (`/mcp` endpoint).
 
-Both panels can be open side-by-side or individually. Deployed at: `https://kind-forest-06c4d3c0f.1.azurestaticapps.net/`
+Panels can be open side-by-side or individually. The Copilot Studio widget floats above all panels.
+
+Deployed at: `https://kind-forest-06c4d3c0f.1.azurestaticapps.net/`
 
 Deploy updates:
 ```bash
@@ -238,7 +254,8 @@ The MCP server supports dual transport: **stdio** (local, default) and **Streama
 
 - **Container App URL:** `https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io`
 - **MCP endpoint:** `/mcp` (POST for requests, GET for SSE, DELETE for session cleanup)
-- **Chat endpoint:** `/chat` (POST — natural language → Azure OpenAI GPT-4.1 with tool calling)
+- **Chat endpoint:** `/chat` (POST — natural language → Azure OpenAI with tool calling, 6 models)
+- **Agent endpoints:** `/agent/thread` (POST — create thread), `/agent/message` (POST — Assistants API with GPT-5)
 - **Health check:** `/healthz`
 - **Scale:** 0-3 replicas (scales to zero when idle, ~$0 when not in use)
 

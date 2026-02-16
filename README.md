@@ -2,7 +2,7 @@
 
 An AI-powered investigative platform that surfaces poverty profiteering patterns in Philadelphia. It combines 10 public datasets (~29 million rows) covering property ownership, code violations, demolitions, business licenses, and tax assessments into a queryable system that any AI agent — or a human through a web browser — can use to identify exploitative LLCs and property owners.
 
-The system has three layers: a **serverless data API** (Azure Functions + SQL), an **MCP server** that exposes 12 investigative tools to any AI agent, and a **web interface** with three client patterns — a Chat Completions agent, a Foundry Agent (Assistants API), and an MCP tool tester — showing how the same backend serves different AI integration approaches. Everything is serverless and costs ~$1-2/month when idle.
+The system has three layers: a **serverless data API** (Azure Functions + SQL), an **MCP server** that exposes 12 investigative tools to any AI agent, and a **web interface** demonstrating four client patterns — a Chat Completions agent, a Foundry Agent (Assistants API), a Copilot Studio agent via MCP, and a raw MCP tool tester — showing how the same backend serves completely different AI integration approaches. Everything is serverless and costs ~$1-2/month when idle.
 
 ## Architecture
 
@@ -53,13 +53,14 @@ The system has three layers: a **serverless data API** (Azure Functions + SQL), 
 
 Try it in your browser: **https://kind-forest-06c4d3c0f.1.azurestaticapps.net/**
 
-A three-panel SPA with a VS Code-style activity bar, demonstrating three different ways to consume the same APIM backend:
+A SPA with a VS Code-style activity bar, demonstrating four different ways to consume the same APIM backend:
 
 - **Investigative Agent** — Chat Completions + Tools pattern. Ask questions in natural language; our code runs the agentic loop. Switch between 6 models (GPT-4.1, GPT-5, GPT-5 Mini, o4-mini, o3-mini, Phi-4) via the dropdown.
-- **City Portal** — Assistants API (Foundry Agent) pattern. A Philadelphia-branded government page with a floating chat widget. Azure manages the tool-calling loop and threads persist server-side — follow-up questions remember context.
+- **City Portal** — Assistants API (Foundry Agent) pattern. A Philadelphia-branded government page with a floating chat widget. Azure manages the tool-calling loop with GPT-5 and threads persist server-side — follow-up questions remember context.
+- **Copilot Studio** — Microsoft Copilot Studio agent connected via MCP. Accessible as a floating widget from any page. Demonstrates the low-code/no-code path to consuming the same 12 tools.
 - **MCP Tool Tester** — Raw MCP protocol pattern. Connect directly to the MCP server, discover tools, and call them individually with specific parameters.
 
-Panels can be open side-by-side or individually.
+Panels can be open side-by-side or individually. The Copilot Studio widget floats above all panels.
 
 ## Quick Start
 
@@ -173,8 +174,8 @@ mcp-apim/
 │   └── Dockerfile           # Container App deployment (multi-stage, Alpine)
 ├── functions/               # Azure Functions (12 HTTP endpoints)
 │   └── src/functions/       # One file per endpoint
-├── web/                     # Browser-based three-panel interface
-│   └── index.html           # Agent chat + City Portal + MCP tool tester
+├── web/                     # Browser-based multi-panel interface
+│   └── index.html           # Agent chat + City Portal + Copilot Studio widget + MCP tool tester
 ├── agent/                   # Azure AI Foundry agent
 │   └── foundry_agent.py     # MCP + Bing grounding
 ├── docs/                    # Project documentation (architecture, usage, FAQ, session log, etc.)

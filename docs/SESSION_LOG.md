@@ -553,3 +553,73 @@ Pattern 3: MCP Tool Tester (Raw MCP Protocol)
 - `ChatCompletionTool` is a union type in v6 — can't access `.function` without narrowing to `ChatCompletionFunctionTool` first
 - Assistants API on Azure uses the same `AzureOpenAI` client and `DefaultAzureCredential` — no separate client needed
 - Thread persistence is the key differentiator: follow-up questions work without re-sending history or making tool calls
+
+---
+
+## Session 14 — UI Polish, Copilot Studio Integration, Docs Reorganization (2026-02-16)
+
+### Model Selector & GPT-5 Agent
+- Hid model selector dropdown on City Portal panel (only relevant for Investigative Agent)
+- Updated Foundry Agent (`foundry-agent.ts`) from `gpt-4.1` to `gpt-5`
+- Updated live assistant via REST API to use `gpt-5` model
+
+### Docs Reorganization
+- Moved 7 markdown files from root to `docs/` directory: ARCHITECTURE.md, CLI_CHEATSHEET.md, COMMANDS.md, FAQ.md, PROMPTS.md, SESSION_LOG.md, USAGE.md
+- Only README.md and CLAUDE.md remain in root
+- Updated all cross-references in README.md and CLAUDE.md
+
+### UI Improvements
+- Moved MCP Tools icon to bottom of activity bar (flex spacer pattern)
+- Rewrote `formatContent()` from simple regex to full markdown parser handling: tables, numbered/ordered lists, code blocks, inline code, headers, bold, italic, horizontal rules
+- Added extensive CSS for markdown rendering (`.md-h`, `.md-list`, `.md-table`, `.md-code`, `.md-inline-code`, `.md-hr`)
+
+### Azure AI Foundry Portal
+- Confirmed MCAPS blocks Foundry portal access: "restricted resource from unauthorized network location"
+- This is the same `AIFoundryHub_PublicNetwork_Modify` policy — it cannot be overridden at subscription level
+- All agent management done via CLI/REST API instead
+
+### FAQ: Azure SQL vs Dataverse
+- Added detailed FAQ entry covering why Azure SQL was chosen over Dataverse
+- Covers: scale/performance (25 custom indexes), storage overhead, schema flexibility, cost, custom SQL, when Dataverse would make sense
+
+### Copilot Studio Integration
+- Connected Copilot Studio to MCP server endpoint (`/mcp` on Container App)
+- Copilot Studio auto-discovers all 12 tools via MCP protocol
+- No authentication required (endpoint is open)
+- Configured agent description and instructions in Copilot Studio
+- Embedded Copilot Studio as iframe widget in the SPA:
+  - Initially as a 4th panel tab — had CSS bug where it showed on homepage
+  - Reworked to a floating widget: purple star FAB icon (bottom-right), 420x560px overlay with iframe
+  - Accessible from any page, independent of the panel system
+  - Iframe lazy-loaded on first open to avoid startup cost
+
+### Four Client Patterns Now Demonstrated
+```
+Pattern 1: Investigative Agent (Chat Completions + Tools)
+  → Our code runs the agentic loop in chat.ts
+  → Stateless — client sends full history each request
+  → User selects model via dropdown (6 models)
+
+Pattern 2: City Portal (Assistants API / Foundry Agent)
+  → Azure manages the tool-calling loop with GPT-5
+  → Stateful — threads persist server-side, follow-ups remember context
+
+Pattern 3: Copilot Studio (MCP via Low-Code)
+  → Copilot Studio auto-discovers tools via MCP protocol
+  → Embedded as floating iframe widget
+  → No custom code — just point at the MCP endpoint
+
+Pattern 4: MCP Tool Tester (Raw MCP Protocol)
+  → Direct tool calls via MCP Streamable HTTP
+  → No AI — user manually selects tools and fills parameters
+```
+
+### Deployment
+- Built and deployed new container image (GPT-5 agent update)
+- Deployed SPA multiple times (UI improvements + Copilot Studio widget)
+
+### Key Lessons
+- Copilot Studio MCP integration is straightforward: just point at the Streamable HTTP endpoint, no auth setup needed
+- Copilot Studio iframe embed works for demos but may have SSO/auth considerations for production
+- Container App cold starts can cause Copilot Studio connection timeouts — wake container via `/healthz` first
+- CSS specificity matters: adding `display: flex` to a panel class can override the `.panel { display: none }` rule, causing panels to leak onto the homepage
