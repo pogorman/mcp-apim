@@ -23,6 +23,7 @@ User prompts from each session of building this project, reconstructed from sess
 - [Session 15 — Copilot Studio Panel, User Guide, Wake-Up Script](#session-15--copilot-studio-panel-user-guide-wake-up-script)
 - [Session 16 — ELI5 Documentation](#session-16--eli5-documentation)
 - [Session 17 — Foundry Agent Fix, Token Docs](#session-17--foundry-agent-fix-token-docs)
+- [Session 18 — Authentication, Docs Panel, Background Image](#session-18--authentication-docs-panel-background-image)
 - [Example Analysis Prompts](#example-analysis-prompts-for-use-with-the-connected-agent)
 
 ---
@@ -177,6 +178,16 @@ User prompts from each session of building this project, reconstructed from sess
 - "something is wrong w the foundry agent on the portal. keeps telling me (no response)"
 - (Extensive debugging of Foundry Agent — GPT-5 reasoning model issues, tool output limits, server errors. Switched to GPT-4.1.)
 - "in the eli5, make sure you cover context and how tokens work and why we get such different responses across the clients. explain temperature to me and anything about token consumption, both generically and how that applies to the models in our solutions, and make sure it goes in the faq. update everything esp the md files and your memory, check into git, and we'll pick this back up tomorrow. make sure all mds have a toc if you didn't do that already. hey and can you make a note in your memory that when we pick things up tomorrow we need to talk about authentication so not just anyone can use this spa? we don't need to do anything now, but reminder for next session to remind me?"
+
+## Session 18 — Authentication, Docs Panel, Background Image
+
+- "ok... so how do i put authetication into this spa so that not anyone can log in and use it"
+- (Selected "SPA only" auth approach — Azure SWA built-in auth with Microsoft login)
+- "there should also be a logout link/button... and some visual way of knowing a user is logged in. also, let's put a reader on the spa that alllows me to read both md's and the ipynb notebooks. the mds and notebooks should be listed as like sub nav iteams once the main nav item to view the docs/notebooks has been selectedd."
+- "none of the links work in the mds... they all go the home page of the spa instead of going to their respective sections in the mds"
+- "some links work some dont. e.g. the copilot studio link on the user guide. and infra and costs on the faq. i'm sure there are more. check them all."
+- "use images/philly-bg.jpg as the background for the home and investigave agent (spa) views"
+- "ok update all the mds and push everything to git"
 
 ---
 

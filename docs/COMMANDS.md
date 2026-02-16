@@ -552,10 +552,17 @@ az staticwebapp secrets list \
   --resource-group rg-philly-profiteering \
   --query "properties.apiKey" -o tsv
 
-# Deploy web/ folder
+# Deploy web/ folder (manual)
 npx @azure/static-web-apps-cli deploy web \
   --deployment-token <token> \
   --env production
+
+# Deploy with docs/notebooks/images (preferred — uses deploy script)
+bash infra/deploy-swa.sh
+# Copies docs/*.md, README.md → web/docs/
+# Copies jupyter-notebooks/*.ipynb → web/notebooks/
+# Copies images/* → web/images/
+# Runs swa deploy, then cleans up copied files
 ```
 
 **Live URL:** https://kind-forest-06c4d3c0f.1.azurestaticapps.net/

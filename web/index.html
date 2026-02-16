@@ -195,6 +195,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      background: linear-gradient(rgba(15,17,23,0.82), rgba(15,17,23,0.88)), url('/images/philly-bg.jpg') center/cover no-repeat;
     }
 
     .welcome-screen.hidden { display: none; }
@@ -288,6 +289,7 @@
       overflow-y: auto;
       padding: 0.75rem 0;
       scroll-behavior: smooth;
+      background: linear-gradient(rgba(15,17,23,0.85), rgba(15,17,23,0.9)), url('/images/philly-bg.jpg') center/cover no-repeat fixed;
     }
 
     .chat-scroll::-webkit-scrollbar { width: 5px; }
@@ -1467,6 +1469,241 @@
     .city-panel .leaflet-popup-tip { background: #fff !important; }
     .city-panel .leaflet-popup-content strong { color: #004785; }
 
+    /* ── User Info ─────────────────────────────────────── */
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      border-left: 1px solid var(--border);
+      padding-left: 0.75rem;
+    }
+
+    .user-email {
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .btn-logout {
+      padding: 0.2rem 0.5rem;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.65rem;
+      transition: all 0.15s;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+
+    .btn-logout:hover {
+      color: var(--error);
+      border-color: var(--error);
+    }
+
+    /* ── Docs Panel ─────────────────────────────────────── */
+    .docs-body {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    .doc-list {
+      width: 220px;
+      flex-shrink: 0;
+      border-right: 1px solid var(--border);
+      overflow-y: auto;
+      background: var(--bg);
+    }
+
+    .doc-list::-webkit-scrollbar { width: 4px; }
+    .doc-list::-webkit-scrollbar-track { background: transparent; }
+    .doc-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .doc-list-header {
+      padding: 0.5rem 0.65rem;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 1;
+    }
+
+    .doc-list-item {
+      padding: 0.45rem 0.65rem;
+      cursor: pointer;
+      font-size: 0.78rem;
+      border-bottom: 1px solid rgba(42,45,58,0.5);
+      transition: all 0.1s;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .doc-list-item:hover { background: var(--surface); }
+
+    .doc-list-item.active {
+      background: var(--accent-dim);
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .doc-list-item .doc-icon {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      opacity: 0.6;
+    }
+
+    .doc-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.25rem 1.5rem;
+      min-width: 0;
+    }
+
+    .doc-content::-webkit-scrollbar { width: 5px; }
+    .doc-content::-webkit-scrollbar-track { background: transparent; }
+    .doc-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    .doc-content-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .doc-rendered {
+      font-size: 0.85rem;
+      line-height: 1.7;
+      max-width: 800px;
+    }
+
+    .doc-rendered h2.md-h { font-size: 1.2rem; font-weight: 700; color: var(--accent); margin: 1.4em 0 0.5em; }
+    .doc-rendered h3.md-h { font-size: 1.05rem; font-weight: 700; color: var(--accent); margin: 1.2em 0 0.4em; }
+    .doc-rendered h4.md-h { font-size: 0.92rem; font-weight: 600; color: var(--accent); margin: 1em 0 0.3em; }
+    .doc-rendered h5.md-h { font-size: 0.85rem; font-weight: 600; color: var(--accent); margin: 0.8em 0 0.3em; }
+    .doc-rendered .md-h:first-child { margin-top: 0; }
+
+    .doc-rendered p { margin: 0 0 0.7em; }
+    .doc-rendered p:last-child { margin-bottom: 0; }
+
+    .doc-rendered .md-list { margin: 0.3em 0 0.7em 1.5em; padding: 0; }
+    .doc-rendered .md-list li { margin-bottom: 0.3em; }
+
+    .doc-rendered .md-table { width: 100%; border-collapse: collapse; margin: 0.7em 0; font-size: 0.8rem; }
+    .doc-rendered .md-table th,
+    .doc-rendered .md-table td { padding: 0.4em 0.65em; border: 1px solid var(--border); text-align: left; }
+    .doc-rendered .md-table th { background: rgba(255,255,255,0.05); font-weight: 600; color: var(--accent); }
+
+    .doc-rendered .md-code {
+      background: var(--bar);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.7em 0.9em;
+      margin: 0.5em 0;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
+    .doc-rendered .md-inline-code {
+      background: var(--bar);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 0.1em 0.35em;
+      font-family: var(--font-mono);
+      font-size: 0.8em;
+    }
+
+    .doc-rendered .md-hr { border: none; border-top: 1px solid var(--border); margin: 1em 0; }
+
+    .doc-rendered .md-blockquote {
+      border-left: 3px solid var(--accent-dim);
+      padding: 0.4em 0.8em;
+      margin: 0.5em 0;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .doc-rendered a { color: var(--accent); text-decoration: underline; }
+    .doc-rendered a:hover { color: var(--accent-hover); }
+
+    .doc-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 200px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    /* Notebook cells */
+    .nb-cell {
+      margin-bottom: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .nb-cell-label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.25rem 0.6rem;
+      background: var(--surface);
+      color: var(--muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .nb-cell-label .cell-num { color: var(--accent); font-family: var(--font-mono); }
+
+    .nb-cell-body { padding: 0.6rem 0.8rem; }
+
+    .nb-cell.nb-markdown .nb-cell-body { font-size: 0.82rem; line-height: 1.6; }
+
+    .nb-cell.nb-code .nb-cell-body {
+      background: var(--bar);
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+
+    .nb-output {
+      border-top: 1px solid var(--border);
+      padding: 0.5rem 0.8rem;
+      background: rgba(0,0,0,0.15);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      white-space: pre-wrap;
+      color: var(--muted);
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .nb-output::-webkit-scrollbar { width: 4px; }
+    .nb-output::-webkit-scrollbar-track { background: transparent; }
+    .nb-output::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
     /* ── Responsive ───────────────────────────────────── */
     @media (max-width: 768px) {
       .activity-bar {
@@ -1494,6 +1731,9 @@
 
       .msg-user { margin-left: 1.5rem; margin-right: 0.5rem; }
       .msg-assistant { margin-left: 0.5rem; margin-right: 1.5rem; }
+
+      .user-email { max-width: 100px; }
+      .doc-list { width: 160px; }
     }
   </style>
 </head>
@@ -1512,6 +1752,10 @@
       <div class="status">
         <div class="status-dot"></div>
         <span>12 tools + 29M rows</span>
+      </div>
+      <div class="user-info" id="userInfo" style="display:none;">
+        <span class="user-email" id="userEmail"></span>
+        <button class="btn-logout" onclick="logout()">Sign out</button>
       </div>
     </div>
   </header>
@@ -1534,6 +1778,12 @@
       <button class="activity-tab" id="tabCopilot" onclick="togglePanel('copilot')" title="Copilot Studio">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+      </button>
+      <button class="activity-tab" id="tabDocs" onclick="togglePanel('docs')" title="Documentation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
         </svg>
       </button>
       <div style="flex:1;"></div>
@@ -1580,6 +1830,13 @@
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
               </svg>
               Copilot Studio
+            </button>
+            <button class="welcome-btn" onclick="togglePanel('docs')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+              </svg>
+              Docs
             </button>
           </div>
         </div>
@@ -1781,6 +2038,20 @@
         </div>
       </div>
 
+      <!-- Panel 5: Documentation -->
+      <div class="panel" id="panelDocs">
+        <div class="panel-header">
+          <span class="panel-header-title">Documentation</span>
+          <span id="docTitle" style="font-size:0.72rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px;"></span>
+        </div>
+        <div class="docs-body">
+          <div class="doc-list" id="docList"></div>
+          <div class="doc-content" id="docContent">
+            <div class="doc-content-empty">Select a document from the list.</div>
+          </div>
+        </div>
+      </div>
+
       <!-- Panel 2: MCP Tool Tester -->
       <div class="panel" id="panelTools">
         <div class="panel-header">
@@ -1815,10 +2086,11 @@
     const API_BASE = 'https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io';
 
     const state = {
-      panels: { agent: false, tools: false, city: false, copilot: false },
+      panels: { agent: false, tools: false, city: false, copilot: false, docs: false },
       copilotOpen: false,
       chat: { history: [], isLoading: false, model: 'gpt-4.1' },
       city: { threadId: null, chatOpen: false, isLoading: false },
+      docs: { selectedDoc: null, cache: {} },
       mcp: {
         sessionId: null,
         connected: false,
@@ -1831,6 +2103,25 @@
     };
 
     const $ = (id) => document.getElementById(id);
+
+    const DOCS_MANIFEST = {
+      documentation: [
+        { title: 'User Guide', path: '/docs/USER_GUIDE.md', type: 'md' },
+        { title: 'FAQ', path: '/docs/FAQ.md', type: 'md' },
+        { title: 'ELI5 (Plain English)', path: '/docs/ELI5.md', type: 'md' },
+        { title: 'Architecture', path: '/docs/ARCHITECTURE.md', type: 'md' },
+        { title: 'Commands Reference', path: '/docs/COMMANDS.md', type: 'md' },
+        { title: 'CLI Cheatsheet', path: '/docs/CLI_CHEATSHEET.md', type: 'md' },
+        { title: 'Prompts Library', path: '/docs/PROMPTS.md', type: 'md' },
+        { title: 'Session Log', path: '/docs/SESSION_LOG.md', type: 'md' },
+        { title: 'README', path: '/docs/README.md', type: 'md' },
+      ],
+      notebooks: [
+        { title: 'Setup & Data Loading', path: '/notebooks/PhillyStat 01-Setup.ipynb', type: 'ipynb' },
+        { title: 'Analytics', path: '/notebooks/PhillyStats-Analytics.ipynb', type: 'ipynb' },
+        { title: 'LLC Analytics', path: '/notebooks/PhillyStats02-LLC-Analytics.ipynb', type: 'ipynb' },
+      ],
+    };
 
     /* ================================================================
        ESCAPING & FORMATTING
@@ -1976,25 +2267,28 @@
       const toolsOpen = state.panels.tools;
       const cityOpen = state.panels.city;
       const copilotOpen = state.panels.copilot;
+      const docsOpen = state.panels.docs;
 
       // Activity bar tabs
       $('tabAgent').classList.toggle('active', agentOpen);
       $('tabTools').classList.toggle('active', toolsOpen);
       $('tabCity').classList.toggle('active', cityOpen);
       $('tabCopilot').classList.toggle('active', copilotOpen);
+      $('tabDocs').classList.toggle('active', docsOpen);
 
       // Panels
       $('panelAgent').classList.toggle('visible', agentOpen);
       $('panelTools').classList.toggle('visible', toolsOpen);
       $('panelCity').classList.toggle('visible', cityOpen);
       $('panelCopilot').classList.toggle('visible', copilotOpen);
+      $('panelDocs').classList.toggle('visible', docsOpen);
 
-      // Hide model selector when only City Portal/Copilot/Tools is active (model applies to Investigative Agent only)
-      const showModelSelect = agentOpen || (!agentOpen && !toolsOpen && !cityOpen && !copilotOpen);
+      // Hide model selector when only City Portal/Copilot/Tools/Docs is active (model applies to Investigative Agent only)
+      const showModelSelect = agentOpen || (!agentOpen && !toolsOpen && !cityOpen && !copilotOpen && !docsOpen);
       $('modelSelect').style.display = showModelSelect ? '' : 'none';
 
       // Welcome screen
-      const anyOpen = agentOpen || toolsOpen || cityOpen || copilotOpen;
+      const anyOpen = agentOpen || toolsOpen || cityOpen || copilotOpen || docsOpen;
       $('welcomeScreen').classList.toggle('hidden', anyOpen);
 
       // Close copilot widget if copilot panel is closed
@@ -2563,6 +2857,313 @@
     }
 
     /* ================================================================
+       AUTH - USER INFO
+       ================================================================ */
+    async function loadUserInfo() {
+      try {
+        const resp = await fetch('/.auth/me');
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const principal = data.clientPrincipal;
+        if (principal && principal.userDetails) {
+          $('userEmail').textContent = principal.userDetails;
+          $('userInfo').style.display = '';
+        }
+      } catch (e) { /* ignore - user info is non-critical */ }
+    }
+
+    function logout() {
+      window.location.href = '/.auth/logout';
+    }
+
+    /* ================================================================
+       DOCS PANEL
+       ================================================================ */
+    function slugify(text) {
+      // Match GitHub's slug algorithm: each space becomes one hyphen, double hyphens preserved
+      return text.toLowerCase()
+        .replace(/&amp;/g, '').replace(/&lt;/g, '').replace(/&gt;/g, '').replace(/&quot;/g, '')
+        .replace(/[^\w\s-]/g, '').replace(/\s/g, '-').replace(/^-|-$/g, '');
+    }
+
+    function inlineFormatDoc(text) {
+      // Links [text](url) — anchor links scroll within doc panel, external links open new tab
+      text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, function(match, linkText, url) {
+        if (url.startsWith('#')) {
+          var targetId = url.slice(1);
+          return '<a href="javascript:void(0)" onclick="scrollDocTo(\'' + targetId.replace(/'/g, "\\'") + '\')">' + linkText + '</a>';
+        }
+        return '<a href="' + url + '" target="_blank" rel="noopener">' + linkText + '</a>';
+      });
+      // Images ![alt](attachment:...) → placeholder
+      text = text.replace(/!\[([^\]]*)\]\(attachment:[^)]+\)/g, '<em style="color:var(--muted);">[Image: $1]</em>');
+      // Images ![alt](http...)
+      text = text.replace(/!\[([^\]]*)\]\((https?:[^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:6px;margin:0.3em 0;" />');
+      // Bold
+      text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      // Italic
+      text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+      // Inline code
+      text = text.replace(/`([^`]+)`/g, '<code class="md-inline-code">$1</code>');
+      return text;
+    }
+
+    function formatContentDoc(text) {
+      if (!text) return '';
+      var escaped = escapeHtml(text);
+      var lines = escaped.split('\n');
+      var out = [];
+      var i = 0;
+
+      while (i < lines.length) {
+        var line = lines[i];
+
+        // Code block
+        if (line.match(/^```/)) {
+          var code = [];
+          i++;
+          while (i < lines.length && !lines[i].match(/^```/)) {
+            code.push(lines[i]);
+            i++;
+          }
+          i++;
+          out.push('<pre class="md-code">' + code.join('\n') + '</pre>');
+          continue;
+        }
+
+        // Table
+        if (line.indexOf('|') !== -1 && i + 1 < lines.length && lines[i + 1] && lines[i + 1].match(/^\|?\s*[-:]+[-|\s:]*$/)) {
+          var rows = [];
+          while (i < lines.length && lines[i].indexOf('|') !== -1) {
+            rows.push(lines[i]);
+            i++;
+          }
+          var headerCells = rows[0].split('|').map(function(c) { return c.trim(); }).filter(Boolean);
+          var html = '<table class="md-table"><thead><tr>';
+          headerCells.forEach(function(c) { html += '<th>' + inlineFormatDoc(c) + '</th>'; });
+          html += '</tr></thead><tbody>';
+          for (var r = 2; r < rows.length; r++) {
+            var cells = rows[r].split('|').map(function(c) { return c.trim(); }).filter(Boolean);
+            html += '<tr>';
+            cells.forEach(function(c) { html += '<td>' + inlineFormatDoc(c) + '</td>'; });
+            html += '</tr>';
+          }
+          html += '</tbody></table>';
+          out.push(html);
+          continue;
+        }
+
+        // Horizontal rule
+        if (line.match(/^[-*_]{3,}\s*$/)) {
+          out.push('<hr class="md-hr"/>');
+          i++;
+          continue;
+        }
+
+        // Blockquote
+        if (line.match(/^&gt;\s?/)) {
+          var bqLines = [];
+          while (i < lines.length && lines[i].match(/^&gt;\s?/)) {
+            bqLines.push(lines[i].replace(/^&gt;\s?/, ''));
+            i++;
+          }
+          out.push('<div class="md-blockquote">' + inlineFormatDoc(bqLines.join(' ')) + '</div>');
+          continue;
+        }
+
+        // Headers with proper hierarchy + id for anchor links
+        if (line.match(/^#### /)) {
+          var hText = line.slice(5);
+          out.push('<h5 class="md-h" id="' + slugify(hText) + '">' + inlineFormatDoc(hText) + '</h5>');
+          i++; continue;
+        }
+        if (line.match(/^### /)) {
+          var hText = line.slice(4);
+          out.push('<h4 class="md-h" id="' + slugify(hText) + '">' + inlineFormatDoc(hText) + '</h4>');
+          i++; continue;
+        }
+        if (line.match(/^## /)) {
+          var hText = line.slice(3);
+          out.push('<h3 class="md-h" id="' + slugify(hText) + '">' + inlineFormatDoc(hText) + '</h3>');
+          i++; continue;
+        }
+        if (line.match(/^# /)) {
+          var hText = line.slice(2);
+          out.push('<h2 class="md-h" id="' + slugify(hText) + '">' + inlineFormatDoc(hText) + '</h2>');
+          i++; continue;
+        }
+
+        // Unordered list
+        if (line.match(/^\s*[-*] /)) {
+          var items = [];
+          while (i < lines.length && lines[i].match(/^\s*[-*] /)) {
+            items.push(lines[i].replace(/^\s*[-*] /, ''));
+            i++;
+          }
+          out.push('<ul class="md-list">' + items.map(function(it) { return '<li>' + inlineFormatDoc(it) + '</li>'; }).join('') + '</ul>');
+          continue;
+        }
+
+        // Ordered list
+        if (line.match(/^\s*\d+\.\s/)) {
+          var items = [];
+          while (i < lines.length && lines[i].match(/^\s*\d+\.\s/)) {
+            items.push(lines[i].replace(/^\s*\d+\.\s/, ''));
+            i++;
+          }
+          out.push('<ol class="md-list">' + items.map(function(it) { return '<li>' + inlineFormatDoc(it) + '</li>'; }).join('') + '</ol>');
+          continue;
+        }
+
+        // Blank line
+        if (line.trim() === '') { i++; continue; }
+
+        // Paragraph
+        var para = [];
+        while (i < lines.length && lines[i].trim() !== '' && !lines[i].match(/^```/) && !lines[i].match(/^#{1,4} /) && !lines[i].match(/^\s*[-*] /) && !lines[i].match(/^\s*\d+\.\s/) && !lines[i].match(/^[-*_]{3,}\s*$/) && !lines[i].match(/^&gt;\s?/) && !(lines[i].indexOf('|') !== -1 && i + 1 < lines.length && lines[i + 1] && lines[i + 1].match(/^\|?\s*[-:]+[-|\s:]*$/))) {
+          para.push(lines[i]);
+          i++;
+        }
+        out.push('<p>' + inlineFormatDoc(para.join(' ')) + '</p>');
+      }
+
+      return out.join('');
+    }
+
+    function renderNotebook(jsonText) {
+      try {
+        var nb = JSON.parse(jsonText);
+      } catch (e) {
+        return '<div class="doc-content-empty" style="color:var(--error);">Invalid notebook JSON</div>';
+      }
+
+      var cells = nb.cells || [];
+      var html = '<div class="doc-rendered">';
+      var codeNum = 0;
+
+      for (var i = 0; i < cells.length; i++) {
+        var cell = cells[i];
+        var source = Array.isArray(cell.source) ? cell.source.join('') : (cell.source || '');
+
+        if (cell.cell_type === 'markdown') {
+          html += '<div class="nb-cell nb-markdown">';
+          html += '<div class="nb-cell-label">Markdown</div>';
+          html += '<div class="nb-cell-body">' + formatContentDoc(source) + '</div>';
+          html += '</div>';
+        } else if (cell.cell_type === 'code') {
+          codeNum++;
+          var lang = source.match(/^%%sql/) ? 'sql' : ((nb.metadata && nb.metadata.kernelspec && nb.metadata.kernelspec.language) || 'python');
+
+          html += '<div class="nb-cell nb-code">';
+          html += '<div class="nb-cell-label"><span class="cell-num">[' + codeNum + ']</span> ' + escapeHtml(lang) + '</div>';
+          html += '<div class="nb-cell-body">' + escapeHtml(source) + '</div>';
+
+          var outputs = cell.outputs || [];
+          for (var j = 0; j < outputs.length; j++) {
+            var out = outputs[j];
+            var outText = '';
+
+            if (out.text) {
+              outText = Array.isArray(out.text) ? out.text.join('') : out.text;
+            } else if (out.data) {
+              if (out.data['text/plain']) {
+                outText = Array.isArray(out.data['text/plain']) ? out.data['text/plain'].join('') : out.data['text/plain'];
+              }
+            }
+
+            if (outText) {
+              if (outText.length > 5000) outText = outText.substring(0, 5000) + '\n... (truncated)';
+              html += '<div class="nb-output">' + escapeHtml(outText) + '</div>';
+            }
+          }
+
+          html += '</div>';
+        }
+      }
+
+      html += '</div>';
+      return html;
+    }
+
+    function renderDocList() {
+      var container = $('docList');
+      var html = '';
+
+      html += '<div class="doc-list-header">Documentation (' + DOCS_MANIFEST.documentation.length + ')</div>';
+      for (var i = 0; i < DOCS_MANIFEST.documentation.length; i++) {
+        var doc = DOCS_MANIFEST.documentation[i];
+        var isActive = state.docs.selectedDoc && state.docs.selectedDoc.path === doc.path;
+        html += '<div class="doc-list-item' + (isActive ? ' active' : '') + '" onclick="selectDoc(\'' + doc.path.replace(/'/g, "\\'") + '\')">' +
+          '<svg class="doc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+          escapeHtml(doc.title) +
+        '</div>';
+      }
+
+      html += '<div class="doc-list-header" style="margin-top:0.25rem;">Notebooks (' + DOCS_MANIFEST.notebooks.length + ')</div>';
+      for (var i = 0; i < DOCS_MANIFEST.notebooks.length; i++) {
+        var nb = DOCS_MANIFEST.notebooks[i];
+        var isActive = state.docs.selectedDoc && state.docs.selectedDoc.path === nb.path;
+        html += '<div class="doc-list-item' + (isActive ? ' active' : '') + '" onclick="selectDoc(\'' + nb.path.replace(/'/g, "\\'") + '\')">' +
+          '<svg class="doc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"/><line x1="8" y1="3" x2="8" y2="21"/></svg>' +
+          escapeHtml(nb.title) +
+        '</div>';
+      }
+
+      container.innerHTML = html;
+    }
+
+    function findDocByPath(path) {
+      var all = DOCS_MANIFEST.documentation.concat(DOCS_MANIFEST.notebooks);
+      return all.find(function(d) { return d.path === path; });
+    }
+
+    async function selectDoc(path) {
+      var doc = findDocByPath(path);
+      if (!doc) return;
+
+      state.docs.selectedDoc = doc;
+      renderDocList();
+      $('docTitle').textContent = doc.title;
+
+      var content = $('docContent');
+      content.innerHTML = '<div class="doc-loading">Loading...</div>';
+
+      try {
+        if (state.docs.cache[path]) {
+          renderDocContent(state.docs.cache[path], doc.type);
+          return;
+        }
+
+        var resp = await fetch(path);
+        if (!resp.ok) throw new Error('Failed to load (' + resp.status + ')');
+        var text = await resp.text();
+        state.docs.cache[path] = text;
+        renderDocContent(text, doc.type);
+      } catch (err) {
+        content.innerHTML = '<div class="doc-content-empty" style="color:var(--error);">' +
+          'Error loading document: ' + escapeHtml(err.message) + '</div>';
+      }
+    }
+
+    function scrollDocTo(targetId) {
+      var container = $('docContent');
+      var el = document.getElementById(targetId);
+      if (el && container) {
+        container.scrollTop = el.offsetTop - container.offsetTop - 10;
+      }
+    }
+
+    function renderDocContent(text, type) {
+      var content = $('docContent');
+      if (type === 'md') {
+        content.innerHTML = '<div class="doc-rendered">' + formatContentDoc(text) + '</div>';
+      } else if (type === 'ipynb') {
+        content.innerHTML = renderNotebook(text);
+      }
+      content.scrollTop = 0;
+    }
+
+    /* ================================================================
        MAPS (Leaflet.js)
        ================================================================ */
     const PHILLY_CENTER = [39.9526, -75.1652]; // City Hall
@@ -2680,6 +3281,8 @@
        ================================================================ */
     updatePanels();
     loadModels();
+    loadUserInfo();
+    renderDocList();
     // Init welcome map after a tick (DOM needs to be visible)
     setTimeout(initWelcomeMap, 100);
   </script>

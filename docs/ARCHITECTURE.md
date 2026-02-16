@@ -838,6 +838,21 @@ npm install --omit=dev
 func azure functionapp publish philly-profiteering-func --javascript
 ```
 
+### Static Web App Deployment
+
+The SPA includes a documentation panel that reads markdown and notebook files. These live in `docs/` and `jupyter-notebooks/` (not in `web/`), so a deploy script copies them before deploying:
+
+```bash
+bash infra/deploy-swa.sh
+```
+
+This script:
+1. Copies `docs/*.md` and `README.md` → `web/docs/`
+2. Copies `jupyter-notebooks/*.ipynb` → `web/notebooks/`
+3. Copies `images/*` → `web/images/`
+4. Runs `npx swa deploy web --app-name philly-profiteering-spa --env production`
+5. Cleans up the copied files (they're in `.gitignore`)
+
 ### Infrastructure Provisioning
 
 All Azure resources are created via `infra/deploy.sh` using `az` CLI. The script is idempotent.
@@ -861,7 +876,7 @@ APIM policy (injecting function key) is applied via `infra/set-policy.ps1`:
 
 ## Web Interface (Static Web App)
 
-A single-file SPA (`web/index.html`) with a VS Code-style activity bar demonstrating four client patterns that all consume the same APIM backend:
+A single-file SPA (`web/index.html`) with a VS Code-style activity bar demonstrating five panels (four AI-powered client patterns + a documentation reader) that all consume the same APIM backend. Protected by Azure Static Web Apps built-in authentication (Microsoft Entra ID login required). User email and sign-out button visible in the header.
 
 ### Pattern 1: Investigative Agent (Chat Completions + Tools)
 
@@ -899,7 +914,16 @@ Browser → Container App /agent/thread + /agent/message → Azure OpenAI Assist
 Copilot Studio → Container App /mcp (Streamable HTTP) → APIM → Functions → SQL
 ```
 
-### Pattern 4: MCP Tool Tester (Raw Protocol)
+### Pattern 4: Documentation (Static Content Reader)
+
+- Built-in reader for all project markdown files and Jupyter notebooks
+- Left sidebar lists documents under "Documentation" (9 markdown files) and "Notebooks" (3 .ipynb files)
+- Custom markdown renderer (`formatContentDoc()`) with heading IDs, TOC anchor navigation, blockquotes, tables, code blocks
+- Notebook renderer parses .ipynb JSON: markdown cells rendered as docs, code cells as syntax-highlighted blocks, outputs as muted text
+- Content cached client-side after first load
+- Files are copied from `docs/` and `jupyter-notebooks/` to `web/docs/` and `web/notebooks/` at deploy time via `infra/deploy-swa.sh`
+
+### Pattern 5: MCP Tool Tester (Raw Protocol)
 
 - Connects directly to the MCP server Container App via Streamable HTTP
 - Discovers all 12 tools via MCP `initialize` → `tools/list` protocol
@@ -913,7 +937,8 @@ Browser → Container App /mcp (Streamable HTTP, JSON-RPC 2.0) → APIM → Func
 
 ### Layout
 
-- **Activity bar** (48px, left edge): Three icon buttons — chat bubble (Investigative Agent), building (City Portal), wrench (MCP Tools, pinned to bottom)
+- **Activity bar** (48px, left edge): Five icon buttons — chat bubble (Investigative Agent), building (City Portal), star (Copilot Studio), book (Documentation), wrench (MCP Tools, pinned to bottom)
+- **Authentication**: Azure SWA built-in auth (`/.auth/login/aad`). Config in `web/staticwebapp.config.json`. User email displayed in header via `/.auth/me`. Sign out via `/.auth/logout`.
 - Panels can be open simultaneously side-by-side (50/50 split)
 - Closing one panel gives the other full width
 - Closing all shows a welcome screen with quick-open buttons

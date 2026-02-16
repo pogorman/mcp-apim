@@ -23,6 +23,7 @@ Chronological record of what was built, what broke, and how it was fixed. Keeps 
 - [Session 15 — Copilot Studio Panel, User Guide, Wake-Up Script](#session-15--copilot-studio-panel-user-guide-wake-up-script)
 - [Session 16 — ELI5 Documentation, Doc Updates](#session-16--eli5-documentation-doc-updates-2026-02-15)
 - [Session 17 — Foundry Agent Fix, Token Docs, TOCs](#session-17--foundry-agent-fix-token-docs-tocs-2026-02-15)
+- [Session 18 — Authentication, Docs Panel, Background Image](#session-18--authentication-docs-panel-background-image-2026-02-16)
 
 ---
 
@@ -769,3 +770,54 @@ Added TOCs to all markdown files that didn't have them:
 - Assistants API combined tool output limit is 512KB (stricter than the documented 1MB per-output limit)
 - GPT-5 is unstable on the Assistants API (server_error after tool rounds) but works fine via Chat Completions — use GPT-4.1 for the Foundry Agent
 - Container App image updates with same tag need `--revision-suffix` to force new revisions
+
+---
+
+## Session 18 — Authentication, Docs Panel, Background Image (2026-02-16)
+
+### Authentication (Azure SWA Built-in Auth)
+- Added `web/staticwebapp.config.json` requiring Microsoft (Entra ID) login for all routes
+- GitHub and Twitter login providers blocked (404) — Microsoft only
+- Uses SWA's pre-configured `aad` provider — no Entra ID app registration needed
+- SPA-level auth only; backend Container App unchanged (URL not publicly advertised)
+- Built-in endpoints available: `/.auth/me` (user info), `/.auth/logout` (sign out)
+
+### User Indicator & Logout
+- Added user email display + "Sign out" button in the header's `.header-right` div
+- Fetches `/.auth/me` on page load to get `clientPrincipal.userDetails`
+- Sign out redirects to `/.auth/logout`
+
+### Documentation Reader Panel (5th Panel)
+- New activity bar tab with book icon — order: Agent, City, Copilot, Docs, [spacer], Tools
+- 2-column layout mirroring the Tools panel: left sidebar (220px) + right content area
+- Left sidebar groups items under "Documentation" (9 md files) and "Notebooks" (3 ipynb files)
+- **Markdown rendering:** New `formatContentDoc()` / `inlineFormatDoc()` functions separate from chat renderer:
+  - Proper heading hierarchy (h1→h2, h2→h3, h3→h4, h4→h5)
+  - Heading `id` attributes for anchor link navigation
+  - Link support: `[text](url)` — external links open new tab, `#anchor` links scroll within doc panel
+  - Blockquote support: `> text`
+  - Shared CSS classes with chat renderer (md-h, md-code, md-table, etc.) plus doc-specific scoping
+- **Notebook rendering:** Parses .ipynb JSON in browser — markdown cells through `formatContentDoc()`, code cells as styled blocks with cell number + language label, outputs as plain text (truncated at 5000 chars)
+- Content cached in `state.docs.cache` after first load
+- Welcome screen updated with 5th "Docs" button
+
+### Slugify Fix (TOC Anchor Links)
+- Initial `slugify()` collapsed `--` into `-`, breaking TOC links for headings with `&` or `—`
+  - Example: `Infrastructure & Costs` → TOC anchor `#infrastructure--costs` but slugify produced `infrastructure-costs`
+- Fix: Changed `\s+` → `\s` (each space → one hyphen) and removed `/-+/g` collapse to match GitHub's slug algorithm
+
+### Background Image
+- Added `images/philly-bg.jpg` (3.5MB) as background for welcome screen and investigative agent chat area
+- Dark overlay (`rgba(15,17,23,0.82-0.9)`) keeps text readable
+- Image copied to `web/images/` during deploy via `deploy-swa.sh`
+
+### Deploy Script (`infra/deploy-swa.sh`)
+- Created deploy script that copies `docs/*.md`, `README.md`, `jupyter-notebooks/*.ipynb`, and `images/*` into `web/` subdirectories, deploys to SWA, then cleans up
+- Added `web/docs/`, `web/notebooks/`, `web/images/` to `.gitignore`
+- Replaces manual `npx swa deploy` — run `bash infra/deploy-swa.sh` instead
+
+### Files Changed
+- `web/staticwebapp.config.json` — **created** (auth config)
+- `web/index.html` — user indicator, docs panel, enhanced markdown renderer, notebook renderer, background image
+- `infra/deploy-swa.sh` — **created** (deploy script)
+- `.gitignore` — added `web/docs/`, `web/notebooks/`, `web/images/`

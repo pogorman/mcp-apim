@@ -10,3 +10,6 @@ infra/apim-policy.json
 .claude/
 *.zip
 *.bak
+web/docs/
+web/notebooks/
+web/images/

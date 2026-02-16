@@ -14,7 +14,7 @@ A plain-English guide to the Philly Poverty Profiteering platform. Use this for 
 - [What's Inside the Data](#whats-inside-the-data)
 - [How It Works — No Jargon](#how-it-works--no-jargon)
 - [How It Works — Some Jargon](#how-it-works--some-jargon)
-- [The Four Ways to Use It](#the-four-ways-to-use-it)
+- [The Five Ways to Use It](#the-five-ways-to-use-it)
 - [Why It Matters (The Story)](#why-it-matters-the-story)
 - [How AI Models Think — Tokens, Context, and Temperature](#how-ai-models-think--tokens-context-and-temperature)
 - [Why Each Panel Gives Different Answers](#why-each-panel-gives-different-answers)
@@ -46,9 +46,9 @@ Open the app: **https://kind-forest-06c4d3c0f.1.azurestaticapps.net/**
 
 ### Step 1 — Welcome Screen (30 seconds)
 
-You'll see a dark screen with a map of Philadelphia in the background and four buttons. Explain:
+You'll see a dark screen with a map of Philadelphia in the background and five buttons. Explain:
 
-> "This is a web app. No login required. It's got four different interfaces that all talk to the same data. Let me show you the main one."
+> "This is a web app. You sign in with your Microsoft account — it's protected by Azure authentication. It's got five different interfaces that all talk to the same data. Let me show you the main one."
 
 Click **Investigative Agent**.
 
@@ -92,7 +92,7 @@ Click the purple chat icon and ask something.
 
 ### Wrap Up
 
-> "Four completely different interfaces — a custom chat agent, a government-branded portal, a Copilot Studio agent, and a raw tool tester — all using the same 12 tools and the same 29 million rows of data. The whole thing runs serverless and costs about $1-2 a month when nobody's using it."
+> "Five completely different interfaces — a custom chat agent, a government-branded portal, a Copilot Studio agent, a documentation reader, and a raw tool tester — all using the same 12 tools and the same 29 million rows of data. The whole thing runs serverless and costs about $1-2 a month when nobody's using it."
 
 ---
 
@@ -161,9 +161,9 @@ MCP Server (TypeScript, Container App, scales 0-3)
 
 ---
 
-## The Four Ways to Use It
+## The Five Ways to Use It
 
-This is the demo's punchline: one backend, four completely different client experiences.
+This is the demo's punchline: one backend, five completely different client experiences.
 
 ### 1. Investigative Agent (Chat icon)
 
@@ -198,7 +198,18 @@ This is the demo's punchline: one backend, four completely different client expe
 | **Maps** | No |
 | **Best for** | Showing the low-code/no-code path; enterprise agent platforms |
 
-### 4. MCP Tool Tester (Wrench icon, bottom of sidebar)
+### 4. Documentation (Book icon)
+
+| | |
+|---|---|
+| **Pattern** | Static content reader |
+| **What it means** | Renders all project documentation (markdown files) and Jupyter notebooks directly in the browser. No AI involved — just a built-in docs reader so you don't have to leave the app. |
+| **Model** | None |
+| **Memory** | None |
+| **Maps** | No |
+| **Best for** | Reading docs during demos, quick reference, showing notebooks without Jupyter |
+
+### 5. MCP Tool Tester (Wrench icon, bottom of sidebar)
 
 | | |
 |---|---|
@@ -304,7 +315,7 @@ The biggest reason for different responses:
 ## Frequently Asked Questions (Non-Technical)
 
 **Q: Do I need to install anything?**
-No. Open the URL in any browser. No login, no plugins, no setup.
+No. Open the URL in any browser and sign in with your Microsoft account. No plugins, no setup.
 
 **Q: Why is the first question slow?**
 The database goes to sleep after an hour of no activity (it saves money). The first question wakes it up, which takes 30-60 seconds. After that, it's fast. Run the wake-up script (`infra/wake.sh`) before demos.
@@ -373,4 +384,4 @@ For when someone in your audience asks "what does that mean?"
 
 ---
 
-*Last updated: Session 16 (2026-02-16). This file should be updated whenever features, panels, data, architecture, or costs change.*
+*Last updated: Session 18 (2026-02-16). This file should be updated whenever features, panels, data, architecture, or costs change.*

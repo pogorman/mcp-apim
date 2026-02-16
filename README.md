@@ -16,7 +16,7 @@
 
 An AI-powered investigative platform that surfaces poverty profiteering patterns in Philadelphia. It combines 10 public datasets (~29 million rows) covering property ownership, code violations, demolitions, business licenses, and tax assessments into a queryable system that any AI agent — or a human through a web browser — can use to identify exploitative LLCs and property owners.
 
-The system has three layers: a **serverless data API** (Azure Functions + SQL), an **MCP server** that exposes 12 investigative tools to any AI agent, and a **web interface** demonstrating four client patterns — a Chat Completions agent, a Foundry Agent (Assistants API), a Copilot Studio agent via MCP, and a raw MCP tool tester — showing how the same backend serves completely different AI integration approaches. Everything is serverless and costs ~$1-2/month when idle.
+The system has three layers: a **serverless data API** (Azure Functions + SQL), an **MCP server** that exposes 12 investigative tools to any AI agent, and a **web interface** demonstrating five panels — a Chat Completions agent, a Foundry Agent (Assistants API), a Copilot Studio agent via MCP, a documentation reader, and a raw MCP tool tester — showing how the same backend serves completely different AI integration approaches. Protected by Azure authentication (Microsoft login required). Everything is serverless and costs ~$1-2/month when idle.
 
 ## Architecture
 
@@ -67,11 +67,12 @@ The system has three layers: a **serverless data API** (Azure Functions + SQL), 
 
 Try it in your browser: **https://kind-forest-06c4d3c0f.1.azurestaticapps.net/**
 
-A SPA with a VS Code-style activity bar, demonstrating four different ways to consume the same APIM backend:
+A SPA with a VS Code-style activity bar, demonstrating five panels. Protected by Azure SWA authentication (Microsoft login required). User email and sign-out button in header.
 
 - **Investigative Agent** — Chat Completions + Tools pattern. Ask questions in natural language; our code runs the agentic loop. Switch between 6 models (GPT-4.1, GPT-5, GPT-5 Mini, o4-mini, o3-mini, Phi-4) via the dropdown.
 - **City Portal** — Assistants API (Foundry Agent) pattern. A Philadelphia-branded government page with a floating chat widget. Azure manages the tool-calling loop with GPT-4.1 and threads persist server-side — follow-up questions remember context.
 - **Copilot Studio** — Microsoft Copilot Studio agent connected via MCP. Has its own panel with a floating chat widget. Demonstrates the low-code/no-code path to consuming the same 12 tools.
+- **Documentation** — Built-in reader for all project markdown files and Jupyter notebooks. No need to leave the app.
 - **MCP Tool Tester** — Raw MCP protocol pattern. Connect directly to the MCP server, discover tools, and call them individually with specific parameters.
 
 Panels can be open side-by-side or individually.
@@ -189,14 +190,15 @@ mcp-apim/
 ├── functions/               # Azure Functions (12 HTTP endpoints)
 │   └── src/functions/       # One file per endpoint
 ├── web/                     # Browser-based multi-panel interface
-│   └── index.html           # Agent chat + City Portal + Copilot Studio widget + MCP tool tester
+│   ├── index.html           # 5-panel SPA (Agent, City Portal, Copilot Studio, Docs, MCP Tools)
+│   └── staticwebapp.config.json  # SWA auth config (Entra ID login required)
 ├── agent/                   # Azure AI Foundry agent
 │   └── foundry_agent.py     # MCP + Bing grounding
 ├── docs/                    # Project documentation (ELI5, user guide, architecture, FAQ, session log, etc.)
 ├── sql/schema.sql           # Database schema (10 tables, 3 views, 28+ indexes)
 ├── data/                    # Source CSV files (~4.4GB, 10 datasets)
 ├── jupyter-notebooks/       # Original PhillyStats Fabric/Synapse notebooks
-└── infra/                   # Azure provisioning scripts
+└── infra/                   # Azure provisioning + deployment scripts (deploy-swa.sh for SWA)
 ```
 
 ## Costs
@@ -218,7 +220,7 @@ All resources are serverless/consumption — scale to zero when idle:
 ## Documentation
 
 - [ELI5.md](docs/ELI5.md) — Plain-English explainer for demos and presentations (start here if you're new)
-- [USER_GUIDE.md](docs/USER_GUIDE.md) — How to use the web app: all four panels, example prompts, tips, connecting other clients
+- [USER_GUIDE.md](docs/USER_GUIDE.md) — How to use the web app: all five panels, example prompts, tips, connecting other clients
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) — Full technical reference: schema, ERD, API specs, agent behavior, infrastructure, Container App deep dive
 - [CLI_CHEATSHEET.md](docs/CLI_CHEATSHEET.md) — Day-to-day management commands (Foundry agents, Container App, APIM, SQL, MCAPS troubleshooting)
 - [FAQ.md](docs/FAQ.md) — Common questions: agent architecture, MCAPS policies, model deployments, costs, deployment gotchas

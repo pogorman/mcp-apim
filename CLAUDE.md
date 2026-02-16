@@ -108,11 +108,13 @@ mcp-apim/
 ├── infra/
 │   ├── deploy.sh             # az CLI infrastructure provisioning
 │   ├── deploy-agent.sh       # ACR + Container App deployment
+│   ├── deploy-swa.sh         # SWA deploy (copies docs/notebooks/images, deploys, cleans up)
 │   ├── set-policy.ps1        # APIM policy (injects function key)
 │   ├── apim-policy.json      # APIM policy XML
 │   └── func-app-body.json    # Function app ARM template
 ├── web/                      # Front-end multi-panel interface
-│   └── index.html            # Agent chat + City Portal + Copilot Studio widget + MCP tool tester SPA
+│   ├── index.html            # 5-panel SPA (Agent, City Portal, Copilot Studio, Docs, MCP Tools)
+│   └── staticwebapp.config.json  # SWA auth config (Entra ID login required)
 ├── docs/                     # Project documentation
 │   ├── ARCHITECTURE.md       # Full technical reference
 │   ├── CLI_CHEATSHEET.md     # Day-to-day management commands
@@ -254,19 +256,21 @@ All resources are on consumption/serverless tiers — **~$1-2/month when idle**:
 
 ## Web Interface (Static Web App)
 
-SPA with VS Code-style activity bar demonstrating four client patterns using the same APIM backend:
+SPA with VS Code-style activity bar demonstrating five panels using the same APIM backend. Protected by Azure SWA built-in authentication (Microsoft Entra ID login required — config in `web/staticwebapp.config.json`). User email and sign-out button in header.
+
 - **Investigative Agent** — Chat Completions + Tools. Natural language chat with model selector (6 models). Our code runs the agentic loop (`/chat` endpoint).
 - **City Portal** — Assistants API (Foundry Agent). Philadelphia-branded page with floating chat widget. Azure manages the tool-calling loop with GPT-4.1 and threads persist server-side (`/agent` endpoints).
 - **Copilot Studio** — Microsoft Copilot Studio agent connected via MCP. Has its own panel with a floating chat widget. Demonstrates the low-code/no-code integration path.
+- **Documentation** — Built-in reader for all project markdown files and Jupyter notebooks. Files copied to `web/docs/` and `web/notebooks/` at deploy time.
 - **MCP Tool Tester** — Raw MCP protocol. Direct tool discovery and invocation via Streamable HTTP (`/mcp` endpoint).
 
 Panels can be open side-by-side or individually. Chat responses in the Investigative Agent include inline maps powered by Leaflet.js when properties have coordinates (99.97% do).
 
 Deployed at: `https://kind-forest-06c4d3c0f.1.azurestaticapps.net/`
 
-Deploy updates:
+Deploy updates (copies docs/notebooks/images, deploys to SWA, cleans up):
 ```bash
-npx @azure/static-web-apps-cli deploy web --app-name philly-profiteering-spa --env production
+bash infra/deploy-swa.sh
 ```
 
 ## Remote MCP Server (Container App)
