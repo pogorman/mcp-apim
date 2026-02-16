@@ -20,6 +20,7 @@ A web app for investigating property ownership, code violations, demolitions, an
   - [Business & Licensing](#business--licensing)
   - [Area Analysis](#area-analysis)
   - [Custom SQL](#custom-sql)
+- [Maps](#maps)
 - [Choosing a Model](#choosing-a-model)
 - [Tips & Tricks](#tips--tricks)
 - [Cold Starts](#cold-starts)
@@ -151,6 +152,42 @@ The AI can write and run SQL queries for questions that don't fit the preset too
 - "Write a SQL query to find properties owned by the same entity in multiple zip codes"
 - "How many properties changed ownership more than 3 times since 2020?"
 - "What's the average assessment value by zip code?"
+
+---
+
+## Maps
+
+When the AI returns results that include property addresses, a **map automatically appears** below the response showing each property as a clickable marker. Click any marker to see the address, parcel number, owner, and market value.
+
+**Where maps show up:**
+- **Welcome screen** — a map of Philadelphia centered on City Hall as a visual backdrop
+- **Investigative Agent responses** — any query that involves properties (profiles, entity networks, violations, area stats) shows an inline map
+- Maps are collapsible — click the header to collapse/expand
+
+**Maps work best with:**
+- "Look up property 405100505" (single pin)
+- "Show me all properties owned by GEENA LLC" (multiple pins across the city)
+- "What properties in 19134 have demolition records?" (area cluster)
+- "Deep dive on 2837 Kensington Ave" (single pin with details)
+
+**No maps?** Some queries don't return property data with coordinates (e.g., aggregate stats, entity name searches without drilling into properties). Ask a follow-up that references specific properties to get the map.
+
+### Map Technology & Upgrade Path
+
+The current maps use **Leaflet.js + OpenStreetMap/CARTO tiles** — free, no API key, zero cost. This is intentionally simple.
+
+Future upgrades when the need arises:
+
+| Upgrade | What It Adds | When to Consider |
+|---------|-------------|-----------------|
+| **Marker clustering** | Groups nearby markers into clusters (e.g., "47 properties") | When queries return 100+ locations |
+| **Heatmap layer** | Violation/vacancy density visualization | For area-level analysis, "hot spot" identification |
+| **Azure Maps** | Microsoft ecosystem integration, indoor maps, traffic | If integrating with Power Platform |
+| **Power BI Embedded** | Rich interactive dashboards with geographic drill-down | If building executive dashboards |
+| **Mapbox GL** | Vector tiles, 3D buildings, custom styling | If the visual design needs to be premium |
+| **GeoJSON boundaries** | Zip code / neighborhood outlines on the map | For area comparison visualizations |
+
+All 583,771 properties in the database have latitude/longitude coordinates (`geocode_lat`, `geocode_lon`), so any of these upgrades can pull coordinates directly from the existing data without a geocoding service.
 
 ---
 

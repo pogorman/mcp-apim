@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Philly Poverty Profiteering</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
   <style>
     :root {
       --bg: #0f1117;
@@ -1388,6 +1390,83 @@
       }
     }
 
+    /* ── Maps ────────────────────────────────────────── */
+    .welcome-map {
+      width: 100%;
+      max-width: 600px;
+      height: 280px;
+      border-radius: 12px;
+      margin: 0 auto 1.25rem;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .chat-map-container {
+      margin: 0.4rem 0.75rem 0.3rem 0.75rem;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .chat-map-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.3rem 0.6rem;
+      background: var(--surface);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .chat-map-header:hover { background: var(--surface-raised); }
+
+    .chat-map-title {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .chat-map-title svg { width: 14px; height: 14px; }
+
+    .chat-map-toggle {
+      font-size: 0.65rem;
+      color: var(--muted);
+    }
+
+    .chat-map {
+      height: 260px;
+      width: 100%;
+      transition: height 0.2s;
+    }
+
+    .chat-map.collapsed {
+      height: 0;
+      overflow: hidden;
+    }
+
+    /* Fix Leaflet tiles in dark theme */
+    .leaflet-tile-pane { filter: none; }
+    .leaflet-popup-content-wrapper {
+      background: var(--surface) !important;
+      color: var(--text) !important;
+      border-radius: 8px !important;
+      box-shadow: 0 3px 14px rgba(0,0,0,0.4) !important;
+    }
+    .leaflet-popup-tip { background: var(--surface) !important; }
+    .leaflet-popup-content { font-size: 0.75rem !important; line-height: 1.5 !important; }
+    .leaflet-popup-content strong { color: var(--accent); }
+
+    /* City panel maps use light popups */
+    .city-panel .leaflet-popup-content-wrapper {
+      background: #fff !important;
+      color: #1a1a2e !important;
+    }
+    .city-panel .leaflet-popup-tip { background: #fff !important; }
+    .city-panel .leaflet-popup-content strong { color: #004785; }
+
     /* ── Responsive ───────────────────────────────────── */
     @media (max-width: 768px) {
       .activity-bar {
@@ -1470,6 +1549,7 @@
       <!-- Welcome screen (shown when no panels are open) -->
       <div class="welcome-screen" id="welcomeScreen">
         <div class="welcome-inner">
+          <div class="welcome-map" id="welcomeMap"></div>
           <h2>Philadelphia Property Data</h2>
           <p>
             Investigate property ownership, code violations, demolitions, business licenses,
@@ -1922,12 +2002,20 @@
         state.copilotOpen = false;
         $('copilotWidget').classList.remove('open');
       }
+
+      // Re-init welcome map when it becomes visible
+      if (!anyOpen) {
+        setTimeout(function() {
+          if (welcomeMapInstance) welcomeMapInstance.invalidateSize();
+          else initWelcomeMap();
+        }, 50);
+      }
     }
 
     /* ================================================================
        CHAT - AGENT PANEL
        ================================================================ */
-    function addChatMessage(role, content, toolCalls) {
+    function addChatMessage(role, content, toolCalls, locations) {
       const welcome = $('chatWelcome');
       if (welcome) welcome.remove();
 
@@ -1954,6 +2042,12 @@
       }
 
       container.appendChild(div);
+
+      // Render map if locations are present
+      if (locations && locations.length > 0) {
+        createChatMap(locations, container);
+      }
+
       container.scrollTop = container.scrollHeight;
     }
 
@@ -2014,7 +2108,7 @@
         }
 
         const data = await resp.json();
-        addChatMessage('assistant', data.reply, data.toolCalls);
+        addChatMessage('assistant', data.reply, data.toolCalls, data.locations);
 
         state.chat.history.push({ role: 'user', content: message });
         state.chat.history.push({ role: 'assistant', content: data.reply });
@@ -2469,10 +2563,125 @@
     }
 
     /* ================================================================
+       MAPS (Leaflet.js)
+       ================================================================ */
+    const PHILLY_CENTER = [39.9526, -75.1652]; // City Hall
+    const PHILLY_ZOOM = 12;
+    let welcomeMapInstance = null;
+    let chatMapCounter = 0;
+
+    // Dark-friendly tile layer
+    const TILE_URL = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+    const TILE_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>';
+    // Light tile for city panel context
+    const TILE_URL_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+
+    function initWelcomeMap() {
+      var el = $('welcomeMap');
+      if (!el || welcomeMapInstance) return;
+      welcomeMapInstance = L.map(el, {
+        center: PHILLY_CENTER,
+        zoom: PHILLY_ZOOM,
+        zoomControl: false,
+        attributionControl: false,
+        dragging: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        touchZoom: false,
+      });
+      L.tileLayer(TILE_URL, { attribution: TILE_ATTR }).addTo(welcomeMapInstance);
+      // Subtle city label
+      L.marker(PHILLY_CENTER, {
+        icon: L.divIcon({
+          className: '',
+          html: '<div style="color:#6c8aff;font-size:11px;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,0.8);white-space:nowrap;">Philadelphia</div>',
+          iconSize: [0, 0],
+          iconAnchor: [-8, 8],
+        }),
+      }).addTo(welcomeMapInstance);
+    }
+
+    function createChatMap(locations, container) {
+      if (!locations || locations.length === 0) return;
+      chatMapCounter++;
+      var mapId = 'chatMap' + chatMapCounter;
+
+      var wrapper = document.createElement('div');
+      wrapper.className = 'chat-map-container';
+
+      var header = document.createElement('div');
+      header.className = 'chat-map-header';
+      header.innerHTML =
+        '<span class="chat-map-title">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>' +
+          locations.length + ' location' + (locations.length !== 1 ? 's' : '') +
+        '</span>' +
+        '<span class="chat-map-toggle">collapse</span>';
+
+      var mapDiv = document.createElement('div');
+      mapDiv.className = 'chat-map';
+      mapDiv.id = mapId;
+
+      wrapper.appendChild(header);
+      wrapper.appendChild(mapDiv);
+      container.appendChild(wrapper);
+
+      // Toggle collapse
+      header.onclick = function() {
+        var isCollapsed = mapDiv.classList.toggle('collapsed');
+        header.querySelector('.chat-map-toggle').textContent = isCollapsed ? 'expand' : 'collapse';
+        if (!isCollapsed) map.invalidateSize();
+      };
+
+      // Create map after DOM insertion
+      var map = L.map(mapId, { zoomControl: true, attributionControl: false });
+      L.tileLayer(TILE_URL, { attribution: TILE_ATTR }).addTo(map);
+
+      // Custom marker icon
+      var markerIcon = L.divIcon({
+        className: '',
+        html: '<div style="width:12px;height:12px;background:#6c8aff;border:2px solid #fff;border-radius:50%;box-shadow:0 2px 6px rgba(0,0,0,0.4);"></div>',
+        iconSize: [12, 12],
+        iconAnchor: [6, 6],
+        popupAnchor: [0, -8],
+      });
+
+      var bounds = L.latLngBounds();
+      for (var i = 0; i < locations.length; i++) {
+        var loc = locations[i];
+        if (!loc.lat || !loc.lon) continue;
+        var popup = '<strong>' + escapeHtml(loc.label || 'Property') + '</strong>';
+        if (loc.parcel) popup += '<br>Parcel: ' + escapeHtml(loc.parcel);
+        if (loc.owner) popup += '<br>Owner: ' + escapeHtml(loc.owner);
+        if (loc.value) popup += '<br>Value: $' + loc.value.toLocaleString();
+
+        L.marker([loc.lat, loc.lon], { icon: markerIcon })
+          .bindPopup(popup)
+          .addTo(map);
+        bounds.extend([loc.lat, loc.lon]);
+      }
+
+      if (bounds.isValid()) {
+        if (locations.length === 1) {
+          map.setView(bounds.getCenter(), 16);
+        } else {
+          map.fitBounds(bounds, { padding: [30, 30], maxZoom: 16 });
+        }
+      } else {
+        map.setView(PHILLY_CENTER, PHILLY_ZOOM);
+      }
+
+      // Scroll map into view
+      setTimeout(function() { container.scrollTop = container.scrollHeight; }, 100);
+    }
+
+    /* ================================================================
        INIT
        ================================================================ */
     updatePanels();
     loadModels();
+    // Init welcome map after a tick (DOM needs to be visible)
+    setTimeout(initWelcomeMap, 100);
   </script>
 
 </body>

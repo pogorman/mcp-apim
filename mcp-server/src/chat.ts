@@ -44,10 +44,58 @@ export interface ChatRequest {
   model?: string;
 }
 
+export interface MapLocation {
+  lat: number;
+  lon: number;
+  label: string;
+  parcel?: string;
+  owner?: string;
+  value?: number;
+}
+
 export interface ChatResponse {
   reply: string;
   toolCalls?: Array<{ name: string; args: Record<string, unknown> }>;
+  locations?: MapLocation[];
   model: string;
+}
+
+/** Recursively scan a tool result for objects with geocode_lat/geocode_lon. */
+function extractLocations(data: unknown): MapLocation[] {
+  const locs: MapLocation[] = [];
+  const seen = new Set<string>(); // dedupe by lat,lon
+
+  function scan(obj: unknown): void {
+    if (!obj || typeof obj !== "object") return;
+    if (Array.isArray(obj)) {
+      for (const item of obj) scan(item);
+      return;
+    }
+    const rec = obj as Record<string, unknown>;
+    const lat = rec.geocode_lat ?? rec.lat;
+    const lon = rec.geocode_lon ?? rec.lon ?? rec.lng;
+    if (typeof lat === "number" && typeof lon === "number" && lat !== 0 && lon !== 0) {
+      const key = `${lat},${lon}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        locs.push({
+          lat,
+          lon,
+          label: (rec.location ?? rec.address ?? rec.address_std ?? "") as string,
+          parcel: (rec.parcel_number ?? rec.opa_account_num ?? "") as string,
+          owner: (rec.owner_1 ?? rec.owner ?? "") as string,
+          value: typeof rec.market_value === "number" ? rec.market_value : undefined,
+        });
+      }
+    }
+    // Recurse into nested objects/arrays
+    for (const v of Object.values(rec)) {
+      if (v && typeof v === "object") scan(v);
+    }
+  }
+
+  scan(data);
+  return locs;
 }
 
 export function getAvailableModels() {
@@ -57,6 +105,7 @@ export function getAvailableModels() {
 export async function chat(req: ChatRequest): Promise<ChatResponse> {
   const client = getClient();
   const toolCalls: Array<{ name: string; args: Record<string, unknown> }> = [];
+  const allLocations: MapLocation[] = [];
 
   // Resolve deployment — validate against available models, fall back to default
   const requestedModel = req.model || DEFAULT_DEPLOYMENT;
@@ -100,6 +149,13 @@ export async function chat(req: ChatRequest): Promise<ChatResponse> {
         console.log(`  [tool] ${tc.function.name}(${JSON.stringify(args).slice(0, 100)})`);
         const result = await executeTool(tc.function.name, args);
 
+        // Extract map locations from tool results
+        try {
+          const parsed = JSON.parse(result);
+          const locs = extractLocations(parsed);
+          allLocations.push(...locs);
+        } catch { /* non-JSON result, skip */ }
+
         messages.push({
           role: "tool",
           tool_call_id: tc.id,
@@ -114,6 +170,7 @@ export async function chat(req: ChatRequest): Promise<ChatResponse> {
     return {
       reply: choice.message.content ?? "(no response)",
       toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+      locations: allLocations.length > 0 ? allLocations.slice(0, 200) : undefined,
       model: deployment,
     };
   }
@@ -121,6 +178,7 @@ export async function chat(req: ChatRequest): Promise<ChatResponse> {
   return {
     reply: "I've made too many tool calls trying to answer this. Could you ask a more specific question?",
     toolCalls,
+    locations: allLocations.length > 0 ? allLocations.slice(0, 200) : undefined,
     model: deployment,
   };
 }

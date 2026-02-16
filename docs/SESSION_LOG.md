@@ -655,3 +655,13 @@ Pattern 4: MCP Tool Tester (Raw MCP Protocol)
 - Copilot Studio iframe "JavaScriptError" is a known issue from their webchat SDK — force-reloading the iframe on each open is the best workaround
 - Scoping floating elements to panels (position: absolute inside panel) is cleaner than global fixed positioning (z-index wars, visibility on wrong pages)
 - A simple wake-up script is better than hoping someone remembers to hit healthz manually
+
+### Maps Integration (continued in same session)
+- Added Leaflet.js + OpenStreetMap/CARTO tiles for property mapping
+- **Backend** (`chat.ts`): Added `extractLocations()` that recursively scans tool results for `geocode_lat`/`geocode_lon` fields, returns up to 200 locations per response as a `locations` array alongside `reply` and `toolCalls`
+- **Welcome screen**: Dark-themed CARTO basemap centered on City Hall (39.9526, -75.1652), no markers, visual backdrop
+- **Chat responses**: Inline collapsible map appears below any response that includes property locations. Custom styled markers with popups (address, parcel, owner, value)
+- **Data**: 583,771 of 583,963 properties (99.97%) have coordinates — no geocoding service needed
+- Dark-themed tiles (`carto/dark_all`) match the SPA's dark theme; custom popup styling overrides Leaflet defaults
+- Did NOT load all 583K properties on welcome screen (would crash browser). Welcome map is just a clean visual.
+- Documented upgrade path in USER_GUIDE.md: marker clustering, heatmaps, Azure Maps, Power BI Embedded, Mapbox GL, GeoJSON boundaries
