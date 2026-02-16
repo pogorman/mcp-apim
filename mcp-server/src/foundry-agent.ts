@@ -10,7 +10,7 @@ import { SYSTEM_PROMPT, TOOLS, executeTool } from "./tool-executor.js";
 
 const AZURE_OPENAI_ENDPOINT = process.env.AZURE_OPENAI_ENDPOINT ?? "https://foundry-og-agents.cognitiveservices.azure.com/";
 const AZURE_OPENAI_API_VERSION = "2025-01-01-preview";
-const AGENT_MODEL = "gpt-4.1";
+const AGENT_MODEL = "gpt-5";
 const AGENT_NAME = "philly-investigator";
 
 let clientInstance: AzureOpenAI | null = null;

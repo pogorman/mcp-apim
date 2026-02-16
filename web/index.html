@@ -1462,6 +1462,10 @@
       $('panelTools').classList.toggle('visible', toolsOpen);
       $('panelCity').classList.toggle('visible', cityOpen);
 
+      // Hide model selector when only City Portal is active (it applies to the Investigative Agent only)
+      const showModelSelect = agentOpen || (!agentOpen && !toolsOpen && !cityOpen);
+      $('modelSelect').style.display = showModelSelect ? '' : 'none';
+
       // Welcome screen
       const anyOpen = agentOpen || toolsOpen || cityOpen;
       $('welcomeScreen').classList.toggle('hidden', anyOpen);

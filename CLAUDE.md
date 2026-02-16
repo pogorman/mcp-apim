@@ -45,7 +45,9 @@ mcp-apim/
 │   ├── src/
 │   │   ├── index.ts          # Entry point (stdio or Streamable HTTP via MCP_TRANSPORT env)
 │   │   ├── tools.ts          # 12 tool definitions for Claude
-│   │   ├── chat.ts           # /chat endpoint: Azure OpenAI GPT-4.1 with tool calling
+│   │   ├── tool-executor.ts  # Shared tool defs + executor (used by chat + agent)
+│   │   ├── chat.ts           # /chat endpoint: Azure OpenAI with tool calling
+│   │   ├── foundry-agent.ts  # Assistants API: ensureAgent, createThread, sendMessage
 │   │   └── apim-client.ts    # HTTP client for APIM
 │   ├── Dockerfile            # Multi-stage Node 20 Alpine build
 │   └── .dockerignore
@@ -77,8 +79,16 @@ mcp-apim/
 │   ├── set-policy.ps1        # APIM policy (injects function key)
 │   ├── apim-policy.json      # APIM policy XML
 │   └── func-app-body.json    # Function app ARM template
-├── web/                      # Front-end dual-panel interface
-│   └── index.html            # Agent chat + MCP tool tester SPA
+├── web/                      # Front-end three-panel interface
+│   └── index.html            # Agent chat + City Portal + MCP tool tester SPA
+├── docs/                     # Project documentation
+│   ├── ARCHITECTURE.md       # Full technical reference
+│   ├── CLI_CHEATSHEET.md     # Day-to-day management commands
+│   ├── COMMANDS.md           # All CLI commands used to build/deploy
+│   ├── FAQ.md                # Common questions and answers
+│   ├── PROMPTS.md            # User prompts from each session
+│   ├── SESSION_LOG.md        # Chronological build log
+│   └── USAGE.md              # Quick start guides, examples
 ├── .mcp.json                 # MCP server config for Claude Code
 └── mcp-config-examples.json  # Config examples for Claude Desktop
 ```
@@ -261,8 +271,8 @@ MCP is GA in Copilot Studio (May 2025). Now that the MCP server has Streamable H
 
 ## Conventions
 
-- Root `.md` files (`README.md`, `CLAUDE.md`, `SESSION_LOG.md`, `USAGE.md`, `ARCHITECTURE.md`, `COMMANDS.md`, `PROMPTS.md`) are collectively referred to as "root md files" — update all of them when wrapping up a session
-- `SESSION_LOG.md` is the chronological record — append new sessions at the bottom
+- Documentation files live in `docs/` (`SESSION_LOG.md`, `USAGE.md`, `ARCHITECTURE.md`, `COMMANDS.md`, `PROMPTS.md`, `CLI_CHEATSHEET.md`, `FAQ.md`). `README.md` and `CLAUDE.md` stay in root. Update docs when wrapping up a session.
+- `docs/SESSION_LOG.md` is the chronological record — append new sessions at the bottom
 - Secrets go in gitignored files (`.mcp.json`, `infra/apim-policy.json`); committed `.example` templates have placeholders
 
 ## Data Source

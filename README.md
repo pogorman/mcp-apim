@@ -47,7 +47,7 @@ The system has three layers: a **serverless data API** (Azure Functions + SQL), 
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**How the chat agent works:** When a user asks a question through the web SPA or `/chat` endpoint, the system sends it to Azure OpenAI with 12 tool definitions. The LLM autonomously decides which tools to call — it might chain 3-5 calls to resolve a name, pull property details, check violations, and look up demolitions — then synthesizes the results into a narrative answer. The loop runs up to 10 rounds per question. See [ARCHITECTURE.md](ARCHITECTURE.md) for a detailed walkthrough with examples.
+**How the chat agent works:** When a user asks a question through the web SPA or `/chat` endpoint, the system sends it to Azure OpenAI with 12 tool definitions. The LLM autonomously decides which tools to call — it might chain 3-5 calls to resolve a name, pull property details, check violations, and look up demolitions — then synthesizes the results into a narrative answer. The loop runs up to 10 rounds per question. See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for a detailed walkthrough with examples.
 
 ## Web Interface
 
@@ -177,6 +177,7 @@ mcp-apim/
 │   └── index.html           # Agent chat + City Portal + MCP tool tester
 ├── agent/                   # Azure AI Foundry agent
 │   └── foundry_agent.py     # MCP + Bing grounding
+├── docs/                    # Project documentation (architecture, usage, FAQ, session log, etc.)
 ├── sql/schema.sql           # Database schema (10 tables, 3 views, 28+ indexes)
 ├── data/                    # Source CSV files (~4.4GB, 10 datasets)
 ├── jupyter-notebooks/       # Original PhillyStats Fabric/Synapse notebooks
@@ -201,13 +202,13 @@ All resources are serverless/consumption — scale to zero when idle:
 
 ## Documentation
 
-- [ARCHITECTURE.md](ARCHITECTURE.md) — Full technical reference: schema, ERD, API specs, agent behavior, infrastructure, Container App deep dive
-- [CLI_CHEATSHEET.md](CLI_CHEATSHEET.md) — Day-to-day management commands (Foundry agents, Container App, APIM, SQL, MCAPS troubleshooting)
-- [FAQ.md](FAQ.md) — Common questions: agent architecture, MCAPS policies, model deployments, costs, deployment gotchas
-- [USAGE.md](USAGE.md) — Quick start guides, curl examples, example prompts
-- [COMMANDS.md](COMMANDS.md) — All CLI commands used to build and deploy this project
-- [SESSION_LOG.md](SESSION_LOG.md) — Chronological build log with lessons learned
-- [PROMPTS.md](PROMPTS.md) — User prompts from each build session
+- [ARCHITECTURE.md](docs/ARCHITECTURE.md) — Full technical reference: schema, ERD, API specs, agent behavior, infrastructure, Container App deep dive
+- [CLI_CHEATSHEET.md](docs/CLI_CHEATSHEET.md) — Day-to-day management commands (Foundry agents, Container App, APIM, SQL, MCAPS troubleshooting)
+- [FAQ.md](docs/FAQ.md) — Common questions: agent architecture, MCAPS policies, model deployments, costs, deployment gotchas
+- [USAGE.md](docs/USAGE.md) — Quick start guides, curl examples, example prompts
+- [COMMANDS.md](docs/COMMANDS.md) — All CLI commands used to build and deploy this project
+- [SESSION_LOG.md](docs/SESSION_LOG.md) — Chronological build log with lessons learned
+- [PROMPTS.md](docs/PROMPTS.md) — User prompts from each build session
 - [CLAUDE.md](CLAUDE.md) — AI agent instructions for working with this codebase
 
 ## License
