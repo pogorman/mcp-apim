@@ -158,6 +158,19 @@
       height: 22px;
     }
 
+    .activity-tab img {
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      opacity: 0.55;
+      transition: opacity 0.15s;
+    }
+
+    .activity-tab:hover img,
+    .activity-tab.active img {
+      opacity: 1;
+    }
+
     .tab-label {
       font-size: 0.55rem;
       margin-top: 2px;
@@ -1720,6 +1733,11 @@
         height: 18px;
       }
 
+      .activity-tab img {
+        width: 18px;
+        height: 18px;
+      }
+
       /* On mobile, only show one panel at a time */
       .panel.visible ~ .panel.visible {
         display: none;
@@ -1768,17 +1786,11 @@
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
       </button>
-      <button class="activity-tab" id="tabCity" onclick="togglePanel('city')" title="City Portal">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="4" y="2" width="16" height="20" rx="2" ry="2"/>
-          <line x1="12" y1="22" x2="12" y2="2"/>
-          <path d="M8 6h.01M8 10h.01M8 14h.01M8 18h.01M16 6h.01M16 10h.01M16 14h.01M16 18h.01"/>
-        </svg>
+      <button class="activity-tab" id="tabCity" onclick="togglePanel('city')" title="City Portal (Foundry Agent)">
+        <img src="/images/foundry-icon-thick.jpg" alt="Foundry">
       </button>
       <button class="activity-tab" id="tabCopilot" onclick="togglePanel('copilot')" title="Copilot Studio">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-        </svg>
+        <img src="/images/mcs-icon.jpg" alt="Copilot Studio">
       </button>
       <button class="activity-tab" id="tabDocs" onclick="togglePanel('docs')" title="Documentation">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
