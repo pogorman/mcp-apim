@@ -623,3 +623,35 @@ Pattern 4: MCP Tool Tester (Raw MCP Protocol)
 - Copilot Studio iframe embed works for demos but may have SSO/auth considerations for production
 - Container App cold starts can cause Copilot Studio connection timeouts — wake container via `/healthz` first
 - CSS specificity matters: adding `display: flex` to a panel class can override the `.panel { display: none }` rule, causing panels to leak onto the homepage
+
+## Session 15 — Copilot Studio Panel, User Guide, Wake-Up Script
+
+### Copilot Studio Gets Its Own Panel
+- Moved Copilot Studio from a global floating widget (visible on every page) to a dedicated left-nav panel with its own tab (star icon)
+- Created a branded info page explaining auto-discovery, no-code approach, and same-backend architecture
+- FAB (floating chat button) + widget overlay are now scoped to the Copilot Studio panel only — no longer visible on other panels
+- Fixed "JavaScriptError" in Copilot Studio iframe by force-reloading the iframe each time the widget opens (clears stale sessions)
+- Added `referrerpolicy="no-referrer-when-downgrade"` to iframe for better cross-origin behavior
+
+### Documentation Consolidation
+- Created `docs/USER_GUIDE.md` — comprehensive, TOC-driven user guide written for non-technical users
+  - Covers all four panels with step-by-step instructions
+  - Example prompts organized by category (quick wins, deep investigations, business, area analysis, custom SQL)
+  - Model selection guide, tips & tricks, cold start explanation
+  - Consolidated user-facing content from USAGE.md, FAQ.md, and ARCHITECTURE.md
+  - Includes connecting other clients (Claude Code, Claude Desktop, Copilot Studio setup, direct API)
+  - FAQ section, cost breakdown, and developer docs index
+- Removed `docs/USAGE.md` — fully superseded by USER_GUIDE.md
+- Updated README.md documentation index
+
+### Wake-Up Script
+- Created `infra/wake.sh` — warms up all serverless resources before demos
+  - Step 1: Pings `/healthz` to wake Container App
+  - Step 2: Sends a lightweight `/chat` query to wake SQL Database
+  - Step 3: Verifies MCP endpoint is responding
+  - Reports timing for each step
+
+### Key Lessons
+- Copilot Studio iframe "JavaScriptError" is a known issue from their webchat SDK — force-reloading the iframe on each open is the best workaround
+- Scoping floating elements to panels (position: absolute inside panel) is cleaner than global fixed positioning (z-index wars, visibility on wrong pages)
+- A simple wake-up script is better than hoping someone remembers to hit healthz manually

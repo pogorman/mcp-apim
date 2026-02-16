@@ -131,6 +131,13 @@ User prompts from each session of building this project, reconstructed from sess
 - "the copilot studio agent should be accessible anywhere on the spa with a little floating icon in the bottom right"
 - "ok update all our mds. i think they probably all need updating but you tell me. then check everything in"
 
+## Session 15 — Copilot Studio Panel, User Guide, Wake-Up Script
+
+- "the javascript error is back on the copilot studio agent...it literally just says javascripterror"
+- "also... the copilot studio agent needs to go back to having it's own left hand navigation. once that is selected, then show the floating icon for launching the agent ...but not on every page"
+- "right...get all this into a set of release notes and put it wherever it makes sense w the other release notes based on this next comment. i need a user guide for the spa... can we rebrand and consolidate some of our mds in the docs folder and provide a super easy to use hey here's how this works and what each interface is for so a 12 year old could simply open up the url and do it? the doc should have a toc at the top and of course start with a summary, but then immediately get into what people can do with the app right from jump street assuming they have the url. i'm not going to hand this document out, so feel free to lump whatever other content from the other mds you feel we can consolidate and make easily findable from a toc."
+- "also, is there anyway to have a script that wakes everything up or is it best just to go in and run a prompt?"
+
 ---
 
 ## Example Analysis Prompts (for use with the connected agent)

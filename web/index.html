@@ -1197,13 +1197,123 @@
       }
     }
 
-    /* ── Copilot Studio Floating Widget ──────────────── */
+    /* ── Copilot Studio Panel ─────────────────────────── */
+    .copilot-panel {
+      background: #f0f0f8;
+      color: #1a1a2e;
+      position: relative;
+    }
+
+    .copilot-header-bar {
+      background: linear-gradient(135deg, #7b2ff7, #2b88d8);
+      color: #fff;
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-shrink: 0;
+    }
+
+    .copilot-header-bar svg {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+    }
+
+    .copilot-header-text h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      margin-bottom: 0.15rem;
+    }
+
+    .copilot-header-text p {
+      font-size: 0.78rem;
+      opacity: 0.85;
+      font-weight: 400;
+    }
+
+    .copilot-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+    }
+
+    .copilot-content::-webkit-scrollbar { width: 5px; }
+    .copilot-content::-webkit-scrollbar-track { background: transparent; }
+    .copilot-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+
+    .copilot-intro {
+      max-width: 700px;
+      margin: 0 auto 1.5rem;
+      font-size: 0.88rem;
+      line-height: 1.65;
+      color: #333;
+    }
+
+    .copilot-intro h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #5b2bb5;
+      margin-bottom: 0.5rem;
+    }
+
+    .copilot-features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      max-width: 700px;
+      margin: 0 auto 1.5rem;
+    }
+
+    .copilot-feature-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.25rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      border: 1px solid #e2e2e2;
+    }
+
+    .copilot-feature-card h4 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #5b2bb5;
+      margin-bottom: 0.35rem;
+    }
+
+    .copilot-feature-card p {
+      font-size: 0.78rem;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    .copilot-about {
+      max-width: 700px;
+      margin: 0 auto;
+      background: #fff;
+      border-radius: 10px;
+      padding: 1.25rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      border: 1px solid #e2e2e2;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      color: #444;
+    }
+
+    .copilot-about h4 {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #5b2bb5;
+      margin-bottom: 0.4rem;
+    }
+
+    /* Copilot FAB (floating action button — inside panel only) */
     .copilot-fab {
-      position: fixed;
+      position: absolute;
       bottom: 1.25rem;
       right: 1.25rem;
-      width: 52px;
-      height: 52px;
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
       background: linear-gradient(135deg, #7b2ff7, #2b88d8);
       color: #fff;
@@ -1213,28 +1323,29 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 1000;
+      z-index: 10;
       transition: transform 0.2s, box-shadow 0.2s;
     }
     .copilot-fab:hover {
-      transform: scale(1.1);
+      transform: scale(1.08);
       box-shadow: 0 6px 24px rgba(123,47,247,0.5);
     }
     .copilot-fab svg { width: 24px; height: 24px; }
 
     .copilot-widget {
-      position: fixed;
-      bottom: 5rem;
+      position: absolute;
+      bottom: 5.5rem;
       right: 1.25rem;
       width: 420px;
-      height: 560px;
+      height: 500px;
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-      z-index: 1001;
+      z-index: 20;
       display: none;
       flex-direction: column;
       overflow: hidden;
+      border: 1px solid #d4d4d4;
     }
     .copilot-widget.open {
       display: flex;
@@ -1249,6 +1360,7 @@
       color: #fff;
       font-size: 0.82rem;
       font-weight: 600;
+      flex-shrink: 0;
     }
     .copilot-widget-header button {
       background: none;
@@ -1269,9 +1381,9 @@
 
     @media (max-width: 768px) {
       .copilot-widget {
-        width: calc(100vw - 2rem);
-        height: 65vh;
-        right: 1rem;
+        width: calc(100vw - 80px);
+        height: 60vh;
+        right: 0.5rem;
         bottom: 4.5rem;
       }
     }
@@ -1340,6 +1452,11 @@
           <path d="M8 6h.01M8 10h.01M8 14h.01M8 18h.01M16 6h.01M16 10h.01M16 14h.01M16 18h.01"/>
         </svg>
       </button>
+      <button class="activity-tab" id="tabCopilot" onclick="togglePanel('copilot')" title="Copilot Studio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+        </svg>
+      </button>
       <div style="flex:1;"></div>
       <button class="activity-tab" id="tabTools" onclick="togglePanel('tools')" title="MCP Tool Tester" style="margin-bottom:6px;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1377,6 +1494,12 @@
                 <line x1="12" y1="22" x2="12" y2="2"/>
               </svg>
               City Portal
+            </button>
+            <button class="welcome-btn" onclick="togglePanel('copilot')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              Copilot Studio
             </button>
           </div>
         </div>
@@ -1510,6 +1633,74 @@
         </div>
       </div>
 
+      <!-- Panel 4: Copilot Studio -->
+      <div class="panel copilot-panel" id="panelCopilot">
+        <div class="copilot-header-bar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <div class="copilot-header-text">
+            <h2>Copilot Studio</h2>
+            <p>Low-Code AI Agent via MCP</p>
+          </div>
+        </div>
+        <div class="copilot-content">
+          <div class="copilot-intro">
+            <h3>Microsoft Copilot Studio Agent</h3>
+            <p>
+              This panel demonstrates a low-code/no-code approach to consuming the same 12 investigative tools.
+              A Microsoft Copilot Studio agent is connected directly to our MCP endpoint &mdash; it automatically
+              discovers all available tools and can answer questions about Philadelphia property data without any
+              custom code.
+            </p>
+            <p>Click the chat icon in the bottom right to launch the Copilot Studio agent.</p>
+          </div>
+          <div class="copilot-features">
+            <div class="copilot-feature-card">
+              <h4>Auto-Discovery</h4>
+              <p>Copilot Studio connects to the MCP endpoint and automatically discovers all 12 tools &mdash; no manual configuration needed.</p>
+            </div>
+            <div class="copilot-feature-card">
+              <h4>No Custom Code</h4>
+              <p>Unlike the Investigative Agent and City Portal, this agent requires zero custom code on the Copilot Studio side.</p>
+            </div>
+            <div class="copilot-feature-card">
+              <h4>Same Backend</h4>
+              <p>Uses the same APIM &rarr; Functions &rarr; SQL pipeline and 29M rows of Philadelphia property data.</p>
+            </div>
+          </div>
+          <div class="copilot-about">
+            <h4>How It Works</h4>
+            <p>
+              Copilot Studio connects to our MCP server endpoint at the Container App. When the agent receives a
+              question, it uses MCP tool discovery to find the right tools, calls them through our APIM gateway,
+              and synthesizes the results into a natural language response.
+            </p>
+            <p style="margin-top:0.5rem;">
+              This is one of four client patterns demonstrated in this application: Chat Completions + Tools
+              (Investigative Agent), Assistants API (City Portal), MCP via Low-Code (this panel), and Raw MCP
+              Protocol (Tool Tester).
+            </p>
+          </div>
+        </div>
+
+        <!-- Floating chat button (scoped to this panel) -->
+        <button class="copilot-fab" id="copilotFab" onclick="toggleCopilotWidget()" title="Launch Copilot Studio Agent">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+        </button>
+
+        <!-- Chat widget overlay (scoped to this panel) -->
+        <div class="copilot-widget" id="copilotWidget">
+          <div class="copilot-widget-header">
+            <span>Copilot Studio</span>
+            <button onclick="toggleCopilotWidget()">&times;</button>
+          </div>
+          <iframe id="copilotFrame" src="" allow="microphone *" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+      </div>
+
       <!-- Panel 2: MCP Tool Tester -->
       <div class="panel" id="panelTools">
         <div class="panel-header">
@@ -1544,7 +1735,7 @@
     const API_BASE = 'https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io';
 
     const state = {
-      panels: { agent: false, tools: false, city: false },
+      panels: { agent: false, tools: false, city: false, copilot: false },
       copilotOpen: false,
       chat: { history: [], isLoading: false, model: 'gpt-4.1' },
       city: { threadId: null, chatOpen: false, isLoading: false },
@@ -1704,24 +1895,33 @@
       const agentOpen = state.panels.agent;
       const toolsOpen = state.panels.tools;
       const cityOpen = state.panels.city;
+      const copilotOpen = state.panels.copilot;
 
       // Activity bar tabs
       $('tabAgent').classList.toggle('active', agentOpen);
       $('tabTools').classList.toggle('active', toolsOpen);
       $('tabCity').classList.toggle('active', cityOpen);
+      $('tabCopilot').classList.toggle('active', copilotOpen);
 
       // Panels
       $('panelAgent').classList.toggle('visible', agentOpen);
       $('panelTools').classList.toggle('visible', toolsOpen);
       $('panelCity').classList.toggle('visible', cityOpen);
+      $('panelCopilot').classList.toggle('visible', copilotOpen);
 
-      // Hide model selector when only City Portal is active (it applies to the Investigative Agent only)
-      const showModelSelect = agentOpen || (!agentOpen && !toolsOpen && !cityOpen);
+      // Hide model selector when only City Portal/Copilot/Tools is active (model applies to Investigative Agent only)
+      const showModelSelect = agentOpen || (!agentOpen && !toolsOpen && !cityOpen && !copilotOpen);
       $('modelSelect').style.display = showModelSelect ? '' : 'none';
 
       // Welcome screen
-      const anyOpen = agentOpen || toolsOpen || cityOpen;
+      const anyOpen = agentOpen || toolsOpen || cityOpen || copilotOpen;
       $('welcomeScreen').classList.toggle('hidden', anyOpen);
+
+      // Close copilot widget if copilot panel is closed
+      if (!copilotOpen && state.copilotOpen) {
+        state.copilotOpen = false;
+        $('copilotWidget').classList.remove('open');
+      }
     }
 
     /* ================================================================
@@ -2255,13 +2455,16 @@
     /* ================================================================
        COPILOT STUDIO FLOATING WIDGET
        ================================================================ */
+    const COPILOT_WEBCHAT_URL = 'https://copilotstudio.microsoft.com/environments/0582014c-9a6d-e35b-8705-5168c385f413/bots/copilots_header_80f1b/webchat?__version__=2';
+
     function toggleCopilotWidget() {
       state.copilotOpen = !state.copilotOpen;
       $('copilotWidget').classList.toggle('open', state.copilotOpen);
-      // Lazy-load iframe on first open
       var frame = $('copilotFrame');
-      if (state.copilotOpen && !frame.src.includes('copilotstudio')) {
-        frame.src = 'https://copilotstudio.microsoft.com/environments/0582014c-9a6d-e35b-8705-5168c385f413/bots/copilots_header_80f1b/webchat?__version__=2';
+      if (state.copilotOpen) {
+        // Force-reload iframe each time to avoid stale session / JS errors
+        frame.src = '';
+        setTimeout(function() { frame.src = COPILOT_WEBCHAT_URL; }, 50);
       }
     }
 
@@ -2272,18 +2475,5 @@
     loadModels();
   </script>
 
-  <!-- Copilot Studio Floating Widget -->
-  <button class="copilot-fab" onclick="toggleCopilotWidget()" title="Copilot Studio">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-    </svg>
-  </button>
-  <div class="copilot-widget" id="copilotWidget">
-    <div class="copilot-widget-header">
-      <span>Copilot Studio</span>
-      <button onclick="toggleCopilotWidget()">&times;</button>
-    </div>
-    <iframe id="copilotFrame" src="" allow="microphone *"></iframe>
-  </div>
 </body>
 </html>

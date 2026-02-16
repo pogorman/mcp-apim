@@ -57,10 +57,10 @@ A SPA with a VS Code-style activity bar, demonstrating four different ways to co
 
 - **Investigative Agent** — Chat Completions + Tools pattern. Ask questions in natural language; our code runs the agentic loop. Switch between 6 models (GPT-4.1, GPT-5, GPT-5 Mini, o4-mini, o3-mini, Phi-4) via the dropdown.
 - **City Portal** — Assistants API (Foundry Agent) pattern. A Philadelphia-branded government page with a floating chat widget. Azure manages the tool-calling loop with GPT-5 and threads persist server-side — follow-up questions remember context.
-- **Copilot Studio** — Microsoft Copilot Studio agent connected via MCP. Accessible as a floating widget from any page. Demonstrates the low-code/no-code path to consuming the same 12 tools.
+- **Copilot Studio** — Microsoft Copilot Studio agent connected via MCP. Has its own panel with a floating chat widget. Demonstrates the low-code/no-code path to consuming the same 12 tools.
 - **MCP Tool Tester** — Raw MCP protocol pattern. Connect directly to the MCP server, discover tools, and call them individually with specific parameters.
 
-Panels can be open side-by-side or individually. The Copilot Studio widget floats above all panels.
+Panels can be open side-by-side or individually.
 
 ## Quick Start
 
@@ -203,10 +203,10 @@ All resources are serverless/consumption — scale to zero when idle:
 
 ## Documentation
 
+- [USER_GUIDE.md](docs/USER_GUIDE.md) — How to use the web app: all four panels, example prompts, tips, connecting other clients
 - [ARCHITECTURE.md](docs/ARCHITECTURE.md) — Full technical reference: schema, ERD, API specs, agent behavior, infrastructure, Container App deep dive
 - [CLI_CHEATSHEET.md](docs/CLI_CHEATSHEET.md) — Day-to-day management commands (Foundry agents, Container App, APIM, SQL, MCAPS troubleshooting)
 - [FAQ.md](docs/FAQ.md) — Common questions: agent architecture, MCAPS policies, model deployments, costs, deployment gotchas
-- [USAGE.md](docs/USAGE.md) — Quick start guides, curl examples, example prompts
 - [COMMANDS.md](docs/COMMANDS.md) — All CLI commands used to build and deploy this project
 - [SESSION_LOG.md](docs/SESSION_LOG.md) — Chronological build log with lessons learned
 - [PROMPTS.md](docs/PROMPTS.md) — User prompts from each build session
