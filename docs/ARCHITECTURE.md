@@ -30,63 +30,88 @@ The MCP server supports dual transport: **stdio** (local, for Claude Code/Deskto
 ## System Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         AI Client Layer                            │
-│  ┌──────────────┐  ┌───────────────┐  ┌──────────────────────┐     │
-│  │ Claude Code   │  │ Claude Desktop│  │ AI Foundry / Copilot │     │
-│  └──────┬───────┘  └───────┬───────┘  └──────────┬───────────┘     │
-│         │ stdio            │ stdio               │ HTTP             │
-└─────────┼──────────────────┼─────────────────────┼─────────────────┘
-          │                  │                     │
-          ▼                  ▼                     ▼
-┌─────────────────────────────────────┐  ┌──────────────────────────┐
-│        MCP Server (local)           │  │ MCP Server (Container App)│
-│  TypeScript, stdio transport        │  │ Streamable HTTP transport │
-│  12 tools → HTTP calls              │  │ philly-mcp-server         │
-│  Adds Ocp-Apim-Subscription-Key    │  │ Scale: 0-3 replicas       │
-└──────────────┬──────────────────────┘  └────────────┬─────────────┘
-               │ HTTPS                                │ HTTPS
-               ▼                                      ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│              Azure API Management (Consumption)                     │
-│  philly-profiteering-apim.azure-api.net/api                        │
-│  ┌─────────────────────────────────────────────────────────┐       │
-│  │ Inbound Policy: validates subscription key,              │       │
-│  │ injects x-functions-key header for backend auth          │       │
-│  └─────────────────────────────────────────────────────────┘       │
-│  12 operations (9 GET, 3 POST) → proxy to Function App            │
-└──────────────────────────┬──────────────────────────────────────────┘
-                           │ HTTPS + x-functions-key
-                           ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│           Azure Functions v4 (Flex Consumption FC1)                 │
-│  philly-profiteering-func.azurewebsites.net                        │
-│  Node.js 20, TypeScript compiled to JS                             │
-│  12 HTTP-triggered functions                                       │
-│  System-assigned managed identity for SQL auth                     │
-└──────────────────────────┬──────────────────────────────────────────┘
-                           │ TDS (Azure AD token)
-                           ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│           Azure SQL Database (General Purpose Serverless)           │
-│  philly-stats-sql-01.database.windows.net / phillystats            │
-│  Gen5 2 vCores, 0.5 min capacity, 60-min auto-pause               │
-│  10 tables, 3 views, 28+ indexes                                  │
-│  ~29M rows across entity resolution, property, license,           │
-│  enforcement domains                                               │
-└─────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              Client Layer                                   │
+│  ┌──────────────┐  ┌───────────────┐  ┌───────────────┐  ┌──────────────┐  │
+│  │ Claude Code   │  │ Claude Desktop│  │ Copilot Studio│  │ Web SPA      │  │
+│  └──────┬───────┘  └───────┬───────┘  └───────┬───────┘  └──────┬───────┘  │
+│         │ stdio            │ stdio             │ HTTP            │ HTTPS     │
+└─────────┼──────────────────┼───────────────────┼────────────────┼───────────┘
+          │                  │                   │                │
+          ▼                  ▼                   │                │
+┌─────────────────────────────────────┐          │                │
+│        MCP Server (local)           │          │                │
+│  TypeScript, stdio transport        │          │                │
+│  12 tools → HTTP calls              │          │                │
+│  Adds Ocp-Apim-Subscription-Key    │          │                │
+└──────────────┬──────────────────────┘          │                │
+               │                                 │                │
+               │          ┌──────────────────────┘                │
+               │          │    ┌───────────────────────────────────┘
+               │          │    │
+               │          ▼    ▼
+               │  ┌────────────────────────────────────────────────────────┐
+               │  │     Container App (philly-mcp-server, scale 0-3)      │
+               │  │                                                        │
+               │  │  POST /chat     — Chat Completions + tool calling      │
+               │  │  POST /agent/*  — Assistants API (GPT-4.1, threads)    │
+               │  │  POST /mcp      — MCP protocol (Streamable HTTP)       │
+               │  │  GET  /models   — Available model list                 │
+               │  │  GET  /healthz  — Health probe                         │
+               │  └──────────┬──────────────────────┬──────────────────────┘
+               │             │                      │
+               │             │ Tool calls            │ LLM inference
+               │             │ (HTTPS + sub key)     │ (Azure AD token)
+               ▼             ▼                      ▼
+┌────────────────────────────────────────┐  ┌────────────────────────────────┐
+│  Azure API Management (Consumption)    │  │ Azure OpenAI (AI Services)     │
+│  philly-profiteering-apim              │  │ foundry-og-agents (eastus)     │
+│  Validates subscription key,           │  │ 6 model deployments:           │
+│  injects x-functions-key               │  │ GPT-4.1, GPT-5, GPT-5 Mini,   │
+│  12 operations (9 GET, 3 POST)         │  │ o4-mini, o3-mini, Phi-4        │
+└───────────────────┬────────────────────┘  └────────────────────────────────┘
+                    │ HTTPS + x-functions-key
+                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│           Azure Functions v4 (Flex Consumption FC1)                         │
+│  philly-profiteering-func.azurewebsites.net                                │
+│  Node.js 20, TypeScript compiled to JS                                     │
+│  12 HTTP-triggered functions                                               │
+│  System-assigned managed identity for SQL auth                             │
+└───────────────────────────────┬─────────────────────────────────────────────┘
+                                │ TDS (Azure AD token)
+                                ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│           Azure SQL Database (General Purpose Serverless)                    │
+│  philly-stats-sql-01.database.windows.net / phillystats                    │
+│  Gen5 2 vCores, 0.5 min capacity, 60-min auto-pause                       │
+│  10 tables, 3 views, 28+ indexes                                          │
+│  ~29M rows across entity resolution, property, license,                    │
+│  enforcement domains                                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Authentication Flow
 
 ```
-Client → MCP Server: stdio (no auth, local process)
-MCP Server → APIM:   Ocp-Apim-Subscription-Key header
-APIM → Functions:    x-functions-key header (injected by APIM policy, invisible to client)
-Functions → SQL:     Azure AD token via DefaultAzureCredential (managed identity)
+Local MCP path:
+  Client → MCP Server:     stdio (no auth, local process)
+  MCP Server → APIM:       Ocp-Apim-Subscription-Key header
+
+Container App paths:
+  Web SPA → Container App:       HTTPS (SWA auth gates the SPA; Container App is publicly accessible)
+  Copilot Studio → Container App: HTTPS (no auth — see note below)
+  Container App → APIM:          Ocp-Apim-Subscription-Key header (stored as Container App secret)
+  Container App → Azure OpenAI:  Azure AD token via managed identity ("Cognitive Services OpenAI User" role)
+
+Backend:
+  APIM → Functions:    x-functions-key header (injected by APIM policy, invisible to caller)
+  Functions → SQL:     Azure AD token via DefaultAzureCredential (managed identity)
 ```
 
-No passwords are stored in application code. The Function App's system-assigned managed identity has `db_datareader` role on the SQL database.
+No passwords or API keys are stored in application code. The Function App's system-assigned managed identity has `db_datareader` role on the SQL database. The Container App's managed identity has the `Cognitive Services OpenAI User` role on the AI Services account (`foundry-og-agents`), enabling keyless Azure OpenAI access via `DefaultAzureCredential` + `getBearerTokenProvider`.
+
+**Copilot Studio auth note:** The Container App's `/mcp` endpoint is currently unauthenticated — Copilot Studio connects directly without an API key or OAuth token. This is acceptable for a demo/POC (the endpoint only exposes read-only data queries), but a production deployment should add authentication (e.g., an API key header validated in Express middleware, or OAuth via Container Apps Easy Auth).
 
 ---
 
@@ -905,13 +930,14 @@ Browser → Container App /agent/thread + /agent/message → Azure OpenAI Assist
 
 ### Pattern 3: Copilot Studio (MCP via Low-Code)
 
-- Microsoft Copilot Studio agent connected directly to the MCP server endpoint
-- Embedded as an iframe widget — floating purple star icon (bottom-right) accessible from any page
+- Microsoft Copilot Studio agent connected directly to the Container App's `/mcp` endpoint
+- Embedded as an iframe widget — floating purple icon (bottom-right) scoped to the Copilot Studio panel
 - Demonstrates the low-code/no-code path: Copilot Studio auto-discovers all 12 tools via MCP protocol
 - No custom code needed on the Copilot Studio side — just point it at the MCP endpoint
+- **Authentication**: The Container App's `/mcp` endpoint is currently unauthenticated. Copilot Studio connects over HTTPS without an API key. The endpoint is read-only (all tool calls go through APIM which has its own subscription key auth), so the exposure is limited to data queries. See the [Authentication Flow](#authentication-flow) section for production hardening options.
 
 ```
-Copilot Studio → Container App /mcp (Streamable HTTP) → APIM → Functions → SQL
+Copilot Studio → Container App /mcp (Streamable HTTP, no auth) → APIM (sub key) → Functions → SQL
 ```
 
 ### Pattern 4: Documentation (Static Content Reader)
@@ -937,12 +963,12 @@ Browser → Container App /mcp (Streamable HTTP, JSON-RPC 2.0) → APIM → Func
 
 ### Layout
 
-- **Activity bar** (48px, left edge): Five icon buttons — chat bubble (Investigative Agent), building (City Portal), star (Copilot Studio), book (Documentation), wrench (MCP Tools, pinned to bottom)
+- **Activity bar** (48px, left edge): Seven icon buttons — chat bubble (Investigative Agent), factory (City Portal), aviator goggles (Copilot Studio), book (Documentation), question mark (About This Site), wrench (MCP Tools, pinned to bottom)
 - **Authentication**: Azure SWA built-in auth (`/.auth/login/aad`). Config in `web/staticwebapp.config.json`. User email displayed in header via `/.auth/me`. Sign out via `/.auth/logout`.
 - Panels can be open simultaneously side-by-side (50/50 split)
 - Closing one panel gives the other full width
 - Closing all shows a welcome screen with quick-open buttons
-- **Copilot Studio widget**: Floats above all panels (purple star icon, bottom-right). Independent of the panel system.
+- **Copilot Studio widget**: Floats within the Copilot Studio panel (purple icon, bottom-right). Scoped to the Copilot panel only.
 - Responsive: on mobile (<768px), only one panel visible at a time
 - No build step or dependencies — open the HTML file directly or serve with any static file server
 
