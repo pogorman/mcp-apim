@@ -937,7 +937,17 @@ Added live elapsed timer and rotating phase messages to the SK Agent thinking in
 - Rebuilt and deployed Functions app via zip deploy
 - Deployed SPA to Azure Static Web Apps
 
+### Nav Reorder
+Reordered activity bar and welcome page buttons per user preference:
+- **Top:** Investigative Agent, City Portal, Copilot Studio, SK Agent, Tools
+- **[spacer]**
+- **Bottom:** Docs, About
+
+### Bell Emoji Favicon
+Added a bell emoji favicon (`data:image/svg+xml` with embedded emoji) so the browser tab is instantly recognizable. Two SVG attempts at a hand-drawn Liberty Bell looked bad at 16px; the emoji approach won.
+
 ### Files Changed
 - `sk-agent/Program.cs` — Triage agent instructions (no planning messages)
 - `functions/src/functions/getTopViolators.ts` — Removed `p.` alias from ownerFilter
-- `web/index.html` — Live timer, phase messages, CSS for `.thinking-timer` and `.thinking-phases`
+- `web/index.html` — Live timer, phase messages, nav reorder, bell favicon
+- `docs/SESSION_LOG.md`, `docs/ARCHITECTURE.md`, `docs/USER_GUIDE.md`, `CLAUDE.md` — Session 20 docs
