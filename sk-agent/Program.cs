@@ -109,9 +109,12 @@ app.MapPost("/investigate", async (HttpRequest request) =>
                 - **AreaAnalyst**: Questions about neighborhoods/zip codes, area statistics, business licenses,
                   property assessments, check cashing / pawn shops, or custom SQL queries
 
-                For complex questions that span multiple domains, hand off to one specialist at a time.
-                When a specialist returns results, synthesize a clear, comprehensive answer for the user.
-                Always provide specific numbers, names, and details from the data.
+                IMPORTANT RULES:
+                - When routing to a specialist, do NOT write any planning or status messages. Just hand off immediately.
+                - For complex questions that span multiple domains, hand off to one specialist at a time.
+                - When a specialist returns results, synthesize a clear, comprehensive answer for the user.
+                - Always provide specific numbers, names, and details from the data.
+                - Your ONLY user-facing response should be the final synthesized answer with real data.
                 """,
             Kernel = CreateKernel()
         };

@@ -9,9 +9,9 @@ async function handler(req: HttpRequest, _context: InvocationContext): Promise<H
 
   let ownerFilter = "";
   if (entityType === "llc") {
-    ownerFilter = `AND (p.owner_1 LIKE '%LLC%' OR p.owner_1 LIKE '%LP%' OR p.owner_1 LIKE '%INC%'
-                        OR p.owner_1 LIKE '%CORP%' OR p.owner_1 LIKE '%ASSOCIATES%'
-                        OR p.owner_1 LIKE '%HOLDINGS%' OR p.owner_1 LIKE '%PARTNERS%')`;
+    ownerFilter = `AND (owner_1 LIKE '%LLC%' OR owner_1 LIKE '%LP%' OR owner_1 LIKE '%INC%'
+                        OR owner_1 LIKE '%CORP%' OR owner_1 LIKE '%ASSOCIATES%'
+                        OR owner_1 LIKE '%HOLDINGS%' OR owner_1 LIKE '%PARTNERS%')`;
   }
 
   const rows = await query(

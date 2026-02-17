@@ -1627,6 +1627,21 @@
       margin-top: 0.3rem;
     }
 
+    .thinking-timer {
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-left: 0.5rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .thinking-phases {
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+      margin-left: 1.7rem;
+      opacity: 0.8;
+    }
+
     /* ── Docs Panel ─────────────────────────────────────── */
     .docs-body {
       flex: 1;
@@ -2983,7 +2998,7 @@
 
       addSKMessage('user', message);
 
-      // Show thinking
+      // Show thinking with live timer
       var container = $('skChatScroll');
       var thinking = document.createElement('div');
       thinking.className = 'thinking';
@@ -2992,9 +3007,27 @@
         '<div class="thinking-inner">' +
           '<div class="thinking-dots"><span></span><span></span><span></span></div>' +
           '<span class="thinking-label">Agents collaborating...</span>' +
-        '</div>';
+          '<span class="thinking-timer" id="skTimer">0s</span>' +
+        '</div>' +
+        '<div class="thinking-phases" id="skPhase">Routing to specialist agent...</div>';
       container.appendChild(thinking);
       container.scrollTop = container.scrollHeight;
+
+      // Live timer + rotating status
+      var skTimerStart = Date.now();
+      var skTimerInterval = setInterval(function() {
+        var elapsed = Math.floor((Date.now() - skTimerStart) / 1000);
+        var timerEl = $('skTimer');
+        if (timerEl) timerEl.textContent = elapsed + 's';
+        var phaseEl = $('skPhase');
+        if (phaseEl) {
+          if (elapsed < 3) phaseEl.textContent = 'Routing to specialist agent...';
+          else if (elapsed < 8) phaseEl.textContent = 'Agent calling Philadelphia data APIs...';
+          else if (elapsed < 15) phaseEl.textContent = 'Processing results from Azure SQL...';
+          else if (elapsed < 25) phaseEl.textContent = 'Synthesizing findings...';
+          else phaseEl.textContent = 'Still working — complex queries take longer...';
+        }
+      }, 1000);
 
       try {
         var resp = await fetch(SK_API_BASE + '/investigate', {
@@ -3003,6 +3036,7 @@
           body: JSON.stringify({ prompt: message }),
         });
 
+        clearInterval(skTimerInterval);
         var el = $('skThinking');
         if (el) el.remove();
 
@@ -3014,6 +3048,7 @@
         var data = await resp.json();
         addSKMessage('assistant', data.reply, data.agents, data.toolCalls, data.executionTimeMs);
       } catch (err) {
+        clearInterval(skTimerInterval);
         var el = $('skThinking');
         if (el) el.remove();
         var errDiv = document.createElement('div');
