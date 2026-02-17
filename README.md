@@ -16,7 +16,7 @@
 
 An AI-powered investigative platform that surfaces poverty profiteering patterns in Philadelphia. It combines 10 public datasets (~29 million rows) covering property ownership, code violations, demolitions, business licenses, and tax assessments into a queryable system that any AI agent — or a human through a web browser — can use to identify exploitative LLCs and property owners.
 
-The system has three layers: a **serverless data API** (Azure Functions + SQL), an **MCP server** that exposes 12 investigative tools to any AI agent, and a **web interface** demonstrating five panels — a Chat Completions agent, a Foundry Agent (Assistants API), a Copilot Studio agent via MCP, a documentation reader, and a raw MCP tool tester — showing how the same backend serves completely different AI integration approaches. Protected by Azure authentication (Microsoft login required). Everything is serverless and costs ~$1-2/month when idle.
+The system has three layers: a **serverless data API** (Azure Functions + SQL), an **MCP server** that exposes 12 investigative tools to any AI agent, and a **web interface** demonstrating seven panels — a Chat Completions agent, a Foundry Agent (Assistants API), a Copilot Studio agent via MCP, a Semantic Kernel multi-agent, a documentation reader, an about page, and a raw MCP tool tester — showing how the same backend serves completely different AI integration approaches. Protected by Azure authentication (Microsoft login required). The Function App communicates with SQL and Storage entirely over **VNet + Private Endpoints** — public access is disabled on both. Everything is serverless and costs ~$33/month.
 
 ## Architecture
 
@@ -51,13 +51,16 @@ The system has three layers: a **serverless data API** (Azure Functions + SQL), 
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │               Azure Functions v4 (Flex Consumption, Node.js 20)             │
 │  12 HTTP-triggered functions, managed identity → Azure AD token auth        │
+│  VNet-integrated (snet-functions, 10.0.1.0/24)                              │
 └──────────────────────────────────┬──────────────────────────────────────────┘
                                    │ TDS + Azure AD token
+                                   │ via Private Endpoint
                                    ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │               Azure SQL Database (Serverless Gen5, auto-pause)              │
 │  10 tables, 3 views, 28+ indexes, ~29M rows                                │
 │  Entity resolution graph + property + license + enforcement data            │
+│  Public access DISABLED — private endpoint only                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -221,7 +224,9 @@ All resources are serverless/consumption — scale to zero when idle:
 | Static Web App (Free tier) | $0 |
 | Storage (2 accounts) | ~$1/mo |
 | Container Registry (Basic) | ~$0.17/mo |
-| **Total when idle** | **~$1-2/mo** |
+| Private Endpoints (x4: SQL, blob, table, queue) | ~$29/mo |
+| Private DNS Zones (x4) | ~$2/mo |
+| **Total when idle** | **~$33/mo** |
 
 ## Documentation
 

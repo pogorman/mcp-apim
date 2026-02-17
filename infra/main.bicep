@@ -57,6 +57,15 @@ module storage 'modules/storage.bicep' = {
   }
 }
 
+module networking 'modules/networking.bicep' = {
+  name: 'networking'
+  params: {
+    location: sqlLocation
+    sqlServerId: sql.outputs.serverId
+    funcStorageId: storage.outputs.funcStorageId
+  }
+}
+
 module functionApp 'modules/functionApp.bicep' = {
   name: 'functionApp'
   params: {
@@ -64,6 +73,7 @@ module functionApp 'modules/functionApp.bicep' = {
     funcStorageName: storage.outputs.funcStorageName
     sqlServerFqdn: sql.outputs.serverFqdn
     sqlDatabaseName: sql.outputs.databaseName
+    functionsSubnetId: networking.outputs.functionsSubnetId
   }
 }
 

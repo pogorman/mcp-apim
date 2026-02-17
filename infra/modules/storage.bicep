@@ -24,9 +24,14 @@ resource funcStorage 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   kind: 'StorageV2'
   sku: { name: 'Standard_LRS' }
   properties: {
-    allowSharedKeyAccess: true // Explicit — required for Function App host to load deployment package
+    allowSharedKeyAccess: true // Required for Function App host
     minimumTlsVersion: 'TLS1_2'
     supportsHttpsTrafficOnly: true
+    publicNetworkAccess: 'Disabled'
+    networkAcls: {
+      defaultAction: 'Deny'
+      bypass: 'AzureServices'
+    }
   }
 }
 

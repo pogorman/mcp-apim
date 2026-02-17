@@ -374,9 +374,10 @@ Everything is **serverless** — it only runs (and costs money) when someone's a
 | AI Models (Azure OpenAI) | $0 | Pay per token (varies by model) |
 | Website (Static Web App) | $0 (Free tier) | $0 |
 | Storage | ~$1/month | ~$1/month |
-| **Total when idle** | **~$1-2/month** | |
+| Network Security (VNet + Private Endpoints) | ~$31/month | ~$31/month |
+| **Total when idle** | **~$33/month** | |
 
-The trick: **consumption/serverless tiers across the board.** No VMs, no always-on compute, no reserved capacity. Everything sleeps until someone sends a request.
+The trick: **consumption/serverless tiers across the board.** No VMs, no always-on compute, no reserved capacity. Everything sleeps until someone sends a request. The biggest fixed cost is **network security** — private endpoints that let the Function App talk to SQL and Storage over a private network instead of the public internet. This prevents Azure security policies from breaking the data path.
 
 ---
 

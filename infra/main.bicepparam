@@ -1,7 +1,7 @@
 using './main.bicep'
 
 param location = 'eastus2'
-param sqlLocation = 'eastus'
+param sqlLocation = 'eastus2'
 param publisherEmail = 'admin@example.com'
 param azureOpenAiEndpoint = 'https://foundry-og-agents.openai.azure.com/'
 

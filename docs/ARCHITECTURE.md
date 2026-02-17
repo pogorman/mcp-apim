@@ -78,8 +78,10 @@ The MCP server supports dual transport: **stdio** (local, for Claude Code/Deskto
 │  Node.js 20, TypeScript compiled to JS                                     │
 │  12 HTTP-triggered functions                                               │
 │  System-assigned managed identity for SQL auth                             │
+│  VNet-integrated (snet-functions, 10.0.1.0/24)                             │
 └───────────────────────────────┬─────────────────────────────────────────────┘
                                 │ TDS (Azure AD token)
+                                │ via Private Endpoint (pe-sql-philly)
                                 ▼
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │           Azure SQL Database (General Purpose Serverless)                    │
@@ -88,6 +90,7 @@ The MCP server supports dual transport: **stdio** (local, for Claude Code/Deskto
 │  10 tables, 3 views, 28+ indexes                                          │
 │  ~29M rows across entity resolution, property, license,                    │
 │  enforcement domains                                                        │
+│  Public network access: DISABLED (private endpoint only)                   │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -790,6 +793,15 @@ Everything in the core data pipeline lives here. This is the purpose-built resou
 | Container Registry | `phillymcpacr` | Basic | Docker images for MCP server |
 | Container App Env | `philly-mcp-env` | Consumption | Container Apps environment |
 | Container App | `philly-mcp-server` | Consumption (0-3) | Remote MCP server (Streamable HTTP) |
+| VNet | `vnet-philly-profiteering` | — | Network isolation (10.0.0.0/16) |
+| Private Endpoint | `pe-sql-philly` | — | SQL Server private connectivity |
+| Private Endpoint | `pe-blob-philly` | — | Storage blob private connectivity |
+| Private Endpoint | `pe-table-philly` | — | Storage table private connectivity |
+| Private Endpoint | `pe-queue-philly` | — | Storage queue private connectivity |
+| Private DNS Zone | `privatelink.database.windows.net` | — | SQL private DNS resolution |
+| Private DNS Zone | `privatelink.blob.core.windows.net` | — | Storage blob private DNS resolution |
+| Private DNS Zone | `privatelink.table.core.windows.net` | — | Storage table private DNS resolution |
+| Private DNS Zone | `privatelink.queue.core.windows.net` | — | Storage queue private DNS resolution |
 | App Insights | `philly-profiteering-func` | — | Function monitoring/logging |
 | Static Web App | `philly-profiteering-spa` | Free | Chat SPA interface |
 
@@ -823,8 +835,10 @@ All compute tiers are serverless/consumption — scale to zero when idle:
 | App Insights | $0 | Free tier covers low volume |
 | Container Registry | ~$0.17/mo | Storage only (Basic tier) |
 | Container App | $0 | Pay per use (free grant: 180K vCPU-s/mo) |
+| Private Endpoints (x4) | ~$29/mo | $7.20/endpoint/month |
+| Private DNS Zones (x4) | ~$2/mo | $0.50/zone/month |
 | Static Web App | $0 | Free tier |
-| **Total idle** | **~$1-2/month** | |
+| **Total idle** | **~$33/month** | |
 
 No resources require manual start/stop. The SQL database auto-pauses after 60 minutes of inactivity and auto-resumes on first query (wake-up takes 30-60 seconds).
 
@@ -834,6 +848,44 @@ No resources require manual start/stop. The SQL database auto-pauses after 60 mi
 - **Functions:** Protected by function-level key. Key is injected by APIM inbound policy — never exposed to end clients.
 - **APIM:** Requires `Ocp-Apim-Subscription-Key` header on every request. Subscription key is per-product.
 - **Secrets management:** Keys stored in gitignored config files (`.mcp.json`, `infra/apim-policy.json`). Committed `.example` templates have placeholders.
+
+### Network Isolation (VNet + Private Endpoints)
+
+The Function App communicates with SQL and Storage entirely over private endpoints — public network access is disabled on both. This prevents Azure security policies (MCAPS) from breaking the data path by toggling public access settings.
+
+```
+┌──────────────────────────────────────────────────────────────────────┐
+│  VNet: vnet-philly-profiteering (10.0.0.0/16, East US)              │
+│                                                                      │
+│  ┌─────────────────────────────────┐                                 │
+│  │ snet-functions (10.0.1.0/24)    │  ← Function App VNet integration│
+│  │ Delegated: Microsoft.Web/       │                                 │
+│  │            serverFarms          │                                 │
+│  └────────────┬────────────────────┘                                 │
+│               │                                                      │
+│               │ Private DNS resolution                               │
+│               ▼                                                      │
+│  ┌─────────────────────────────────┐                                 │
+│  │ snet-private-endpoints          │                                 │
+│  │ (10.0.2.0/24)                   │                                 │
+│  │                                 │                                 │
+│  │  pe-sql-philly ──────→ SQL Server (privatelink.database...)       │
+│  │  pe-blob-philly ─────→ Storage blob (privatelink.blob...)         │
+│  │  pe-table-philly ────→ Storage table (privatelink.table...)       │
+│  │  pe-queue-philly ────→ Storage queue (privatelink.queue...)       │
+│  └─────────────────────────────────┘                                 │
+└──────────────────────────────────────────────────────────────────────┘
+```
+
+**Key points:**
+- **Function App** has VNet integration into `snet-functions` with `vnetRouteAllEnabled` — all outbound traffic routes through the VNet
+- **SQL Server** has `publicNetworkAccess: Disabled` — only accessible via the `pe-sql-philly` private endpoint
+- **Storage (phillyfuncsa)** has `publicNetworkAccess: Disabled` — Function App accesses deployment packages and runtime storage via private endpoints (blob, table, queue)
+- **Storage (phillyprofiteersa)** remains public — CSV data storage, not accessed at runtime
+- **Container Apps** are NOT in the VNet — they don't access SQL/Storage directly (they go through APIM, which is public)
+- **APIM Consumption** doesn't support VNet — remains the public front door, which is by design
+- **Private DNS Zones** linked to the VNet ensure the Function App resolves `*.database.windows.net` and `*.blob.core.windows.net` to private IPs
+- **Bicep IaC** in `infra/modules/networking.bicep` manages the entire VNet + private endpoint stack
 
 ---
 

@@ -154,6 +154,9 @@ mcp-apim/
 | AI Foundry Hub | `philly-ai-hub` | — (rg-foundry, eastus) |
 | AI Foundry Project | `philly-profiteering` | — (under philly-ai-hub) |
 | AI Services | `foundry-og-agents` | S0 (eastus, 6 model deployments) |
+| VNet | `vnet-philly-profiteering` | 10.0.0.0/16 (eastus) |
+| Private Endpoints | `pe-sql/blob/table/queue-philly` | SQL + Storage private connectivity |
+| Private DNS Zones | `privatelink.database/blob/table/queue` | DNS resolution for private endpoints |
 | Static Web App | `philly-profiteering-spa` | Free |
 
 ## Database (10 Tables, ~29M Rows)
@@ -252,14 +255,17 @@ The workspace hoists all packages to root `node_modules/`, leaving `functions/no
 - **CTE-based queries** for `getTopViolators` and correlated subqueries for `searchEntities` — CROSS APPLY and LEFT JOIN + GROUP BY approaches timed out on tables this size
 - **APIM policy injects function key** — MCP server only needs the APIM subscription key, never sees the function key
 - **`runQuery` safety validation** — blocks INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, TRUNCATE, EXEC, XP_, SP_; requires TOP(n) or OFFSET/FETCH
+- **VNet + Private Endpoints** — Function App is VNet-integrated; SQL and Storage accessed via private endpoints only. Public access disabled on both. Prevents MCAPS security policies from breaking the data path.
 
 ## Azure Costs
 
-All resources are on consumption/serverless tiers — **~$1-2/month when idle**:
+All resources are on consumption/serverless tiers — **~$33/month** (mostly private endpoints):
 - SQL Serverless auto-pauses after 60min, $0 when paused (pay ~$0.75/vCore-hour when active)
 - Functions Flex Consumption: $0 when idle, pay-per-execution
 - APIM Consumption: $0 when idle, free tier 1M calls/mo
 - Storage Standard LRS: ~$0.50/mo each
+- Private Endpoints (x4: SQL, blob, table, queue): ~$29/mo ($7.20/endpoint)
+- Private DNS Zones (x4): ~$2/mo ($0.50/zone)
 - Static Web Apps Free: $0
 - No resources need manual stop/start — everything scales to zero automatically
 

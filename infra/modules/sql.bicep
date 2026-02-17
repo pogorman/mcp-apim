@@ -10,6 +10,9 @@ param sqlAdminPassword string
 param sqlAdminUser string = 'phillyadmin'
 param clientIp string = ''
 
+@description('Enable public network access (set true for dev/admin access via client IP)')
+param enablePublicAccess bool = false
+
 resource sqlServer 'Microsoft.Sql/servers@2021-11-01' = {
   name: sqlServerName
   location: location
@@ -18,22 +21,12 @@ resource sqlServer 'Microsoft.Sql/servers@2021-11-01' = {
     administratorLoginPassword: sqlAdminPassword
     version: '12.0'
     minimalTlsVersion: '1.2'
-    publicNetworkAccess: 'Enabled'
+    publicNetworkAccess: enablePublicAccess ? 'Enabled' : 'Disabled'
   }
 }
 
-// Allow Azure services (Functions, Container Apps, etc.)
-resource fwAllowAzure 'Microsoft.Sql/servers/firewallRules@2021-11-01' = {
-  parent: sqlServer
-  name: 'AllowAzureServices'
-  properties: {
-    startIpAddress: '0.0.0.0'
-    endIpAddress: '0.0.0.0'
-  }
-}
-
-// Allow deployer's client IP (optional)
-resource fwAllowClient 'Microsoft.Sql/servers/firewallRules@2021-11-01' = if (!empty(clientIp)) {
+// Allow deployer's client IP (only when public access is enabled)
+resource fwAllowClient 'Microsoft.Sql/servers/firewallRules@2021-11-01' = if (enablePublicAccess && !empty(clientIp)) {
   parent: sqlServer
   name: 'AllowClientIP'
   properties: {
@@ -64,3 +57,4 @@ resource sqlDatabase 'Microsoft.Sql/servers/databases@2021-11-01' = {
 output serverFqdn string = sqlServer.properties.fullyQualifiedDomainName
 output databaseName string = sqlDatabase.name
 output serverName string = sqlServer.name
+output serverId string = sqlServer.id

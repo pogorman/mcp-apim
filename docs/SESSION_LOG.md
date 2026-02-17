@@ -951,3 +951,58 @@ Added a bell emoji favicon (`data:image/svg+xml` with embedded emoji) so the bro
 - `functions/src/functions/getTopViolators.ts` — Removed `p.` alias from ownerFilter
 - `web/index.html` — Live timer, phase messages, nav reorder, bell favicon
 - `docs/SESSION_LOG.md`, `docs/ARCHITECTURE.md`, `docs/USER_GUIDE.md`, `CLAUDE.md` — Session 20 docs
+
+---
+
+## Session 21 — VNet + Private Endpoints, Function App Fix (2026-02-17)
+
+**Goal:** Fix Function App 503 errors and permanently solve the MCAPS public access problem.
+
+### The Problem
+Azure security policies (MCAPS) had disabled `publicNetworkAccess` on both the Storage Account (`phillyfuncsa`) and SQL Server (`philly-stats-sql-01`). This meant:
+1. The Function App couldn't load its code from blob storage → **503 on all API calls**
+2. Even after fixing storage, SQL connections were blocked
+
+### Emergency Fix
+1. Re-enabled public network access on `phillyfuncsa` (storage)
+2. Redeployed the Function App via `az functionapp deployment source config-zip`
+3. Re-enabled public network access on `philly-stats-sql-01` (SQL)
+4. Confirmed all 12 endpoints working through APIM and the `/chat` endpoint
+
+### Permanent Fix: VNet + Private Endpoints
+Added VNet + Private Endpoints so the Function App communicates with SQL and Storage entirely over private links. Public access can stay disabled permanently.
+
+**New Bicep module:** `infra/modules/networking.bicep`
+- VNet `vnet-philly-profiteering` (10.0.0.0/16) in East US
+- Subnet `snet-functions` (10.0.1.0/24) — delegated to Microsoft.Web/serverFarms
+- Subnet `snet-private-endpoints` (10.0.2.0/24)
+- 4 Private Endpoints: SQL (pe-sql-philly), Storage blob/table/queue (pe-blob/table/queue-philly)
+- 4 Private DNS Zones with VNet links
+
+**Modified modules:**
+- `sql.bicep` — `publicNetworkAccess: 'Disabled'` (default), removed AllowAzureServices firewall rule, added `enablePublicAccess` param for dev access
+- `storage.bicep` — `publicNetworkAccess: 'Disabled'` + `networkAcls: Deny/bypass AzureServices` on phillyfuncsa
+- `functionApp.bicep` — VNet integration (`virtualNetworkSubnetId`), `vnetRouteAllEnabled`, explicit storage service URI app settings for private DNS resolution
+- `main.bicep` — Wired networking module between sql/storage → functionApp
+
+**Cost impact:** ~$31/month additional (4 private endpoints @ $7.20 each + 4 DNS zones @ $0.50 each). VNet integration for Functions Flex Consumption is free. Total idle cost: ~$33/month (up from ~$1-2/month).
+
+### SWA Redeployment
+Redeployed the Static Web App to pick up Session 19/20 changes (SK Agent panel, nav reorder, bell favicon) that hadn't been deployed to the live site.
+
+### Documentation Updates
+Updated HTML architecture diagram, ARCHITECTURE.md, CLAUDE.md, README.md, ELI5.md, SESSION_LOG.md, and PROMPTS.md with VNet + Private Endpoints details.
+
+### Files Changed
+- `infra/modules/networking.bicep` — **NEW** — VNet, subnets, private endpoints, DNS zones
+- `infra/modules/sql.bicep` — Disable public access, parameterized, removed AllowAzureServices
+- `infra/modules/storage.bicep` — Disable public access on funcStorage
+- `infra/modules/functionApp.bicep` — VNet integration + storage URI app settings
+- `infra/main.bicep` — Wire networking module
+- `docs/architecture-combined-v2.html` — Added networking resources, updated costs
+- `docs/ARCHITECTURE.md` — Added Network Isolation section, updated resource table + costs
+- `README.md` — Updated architecture diagram, costs, intro
+- `CLAUDE.md` — Updated resources table, costs, key design decisions
+- `docs/ELI5.md` — Updated cost table
+- `docs/SESSION_LOG.md` — This entry
+- `docs/PROMPTS.md` — Session 21 prompts

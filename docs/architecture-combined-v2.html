@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Combined Architecture — Philly Profiteering Agent Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #12151c;
+    --surface2: #1a1e28;
+    --surface3: #1f2330;
+    --border: #252a36;
+    --text: #e2e4e9;
+    --text-dim: #7a8192;
+    --text-muted: #4a5168;
+    --accent-blue: #4a9eff;
+    --accent-blue-dim: #1a3a66;
+    --accent-green: #3dd68c;
+    --accent-green-dim: #153d2a;
+    --accent-orange: #f59e0b;
+    --accent-orange-dim: #3d2a08;
+    --accent-purple: #a78bfa;
+    --accent-purple-dim: #2a1f4e;
+    --accent-red: #f87171;
+    --accent-red-dim: #3d1515;
+    --accent-cyan: #22d3ee;
+    --accent-cyan-dim: #0a3038;
+    --accent-pink: #f472b6;
+    --accent-pink-dim: #3d152a;
+    --accent-yellow: #fbbf24;
+    --accent-yellow-dim: #3d3008;
+    --accent-lime: #a3e635;
+    --accent-lime-dim: #253d08;
+    --accent-white: #f8fafc;
+    --accent-white-dim: #1e2029;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  .noise {
+    position: fixed; inset: 0; opacity: 0.02;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 100;
+  }
+
+  .container { max-width: 1360px; margin: 0 auto; padding: 40px 24px 80px; }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  header { margin-bottom: 48px; }
+  header .tag {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 500;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--accent-blue); margin-bottom: 12px;
+  }
+  header h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.3; }
+  header h1 span { color: var(--text-dim); font-weight: 400; }
+  header .subtitle { margin-top: 8px; font-size: 14px; color: var(--text-dim); max-width: 920px; }
+
+  /* ─── Section Headers ─── */
+  .section-hdr {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase; padding: 14px 20px;
+    border-radius: 8px 8px 0 0; display: flex; align-items: center; gap: 10px;
+    margin-top: 32px; flex-wrap: wrap;
+  }
+  .section-hdr .num {
+    width: 22px; height: 22px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+  }
+
+  /* ─── Grid System ─── */
+  .grid {
+    display: grid; gap: 2px; background: var(--border);
+    border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .grid.top { border-top: 1px solid var(--border); border-radius: 8px 8px 0 0; }
+  .grid.bottom { border-bottom: 1px solid var(--border); border-radius: 0 0 8px 8px; }
+  .grid.full { border: 1px solid var(--border); border-radius: 8px; }
+
+  .cell {
+    background: var(--surface); padding: 20px 18px;
+    position: relative; transition: background 0.3s ease;
+  }
+  .cell:hover { background: var(--surface2); }
+
+  .cell-label {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 500;
+    letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 7px;
+    display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+  }
+  .cell-label .dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+  }
+  .cell-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.2px; }
+  .cell-desc { font-size: 12px; color: var(--text-dim); line-height: 1.55; }
+  .cell-desc code {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: var(--surface3); padding: 1px 5px; border-radius: 3px;
+  }
+
+  .cell-items { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    padding: 2px 7px; border-radius: 3px; font-weight: 400; border: 1px solid;
+  }
+
+  /* ─── Badges ─── */
+  .badge {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px; font-weight: 600;
+    letter-spacing: 0.5px; text-transform: uppercase; padding: 2px 6px;
+    border-radius: 3px; margin-left: 4px; white-space: nowrap;
+  }
+  .badge-live { background: var(--accent-green-dim); color: var(--accent-green); border: 1px solid #1f5e3d; }
+  .badge-planned { background: var(--accent-yellow-dim); color: var(--accent-yellow); border: 1px solid #5e4d1f; }
+  .badge-future { background: var(--accent-purple-dim); color: var(--accent-purple); border: 1px solid #3d2d6e; }
+
+  /* ─── Color Classes ─── */
+  .c-blue .cell-label{color:var(--accent-blue)}.c-blue .dot{background:var(--accent-blue);box-shadow:0 0 8px var(--accent-blue)}.c-blue .chip{color:var(--accent-blue);border-color:var(--accent-blue-dim);background:var(--accent-blue-dim)}
+  .c-green .cell-label{color:var(--accent-green)}.c-green .dot{background:var(--accent-green);box-shadow:0 0 8px var(--accent-green)}.c-green .chip{color:var(--accent-green);border-color:var(--accent-green-dim);background:var(--accent-green-dim)}
+  .c-orange .cell-label{color:var(--accent-orange)}.c-orange .dot{background:var(--accent-orange);box-shadow:0 0 8px var(--accent-orange)}.c-orange .chip{color:var(--accent-orange);border-color:var(--accent-orange-dim);background:var(--accent-orange-dim)}
+  .c-purple .cell-label{color:var(--accent-purple)}.c-purple .dot{background:var(--accent-purple);box-shadow:0 0 8px var(--accent-purple)}.c-purple .chip{color:var(--accent-purple);border-color:var(--accent-purple-dim);background:var(--accent-purple-dim)}
+  .c-red .cell-label{color:var(--accent-red)}.c-red .dot{background:var(--accent-red);box-shadow:0 0 8px var(--accent-red)}.c-red .chip{color:var(--accent-red);border-color:var(--accent-red-dim);background:var(--accent-red-dim)}
+  .c-cyan .cell-label{color:var(--accent-cyan)}.c-cyan .dot{background:var(--accent-cyan);box-shadow:0 0 8px var(--accent-cyan)}.c-cyan .chip{color:var(--accent-cyan);border-color:var(--accent-cyan-dim);background:var(--accent-cyan-dim)}
+  .c-pink .cell-label{color:var(--accent-pink)}.c-pink .dot{background:var(--accent-pink);box-shadow:0 0 8px var(--accent-pink)}.c-pink .chip{color:var(--accent-pink);border-color:var(--accent-pink-dim);background:var(--accent-pink-dim)}
+  .c-yellow .cell-label{color:var(--accent-yellow)}.c-yellow .dot{background:var(--accent-yellow);box-shadow:0 0 8px var(--accent-yellow)}.c-yellow .chip{color:var(--accent-yellow);border-color:var(--accent-yellow-dim);background:var(--accent-yellow-dim)}
+  .c-lime .cell-label{color:var(--accent-lime)}.c-lime .dot{background:var(--accent-lime);box-shadow:0 0 8px var(--accent-lime)}.c-lime .chip{color:var(--accent-lime);border-color:var(--accent-lime-dim);background:var(--accent-lime-dim)}
+  .c-white .cell-label{color:var(--accent-white)}.c-white .dot{background:var(--accent-white);box-shadow:0 0 8px var(--accent-white)}.c-white .chip{color:var(--accent-white);border-color:var(--accent-white-dim);background:var(--accent-white-dim)}
+
+  /* ─── Connector Lines ─── */
+  .connector {
+    display: flex; align-items: center; justify-content: center;
+    padding: 0; position: relative; height: 32px;
+  }
+  .connector::before {
+    content: ''; position: absolute; top: 0; bottom: 0; left: 50%;
+    width: 2px; background: var(--border); transform: translateX(-50%);
+  }
+  .connector-label {
+    position: relative; z-index: 1; font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase;
+    padding: 3px 12px; border-radius: 12px;
+    border: 1px solid var(--border); background: var(--surface2); color: var(--text-dim);
+    text-align: center; max-width: 95%;
+  }
+
+  /* ─── Callouts ─── */
+  .callout {
+    margin-top: 24px; padding: 20px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .callout h3 {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 12px;
+  }
+  .callout p, .callout li { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+  .callout ul { list-style: none; display: grid; gap: 7px; }
+  .callout li { padding-left: 16px; position: relative; }
+  .callout li::before { content: '→'; position: absolute; left: 0; color: var(--text-muted); }
+  .callout li strong { color: var(--text); }
+  .callout code {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px;
+    background: var(--surface3); padding: 1px 5px; border-radius: 3px;
+  }
+
+  /* ─── Tables ─── */
+  .map-table {
+    width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 12.5px;
+  }
+  .map-table th {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase; text-align: left;
+    padding: 10px 14px; border-bottom: 2px solid var(--border); color: var(--text-dim);
+  }
+  .map-table td {
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    color: var(--text-dim); vertical-align: top;
+  }
+  .map-table tr:hover td { background: var(--surface2); }
+  .map-table .resource { color: var(--text); font-weight: 500; }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr !important; }
+    header h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="container">
+
+  <header>
+    <div class="tag">Combined Architecture &amp; Implementation Map — v2</div>
+    <h1>Philly Profiteering <span>→ Multi-Client Agent Platform</span></h1>
+    <p class="subtitle">Five live client patterns — Chat Completions (6 models), Assistants API, MCP (Copilot Studio), raw MCP tool tester, and stdio (Claude) — all consuming the same 12 tools and 29M rows. A single Container App hosts MCP, chat, and agent endpoints. Azure APIM is the security front door. VNet + Private Endpoints isolate SQL &amp; Storage. ~$33/month idle. Mapped onto the enterprise multi-client pattern with Power Platform expansion paths.</p>
+  </header>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!--  WHAT'S LIVE NOW                                      -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="callout" style="border-left: 3px solid var(--accent-green);">
+    <h3 style="color:var(--accent-green);">What's Live Today — 5 Client Patterns, Same 12 Tools</h3>
+    <ul>
+      <li><strong>Investigative Agent (Chat Completions + Tools)</strong> — SPA panel. 6 selectable models (GPT-4.1, GPT-5, GPT-5 Mini, o4-mini, o3-mini, Phi-4). Stateless agentic loop in <code>chat.ts</code>, up to 10 tool-call rounds.</li>
+      <li><strong>City Portal (Assistants API)</strong> — SPA panel. GPT-4.1 via Assistants API. Azure manages the tool-calling loop. Persistent threads — follow-ups remember context without resending history.</li>
+      <li><strong>Copilot Studio (MCP)</strong> — Embedded iframe widget (floating purple star). Auto-discovers all 12 tools via MCP protocol. No custom code on the Copilot Studio side.</li>
+      <li><strong>MCP Tool Tester (Raw Protocol)</strong> — SPA panel. Connects directly to Streamable HTTP endpoint. Manual tool selection, raw JSON results. No AI in the loop.</li>
+      <li><strong>Claude Code / Desktop (stdio)</strong> — Local MCP server process. Full access to all 12 tools + ad-hoc SQL via <code>run_query</code>.</li>
+    </ul>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!--  LAYER 1: CONSUMING CLIENTS                           -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section-hdr" style="background:var(--accent-blue-dim); color:var(--accent-blue);">
+    <span class="num" style="background:var(--accent-blue); color:var(--bg);">1</span>
+    Consuming Clients — Who Investigates Poverty Profiteering?
+  </div>
+  <div class="grid top bottom" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr;">
+
+    <!-- SPA: Investigative Agent -->
+    <div class="cell c-blue">
+      <div class="cell-label"><span class="dot"></span>Pro-Code <span class="badge badge-live">LIVE</span></div>
+      <div class="cell-title">Investigative Agent</div>
+      <div class="cell-desc">SPA panel (chat bubble icon). User types questions → selected model decides which tools to call. 6-model dropdown. Chat Completions + tool calling. Stateless — our code runs the agentic loop.</div>
+      <div class="cell-items">
+        <span class="chip">POST /chat</span>
+        <span class="chip">6 models</span>
+        <span class="chip">10-round tool loop</span>
+        <span class="chip">Markdown rendering</span>
+      </div>
+    </div>
+
+    <!-- SPA: City Portal -->
+    <div class="cell c-cyan">
+      <div class="cell-label"><span class="dot"></span>Pro-Code <span class="badge badge-live">LIVE</span></div>
+      <div class="cell-title">City Portal</div>
+      <div class="cell-desc">SPA panel (building icon). Philly-branded gov page with floating chat widget. Assistants API — Azure manages tool-calling loop. GPT-4.1. Persistent threads, server-side state.</div>
+      <div class="cell-items">
+        <span class="chip">POST /agent/thread</span>
+        <span class="chip">POST /agent/message</span>
+        <span class="chip">Assistants API</span>
+        <span class="chip">Thread persistence</span>
+      </div>
+    </div>
+
+    <!-- Copilot Studio -->
+    <div class="cell c-purple">
+      <div class="cell-label"><span class="dot"></span>Low-Code <span class="badge badge-live">LIVE</span></div>
+      <div class="cell-title">Copilot Studio</div>
+      <div class="cell-desc">Embedded iframe widget (floating purple star, all panels). Auto-discovers 12 tools via MCP. No custom code. Generative orchestration — Microsoft's LLM decides tool calls. Separate agents in Commercial and GCC.</div>
+      <div class="cell-items">
+        <span class="chip">POST /mcp</span>
+        <span class="chip">MCP Connector (GA)</span>
+        <span class="chip">Commercial + GCC</span>
+      </div>
+    </div>
+
+    <!-- Claude Code / Desktop -->
+    <div class="cell c-green">
+      <div class="cell-label"><span class="dot"></span>Pro-Code <span class="badge badge-live">LIVE</span></div>
+      <div class="cell-title">Claude Code / Desktop</div>
+      <div class="cell-desc">Local MCP server (stdio transport). Developer/analyst workflow. Claude's LLM decides tool calls. Full access to all 12 tools including <code>run_query</code> for ad-hoc SQL.</div>
+      <div class="cell-items">
+        <span class="chip">stdio</span>
+        <span class="chip">12 tools</span>
+        <span class="chip">Ad-hoc SQL</span>
+      </div>
+    </div>
+
+    <!-- MCP Tool Tester -->
+    <div class="cell c-white">
+      <div class="cell-label"><span class="dot"></span>Debug <span class="badge badge-live">LIVE</span></div>
+      <div class="cell-title">MCP Tool Tester</div>
+      <div class="cell-desc">SPA panel (wrench icon). Raw MCP protocol — no AI. User manually selects tools, fills params, sees raw JSON + elapsed time. Uses <code>initialize</code> → <code>tools/list</code> → <code>tools/call</code>.</div>
+      <div class="cell-items">
+        <span class="chip">POST /mcp</span>
+        <span class="chip">Raw JSON-RPC</span>
+        <span class="chip">No LLM</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Why they behave differently ─── -->
+  <div class="callout" style="border-left: 3px solid var(--accent-orange); margin-top: 16px;">
+    <h3 style="color:var(--accent-orange);">Why Same Question → Different Answers Across Clients</h3>
+    <ul>
+      <li><strong>Different LLMs</strong> — Investigative Agent uses your selected model (GPT-4.1, GPT-5, Phi-4, etc.). City Portal uses GPT-4.1 via Assistants API. Copilot Studio uses Microsoft's orchestration model (you don't control which). Claude uses Anthropic's model. Each reasons differently about which tools to call and how to synthesize results.</li>
+      <li><strong>Different orchestration</strong> — <code>/chat</code> runs your agentic loop (up to 10 rounds). <code>/agent</code> lets Azure manage the loop via Assistants API. Copilot Studio has its own generative orchestration. Claude has its own planning. Each may call different tools in different order with different parameters.</li>
+      <li><strong>Different system prompts &amp; safety filters</strong> — Your <code>/chat</code> system prompt says "investigative analyst." Assistants API has its own instructions. Copilot Studio wraps your agent in Microsoft's responsible AI guardrails. GCC adds additional government compliance filtering on top. Claude has Anthropic's safety layer.</li>
+      <li><strong>GCC vs. Commercial Copilot Studio</strong> — different model versions, different content filtering thresholds, different feature rollout timelines. Microsoft doesn't guarantee parity between cloud boundaries.</li>
+      <li><strong>The tools and data are identical</strong> — all clients hit the same 12 Functions via APIM, query the same 29M rows. The divergence is entirely in the intelligence layer above.</li>
+    </ul>
+  </div>
+
+  <!-- Connector -->
+  <div class="connector">
+    <span class="connector-label">
+      ▼&ensp;5 paths into the same backend: stdio | /mcp | /chat | /agent | raw HTTP&ensp;▼
+    </span>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!--  LAYER 2: CONTAINER APP (MULTI-PROTOCOL HOST)         -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section-hdr" style="background:var(--accent-lime-dim); color:var(--accent-lime);">
+    <span class="num" style="background:var(--accent-lime); color:var(--bg);">2</span>
+    Container App — Multi-Protocol Agent Host
+    <span class="badge badge-live">LIVE</span>
+  </div>
+  <div class="grid top" style="grid-template-columns: 1fr 1fr 1fr;">
+
+    <div class="cell c-lime">
+      <div class="cell-label"><span class="dot"></span>MCP Protocol</div>
+      <div class="cell-title">POST/GET/DELETE /mcp</div>
+      <div class="cell-desc">Streamable HTTP transport. JSON-RPC 2.0. Session-based via <code>mcp-session-id</code> header. Tool discovery (<code>tools/list</code>) and invocation (<code>tools/call</code>). Used by Copilot Studio, MCP Tool Tester, and any remote MCP client.</div>
+      <div class="cell-items">
+        <span class="chip">Copilot Studio</span>
+        <span class="chip">MCP Tool Tester</span>
+        <span class="chip">Any MCP Client</span>
+      </div>
+    </div>
+
+    <div class="cell c-lime">
+      <div class="cell-label"><span class="dot"></span>Chat Completions</div>
+      <div class="cell-title">POST /chat + GET /models</div>
+      <div class="cell-desc">Natural language → Azure OpenAI (selected model) with 12 tool definitions. Our code runs the agentic loop: model decides tools → execute against APIM → feed results back → repeat up to 10 rounds. 6 models available. Stateless.</div>
+      <div class="cell-items">
+        <span class="chip">GPT-4.1</span>
+        <span class="chip">GPT-5</span>
+        <span class="chip">GPT-5 Mini</span>
+        <span class="chip">o4-mini</span>
+        <span class="chip">o3-mini</span>
+        <span class="chip">Phi-4</span>
+      </div>
+    </div>
+
+    <div class="cell c-lime">
+      <div class="cell-label"><span class="dot"></span>Assistants API</div>
+      <div class="cell-title">POST /agent/thread + /agent/message</div>
+      <div class="cell-desc">GPT-4.1 via Assistants API. Azure manages the tool-calling loop — our code just executes requested tools. Persistent threads (server-side state). <code>philly-investigator</code> assistant. Used by the City Portal panel.</div>
+      <div class="cell-items">
+        <span class="chip">GPT-4.1 only</span>
+        <span class="chip">Thread persistence</span>
+        <span class="chip">Azure-managed loop</span>
+      </div>
+    </div>
+  </div>
+  <div class="grid bottom" style="grid-template-columns: 1fr 1fr;">
+    <div class="cell" style="padding:14px 18px;">
+      <div class="cell-desc" style="font-family:'JetBrains Mono',monospace; font-size:11px;">
+        <span style="color:var(--accent-lime);">philly-mcp-server</span>
+        &ensp;·&ensp; Container Apps Consumption &ensp;·&ensp; 0-3 replicas &ensp;·&ensp; ~180MB Alpine image &ensp;·&ensp; Port 8080 &ensp;·&ensp; Cold start ~5-10s
+      </div>
+    </div>
+    <div class="cell" style="padding:14px 18px;">
+      <div class="cell-desc" style="font-family:'JetBrains Mono',monospace; font-size:11px;">
+        <span style="color:var(--accent-green);">MCP Server (local)</span>
+        &ensp;·&ensp; Same TypeScript codebase &ensp;·&ensp; stdio transport &ensp;·&ensp; Claude Code / Desktop &ensp;·&ensp; No remote hosting needed
+      </div>
+    </div>
+  </div>
+
+  <!-- Connector: two paths out of Container App -->
+  <div class="connector" style="height: 42px;">
+    <span class="connector-label">
+      <span style="color:var(--accent-red);">▼ tools → APIM (subscription key)</span>
+      &ensp;│&ensp;
+      <span style="color:var(--accent-orange);">▼ LLM → Azure OpenAI (managed identity)</span>
+    </span>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!--  LAYER 3: SECURITY & GOVERNANCE                       -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section-hdr" style="background:var(--accent-red-dim); color:var(--accent-red);">
+    <span class="num" style="background:var(--accent-red); color:var(--bg);">3</span>
+    Security &amp; Governance
+    <span class="badge badge-live">LIVE</span>
+  </div>
+  <div class="grid top bottom" style="grid-template-columns: 5fr 3fr;">
+
+    <div class="cell c-red">
+      <div class="cell-label"><span class="dot"></span>philly-profiteering-apim.azure-api.net/api</div>
+      <div class="cell-title">Azure API Management (Consumption)</div>
+      <div class="cell-desc">
+        Single front door for all tool calls. Validates <code>Ocp-Apim-Subscription-Key</code> on every inbound request, injects <code>x-functions-key</code> for backend auth — Function key never exposed to clients. 12 operations (9 GET, 3 POST).<br><br>
+        <strong>Every client path hits APIM:</strong> <code>/chat</code> tool calls → APIM, <code>/agent</code> tool calls → APIM, <code>/mcp tools/call</code> → APIM, stdio MCP → APIM. No exceptions.
+      </div>
+      <div class="cell-items">
+        <span class="chip">Subscription Key</span>
+        <span class="chip">Function Key Injection</span>
+        <span class="chip">12 Operations</span>
+        <span class="chip" style="color:var(--accent-yellow);border-color:var(--accent-yellow-dim);background:var(--accent-yellow-dim);">+ JWT Validation</span>
+        <span class="chip" style="color:var(--accent-yellow);border-color:var(--accent-yellow-dim);background:var(--accent-yellow-dim);">+ MCP Gateway</span>
+        <span class="chip" style="color:var(--accent-yellow);border-color:var(--accent-yellow-dim);background:var(--accent-yellow-dim);">+ A2A Gateway</span>
+        <span class="chip" style="color:var(--accent-yellow);border-color:var(--accent-yellow-dim);background:var(--accent-yellow-dim);">+ Rate Limiting</span>
+      </div>
+    </div>
+
+    <div class="cell c-red">
+      <div class="cell-label"><span class="dot"></span>Auth Chains (All Paths)</div>
+      <div class="cell-title">Zero Passwords in Code</div>
+      <div class="cell-desc" style="font-family:'JetBrains Mono',monospace; font-size:11px; line-height:1.9;">
+        <span style="color:var(--accent-blue);">Tool calls (all clients):</span><br>
+        Client → Container App → APIM<br>
+        <span style="color:var(--text-muted);">── Ocp-Apim-Subscription-Key</span><br>
+        APIM → Functions<br>
+        <span style="color:var(--text-muted);">── x-functions-key (injected)</span><br>
+        Functions → SQL<br>
+        <span style="color:var(--text-muted);">── Azure AD token (managed identity)</span><br><br>
+        <span style="color:var(--accent-orange);">LLM calls (/chat + /agent):</span><br>
+        Container App → Azure OpenAI<br>
+        <span style="color:var(--text-muted);">── Managed identity → "Cognitive</span><br>
+        <span style="color:var(--text-muted);">&ensp;&ensp; Services OpenAI User" role</span><br><br>
+        <span style="color:var(--accent-purple);">SPA access:</span><br>
+        Browser → Static Web App<br>
+        <span style="color:var(--text-muted);">── Entra ID login (/.auth/login/aad)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connector -->
+  <div class="connector">
+    <span class="connector-label">▼&ensp;HTTPS + x-functions-key (injected by APIM policy)&ensp;▼</span>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!--  LAYER 4: AZURE FUNCTIONS                             -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section-hdr" style="background:var(--accent-green-dim); color:var(--accent-green);">
+    <span class="num" style="background:var(--accent-green); color:var(--bg);">4</span>
+    MCP Tool Servers — Azure Functions v4 (Flex Consumption FC1)
+    <span class="badge badge-live">LIVE</span>
+  </div>
+  <div class="grid top" style="grid-template-columns: 1fr 1fr 1fr;">
+
+    <div class="cell c-green">
+      <div class="cell-label"><span class="dot"></span>Entity &amp; Network</div>
+      <div class="cell-title">Ownership Graph</div>
+      <div class="cell-desc">Search 2.8M entities, traverse the 15.5M-link entity → address → parcel ownership graph.</div>
+      <div class="cell-items">
+        <span class="chip">search_entities</span>
+        <span class="chip">get_entity_network</span>
+      </div>
+    </div>
+
+    <div class="cell c-green">
+      <div class="cell-label"><span class="dot"></span>Property Detail</div>
+      <div class="cell-title">Property Investigation</div>
+      <div class="cell-desc">Full profiles with assessments, violations, licenses, appeals, and demolitions.</div>
+      <div class="cell-items">
+        <span class="chip">get_property_profile</span>
+        <span class="chip">get_property_violations</span>
+        <span class="chip">get_property_assessments</span>
+        <span class="chip">get_property_licenses</span>
+        <span class="chip">get_property_appeals</span>
+        <span class="chip">get_property_demolitions</span>
+      </div>
+    </div>
+
+    <div class="cell c-green">
+      <div class="cell-label"><span class="dot"></span>Search &amp; Analytics</div>
+      <div class="cell-title">Analytics &amp; Ad-Hoc SQL</div>
+      <div class="cell-desc">Business license search, top violator rankings, zip code stats, and safety-constrained custom SQL (SELECT only, TOP/OFFSET required, max 1000 rows).</div>
+      <div class="cell-items">
+        <span class="chip">search_businesses</span>
+        <span class="chip">get_top_violators</span>
+        <span class="chip">get_area_stats</span>
+        <span class="chip">run_query</span>
+      </div>
+    </div>
+  </div>
+  <div class="grid bottom" style="grid-template-columns: 1fr;">
+    <div class="cell" style="padding:14px 18px;">
+      <div class="cell-desc" style="font-family:'JetBrains Mono',monospace; font-size:11px;">
+        <span style="color:var(--accent-green);">philly-profiteering-func</span>
+        &ensp;·&ensp; Node.js 20 &ensp;·&ensp; TypeScript → JS &ensp;·&ensp; 12 HTTP triggers &ensp;·&ensp; System-assigned managed identity (db_datareader) &ensp;·&ensp; Flex Consumption FC1 &ensp;·&ensp; <span style="color:var(--accent-cyan);">VNet-integrated (snet-functions)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connector -->
+  <div class="connector">
+    <span class="connector-label" style="color:var(--accent-orange);">▼&ensp;TDS + Azure AD token (managed identity) via <span style="color:var(--accent-cyan);">Private Endpoint</span>&ensp;▼</span>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!--  LAYER 5: DATA + LLMs                                 -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section-hdr" style="background:var(--accent-orange-dim); color:var(--accent-orange);">
+    <span class="num" style="background:var(--accent-orange); color:var(--bg);">5</span>
+    Data &amp; LLMs
+    <span class="badge badge-live">LIVE</span>
+  </div>
+  <div class="grid top bottom" style="grid-template-columns: 2fr 1fr 1fr;">
+
+    <div class="cell c-orange">
+      <div class="cell-label"><span class="dot"></span>phillystats · GP_S_Gen5_2 · Auto-pause 60min · <span style="color:var(--accent-cyan);">Private Endpoint only</span></div>
+      <div class="cell-title">Azure SQL — 10 Tables, 3 Views, 29M Rows</div>
+      <div class="cell-desc">
+        <strong>Entity resolution:</strong> master_entity (2.8M), master_address (987K), master_entity_address (15.5M junction links)<br>
+        <strong>Property:</strong> opa_properties (584K, ~88 cols), assessments (6.4M, 2015-2025)<br>
+        <strong>Licenses:</strong> business_licenses (422K), commercial_activity_licenses (508K)<br>
+        <strong>Enforcement:</strong> case_investigations (1.6M), appeals (316K), demolitions (13.5K)<br>
+        <strong>Views:</strong> vw_entity_properties, vw_property_violation_summary, vw_owner_portfolio
+      </div>
+    </div>
+
+    <div class="cell c-orange">
+      <div class="cell-label"><span class="dot"></span>foundry-og-agents · S0</div>
+      <div class="cell-title">Azure OpenAI — 6 Models</div>
+      <div class="cell-desc">
+        GPT-4.1 (default), GPT-5, GPT-5 Mini, o4-mini, o3-mini, Phi-4. Container App's managed identity has "Cognitive Services OpenAI User" role. Used by <code>/chat</code> and <code>/agent</code> endpoints.
+      </div>
+    </div>
+
+    <div class="cell c-orange">
+      <div class="cell-label"><span class="dot"></span>SPA + Docs</div>
+      <div class="cell-title">Static Web App</div>
+      <div class="cell-desc">
+        <code>philly-profiteering-spa</code> (Free tier). VS Code-style 5-panel layout. Entra ID auth. Hosts docs reader (9 markdown + 3 notebooks). Copilot Studio widget overlay.
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!--  EXPANSION: POWER PLATFORM + A2A                      -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section-hdr" style="background:var(--accent-yellow-dim); color:var(--accent-yellow); margin-top:48px;">
+    <span class="num" style="background:var(--accent-yellow); color:var(--bg);">+</span>
+    Expansion Path — Power Platform &amp; A2A
+  </div>
+  <div class="grid top bottom" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+
+    <div class="cell c-pink">
+      <div class="cell-label"><span class="dot"></span>No-Code <span class="badge badge-planned">PLANNED</span></div>
+      <div class="cell-title">M365 Agent Builder</div>
+      <div class="cell-desc">Declarative "neighborhood watchdog" agent for council members. MCP actions via Agents Toolkit — point it at the Container App's <code>/mcp</code> endpoint. Ground in SharePoint (council reports, meeting minutes) alongside your 12 tools.</div>
+      <div class="cell-items">
+        <span class="chip">Declarative Agent</span>
+        <span class="chip">MCP Actions</span>
+        <span class="chip">SharePoint + M365</span>
+      </div>
+    </div>
+
+    <div class="cell c-yellow">
+      <div class="cell-label"><span class="dot"></span>Automation <span class="badge badge-planned">PLANNED</span></div>
+      <div class="cell-title">Power Automate Flows</div>
+      <div class="cell-desc">Copilot Studio agent triggers cloud flows for multi-step business processes: generate violation report → email to council member → log to SharePoint → schedule follow-up. Agent does analysis, flows handle action.</div>
+      <div class="cell-items">
+        <span class="chip">HTTP Connector → APIM</span>
+        <span class="chip">Approval Flows</span>
+        <span class="chip">Scheduled Reports</span>
+      </div>
+    </div>
+
+    <div class="cell c-yellow">
+      <div class="cell-label"><span class="dot"></span>Apps <span class="badge badge-planned">PLANNED</span></div>
+      <div class="cell-title">Power Apps Dashboard</div>
+      <div class="cell-desc">Canvas app with embedded Copilot Studio agent. Map component showing violations by geography. Community organizers click a property → agent runs ownership network analysis. Custom connector routes through APIM.</div>
+      <div class="cell-items">
+        <span class="chip">Embedded Copilot</span>
+        <span class="chip">Custom Connector</span>
+        <span class="chip">Map Component</span>
+      </div>
+    </div>
+
+    <div class="cell c-purple">
+      <div class="cell-label"><span class="dot"></span>A2A <span class="badge badge-future">FUTURE</span></div>
+      <div class="cell-title">Specialist Agents</div>
+      <div class="cell-desc">Autonomous agents the Foundry orchestrator delegates to via A2A. Each has its own LLM, may use MCP tools internally. Deployed as Functions behind APIM with agent cards.</div>
+      <div class="cell-items">
+        <span class="chip">Gentrification Analyst</span>
+        <span class="chip">Tax Lien Tracker</span>
+        <span class="chip">Compliance Checker</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!--  RESOURCE MAP                                         -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="callout" style="margin-top:48px; border-left: 3px solid var(--accent-cyan);">
+    <h3 style="color:var(--accent-cyan);">Azure Resources → Architecture Layers</h3>
+
+    <table class="map-table">
+      <thead>
+        <tr><th>Resource</th><th>Name / SKU</th><th>Architecture Role</th><th>RG</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="resource">Container App</td>
+          <td>philly-mcp-server · Consumption 0-3</td>
+          <td>Layer 2 — Multi-protocol host. MCP (Streamable HTTP), Chat Completions (/chat, 6 models), Assistants API (/agent), health probe. Managed identity → Azure OpenAI.</td>
+          <td>rg-philly-profiteering</td>
+          <td><span class="badge badge-live">LIVE</span></td>
+        </tr>
+        <tr>
+          <td class="resource">API Management</td>
+          <td>philly-profiteering-apim · Consumption</td>
+          <td>Layer 3 — Security front door. Subscription key + function key injection. All tool calls from all clients route here.</td>
+          <td>rg-philly-profiteering</td>
+          <td><span class="badge badge-live">LIVE</span></td>
+        </tr>
+        <tr>
+          <td class="resource">Function App</td>
+          <td>philly-profiteering-func · FC1 Flex</td>
+          <td>Layer 4 — 12 HTTP functions that query Azure SQL. Every MCP tool maps 1:1 to a function.</td>
+          <td>rg-philly-profiteering</td>
+          <td><span class="badge badge-live">LIVE</span></td>
+        </tr>
+        <tr>
+          <td class="resource">SQL Database</td>
+          <td>phillystats · GP_S_Gen5_2</td>
+          <td>Layer 5 — 10 tables, 3 views, 29M rows. Auto-pauses 60 min. Managed identity auth only (db_datareader).</td>
+          <td>rg-philly-profiteering</td>
+          <td><span class="badge badge-live">LIVE</span></td>
+        </tr>
+        <tr>
+          <td class="resource">AI Services</td>
+          <td>foundry-og-agents · S0</td>
+          <td>Layer 5 — 6 model deployments (GPT-4.1, GPT-5, GPT-5 Mini, o4-mini, o3-mini, Phi-4). Container App's managed identity has OpenAI User role.</td>
+          <td>rg-foundry</td>
+          <td><span class="badge badge-live">LIVE</span></td>
+        </tr>
+        <tr>
+          <td class="resource">Static Web App</td>
+          <td>philly-profiteering-spa · Free</td>
+          <td>Layer 1 — 5-panel SPA (Investigative Agent, City Portal, Copilot Studio, Docs, MCP Tester). Entra ID auth.</td>
+          <td>rg-philly-profiteering</td>
+          <td><span class="badge badge-live">LIVE</span></td>
+        </tr>
+        <tr>
+          <td class="resource">Container Registry</td>
+          <td>phillymcpacr · Basic</td>
+          <td>Docker images for Container App. Cloud-built via <code>az acr build</code>.</td>
+          <td>rg-philly-profiteering</td>
+          <td><span class="badge badge-live">LIVE</span></td>
+        </tr>
+        <tr>
+          <td class="resource">AI Foundry Hub/Project</td>
+          <td>philly-ai-hub / philly-profiteering</td>
+          <td>Agent project management. Assistants API assistant (<code>philly-investigator</code>).</td>
+          <td>rg-foundry</td>
+          <td><span class="badge badge-live">LIVE</span></td>
+        </tr>
+        <tr>
+          <td class="resource">VNet</td>
+          <td>vnet-philly-profiteering · 10.0.0.0/16</td>
+          <td>Network isolation. Function App VNet integration (snet-functions). Private endpoints for SQL + Storage (snet-private-endpoints).</td>
+          <td>rg-philly-profiteering</td>
+          <td><span class="badge badge-live">LIVE</span></td>
+        </tr>
+        <tr>
+          <td class="resource">Private Endpoints (x4)</td>
+          <td>pe-sql, pe-blob, pe-table, pe-queue</td>
+          <td>Private connectivity from Function App to SQL Server and Storage (blob/table/queue). Public access disabled on both.</td>
+          <td>rg-philly-profiteering</td>
+          <td><span class="badge badge-live">LIVE</span></td>
+        </tr>
+        <tr>
+          <td class="resource">Private DNS Zones (x4)</td>
+          <td>privatelink.database/blob/table/queue</td>
+          <td>DNS resolution for private endpoints. Linked to VNet so Function App resolves private IPs.</td>
+          <td>rg-philly-profiteering</td>
+          <td><span class="badge badge-live">LIVE</span></td>
+        </tr>
+        <tr>
+          <td class="resource">App Insights</td>
+          <td>philly-profiteering-func</td>
+          <td>Function monitoring/logging. Expansion: OpenTelemetry GenAI conventions when A2A gateway is added.</td>
+          <td>rg-philly-profiteering</td>
+          <td><span class="badge badge-live">LIVE</span></td>
+        </tr>
+        <tr>
+          <td class="resource">API Center</td>
+          <td>—</td>
+          <td>Discovery registry. Catalog your 12 MCP tools + future A2A agent cards for enterprise discovery.</td>
+          <td>—</td>
+          <td><span class="badge badge-future">FUTURE</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!--  COST                                                 -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="callout" style="border-left: 3px solid var(--accent-green); margin-top:24px;">
+    <h3 style="color:var(--accent-green);">Cost Model — Scale to Zero Everywhere</h3>
+    <table class="map-table">
+      <thead><tr><th>Resource</th><th>Idle Cost</th><th>Active Cost</th></tr></thead>
+      <tbody>
+        <tr><td class="resource">SQL Database</td><td>$0 (auto-paused)</td><td>~$0.75/vCore-hour</td></tr>
+        <tr><td class="resource">Function App</td><td>$0</td><td>Pay per execution (1M/month free)</td></tr>
+        <tr><td class="resource">APIM</td><td>$0</td><td>~$3.50/M calls (1M/month free)</td></tr>
+        <tr><td class="resource">Container App</td><td>$0 (0 replicas)</td><td>Pay per use (180K vCPU-s/month free)</td></tr>
+        <tr><td class="resource">Container Registry</td><td>~$0.17/month</td><td>Storage only</td></tr>
+        <tr><td class="resource">Static Web App</td><td>$0</td><td>Free tier</td></tr>
+        <tr><td class="resource">Storage (x2)</td><td>~$1/month total</td><td>Minimal</td></tr>
+        <tr><td class="resource">Private Endpoints (x4)</td><td>~$29/month</td><td>$7.20/endpoint/month</td></tr>
+        <tr><td class="resource">Private DNS Zones (x4)</td><td>~$2/month</td><td>$0.50/zone/month</td></tr>
+        <tr><td class="resource">App Insights</td><td>$0</td><td>Free tier</td></tr>
+        <tr><td class="resource" style="color:var(--accent-green);"><strong>Total idle</strong></td><td><strong style="color:var(--accent-green);">~$33/month</strong></td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!--  EXPANSION PLAYBOOK                                   -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="callout" style="border-left: 3px solid var(--accent-orange); margin-top:24px;">
+    <h3 style="color:var(--accent-orange);">Expansion Playbook — In Priority Order</h3>
+    <ul>
+      <li><strong>Add APIM JWT validation</strong> — upgrade from subscription-key-only to validating Entra-issued JWTs. Lets you distinguish between Copilot Studio (Commercial), Copilot Studio (GCC), the SPA, and external clients. Apply per-client rate limits.</li>
+      <li><strong>Register APIM as MCP Gateway (v2 tier)</strong> — instead of clients hitting the Container App directly, route MCP traffic through APIM for consistent governance. APIM natively supports MCP (GA) and A2A (preview).</li>
+      <li><strong>Build an M365 Agent Builder declarative agent</strong> — use Agents Toolkit in VS Code, point at <code>/mcp</code> endpoint. Ground in SharePoint docs + your MCP tools. Deploy for council members / community organizers.</li>
+      <li><strong>Add Power Automate flows</strong> — connect Copilot Studio agent to cloud flows for report generation, email alerts to council members, SharePoint logging of investigations.</li>
+      <li><strong>Build a Power Apps investigation dashboard</strong> — canvas app with embedded Copilot agent + map component. Custom connector → APIM for direct data access alongside conversational agent.</li>
+      <li><strong>Register tools in API Center</strong> — create an enterprise catalog so other teams can discover and reuse your 12 tools.</li>
+      <li><strong>A2A specialist agents (long-term)</strong> — spin up autonomous agents for gentrification analysis, tax lien tracking, census correlation. Each gets its own Function App, agent card, and APIM route. Foundry orchestrator delegates via A2A.</li>
+    </ul>
+  </div>
+
+</div>
+</body>
+</html>

@@ -6,6 +6,9 @@ param funcStorageName string
 param sqlServerFqdn string
 param sqlDatabaseName string
 
+@description('Subnet ID for VNet integration (from networking module)')
+param functionsSubnetId string = ''
+
 // Flex Consumption App Service Plan
 resource plan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: '${funcAppName}-plan'
@@ -31,9 +34,15 @@ resource funcApp 'Microsoft.Web/sites@2023-12-01' = {
   properties: {
     serverFarmId: plan.id
     reserved: true
+    virtualNetworkSubnetId: !empty(functionsSubnetId) ? functionsSubnetId : null
+    vnetContentShareEnabled: !empty(functionsSubnetId)
+    vnetRouteAllEnabled: !empty(functionsSubnetId)
     siteConfig: {
       appSettings: [
         { name: 'AzureWebJobsStorage__accountName', value: funcStorageName }
+        { name: 'AzureWebJobsStorage__blobServiceUri', value: 'https://${funcStorageName}.blob.${environment().suffixes.storage}' }
+        { name: 'AzureWebJobsStorage__queueServiceUri', value: 'https://${funcStorageName}.queue.${environment().suffixes.storage}' }
+        { name: 'AzureWebJobsStorage__tableServiceUri', value: 'https://${funcStorageName}.table.${environment().suffixes.storage}' }
         { name: 'SQL_SERVER', value: sqlServerFqdn }
         { name: 'SQL_DATABASE', value: sqlDatabaseName }
       ]

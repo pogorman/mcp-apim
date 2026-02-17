@@ -24,6 +24,9 @@ User prompts from each session of building this project, reconstructed from sess
 - [Session 16 — ELI5 Documentation](#session-16--eli5-documentation)
 - [Session 17 — Foundry Agent Fix, Token Docs](#session-17--foundry-agent-fix-token-docs)
 - [Session 18 — Authentication, Docs Panel, Background Image](#session-18--authentication-docs-panel-background-image)
+- [Session 19 — SK Agent, Bicep IaC, MCAPS Fix](#session-19--sk-agent-bicep-iac-mcaps-fix)
+- [Session 20 — SK Agent UX, SQL Bug Fix](#session-20--sk-agent-ux-sql-bug-fix)
+- [Session 21 — VNet + Private Endpoints, Function App Fix](#session-21--vnet--private-endpoints-function-app-fix)
 - [Example Analysis Prompts](#example-analysis-prompts-for-use-with-the-connected-agent)
 
 ---
@@ -188,6 +191,36 @@ User prompts from each session of building this project, reconstructed from sess
 - "some links work some dont. e.g. the copilot studio link on the user guide. and infra and costs on the faq. i'm sure there are more. check them all."
 - "use images/philly-bg.jpg as the background for the home and investigave agent (spa) views"
 - "ok update all the mds and push everything to git"
+
+## Session 19 — SK Agent, Bicep IaC, MCAPS Fix
+
+- "I want to add a Semantic Kernel multi-agent to the project. Build a C# .NET 8 agent with specialist sub-agents for owner analysis, violation analysis, and area analysis. Deploy it as a Container App and add a panel to the SPA."
+- "The SK Agent plugin URLs are wrong — they're using function names like `/getTopViolators` instead of the RESTful APIM paths like `/stats/top-violators`. Fix all the plugin files."
+- "The container app didn't update even though I pushed a new image. Why?"
+- "Create Bicep infrastructure-as-code for everything — SQL, storage, functions, APIM, container apps, SWA. I want to be able to recreate the whole thing from scratch."
+- "Everything is 503 again. MCAPS disabled public access on storage and SQL."
+- "Move the Docs tab below the spacer in the activity bar, next to Tools. Reorder welcome page buttons to match."
+
+## Session 20 — SK Agent UX, SQL Bug Fix
+
+- "The SK Agent hangs — it says 'I am compiling data...' but never shows actual results"
+- "The top violators endpoint crashes when I filter by LLC"
+- "Reorder the nav: Agent, City Portal, Copilot, SK Agent, Tools on top. Docs and About below the spacer."
+- "Add a favicon so the browser tab is recognizable"
+- "Update all docs and push to git"
+
+## Session 21 — VNet + Private Endpoints, Function App Fix
+
+- "lots of updates, lets get the latest"
+- "didn't we create a wake up script? i need everything in azure to wake up"
+- "everything i try i get an error saying the service isn't available"
+- "all four of them give me errors"
+- "still getting this error on the ia panel I'm currently unable to access the list of top property owners by code violations due to a temporary system issue..."
+- (Approved SWA redeployment)
+- "how can we change this so we don't have to worry about public access being enabled or not"
+- (Selected VNet + Private Endpoints approach, approved the plan)
+- "let's update all important md files, especially the architecture md and any diagrams. i also added a html file to the docs folder. i had that created in another session using the architecture md document we have in this project. check that out and update it as well to map up with everything we did in this session so far."
+- "it didn't look like you updated the prompts, or readme files. read me should reflect the changes we made today since that's the first thing people will read"
 
 ---
 
