@@ -961,9 +961,26 @@ Copilot Studio → Container App /mcp (Streamable HTTP, no auth) → APIM (sub k
 Browser → Container App /mcp (Streamable HTTP, JSON-RPC 2.0) → APIM → Functions → SQL
 ```
 
+### Pattern 6: SK Agent (Semantic Kernel Multi-Agent)
+
+- C#/.NET multi-agent system using Microsoft Semantic Kernel with Azure OpenAI GPT-4.1
+- Deployed as Container App `philly-sk-agent` (separate from the MCP server Container App)
+- **HandoffOrchestration** pattern: Triage agent routes questions to 3 specialist agents:
+  - **OwnerAnalyst** — Entity search, property networks, profiles (3 APIM endpoints)
+  - **ViolationAnalyst** — Code violations, top violators, demolitions, appeals (4 APIM endpoints)
+  - **AreaAnalyst** — Zip stats, businesses, assessments, licenses, custom SQL (5 APIM endpoints)
+- Each specialist has Kernel plugins that call APIM directly (not via MCP)
+- Triage agent synthesizes specialist findings into a comprehensive answer
+- SPA shows live elapsed timer and rotating status messages during the 15-30s response time
+- `ResponseCallback` tracks which agents participated in each response
+
+```
+Browser → Container App /investigate → SK Orchestration → Azure OpenAI GPT-4.1 → APIM → Functions → SQL
+```
+
 ### Layout
 
-- **Activity bar** (48px, left edge): Seven icon buttons — chat bubble (Investigative Agent), factory (City Portal), aviator goggles (Copilot Studio), book (Documentation), question mark (About This Site), wrench (MCP Tools, pinned to bottom)
+- **Activity bar** (48px, left edge): Seven icon buttons — chat bubble (Investigative Agent), factory (City Portal), aviator goggles (Copilot Studio), question mark (About), brain (SK Agent), book (Documentation, pinned to bottom), wrench (MCP Tools, pinned to bottom)
 - **Authentication**: Azure SWA built-in auth (`/.auth/login/aad`). Config in `web/staticwebapp.config.json`. User email displayed in header via `/.auth/me`. Sign out via `/.auth/logout`.
 - Panels can be open simultaneously side-by-side (50/50 split)
 - Closing one panel gives the other full width

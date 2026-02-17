@@ -25,6 +25,7 @@ Chronological record of what was built, what broke, and how it was fixed. Keeps 
 - [Session 17 — Foundry Agent Fix, Token Docs, TOCs](#session-17--foundry-agent-fix-token-docs-tocs-2026-02-15)
 - [Session 18 — Authentication, Docs Panel, Background Image](#session-18--authentication-docs-panel-background-image-2026-02-16)
 - [Session 19 — SK Agent, Bicep IaC, MCAPS Fix](#session-19--sk-agent-bicep-iac-mcaps-fix-2026-02-16)
+- [Session 20 — SK Agent UX, SQL Bug Fix](#session-20--sk-agent-ux-sql-bug-fix-2026-02-17)
 
 ---
 
@@ -909,3 +910,34 @@ Fix:
 ### Files Changed
 - `web/index.html` — SK Agent panel, nav reorder, About button
 - `mcp-server/package.json`, `mcp-server/src/index.ts` — SK Agent health proxy
+
+---
+
+## Session 20 — SK Agent UX, SQL Bug Fix (2026-02-17)
+
+User tested the SK Agent panel and reported it appeared to "hang" — saw "I am compiling data..." with routing metadata but no actual data. Three issues found and fixed:
+
+### SK Agent Triage Instructions Fix
+The Triage agent's instructions allowed it to emit planning/status messages ("I am compiling data...") during handoff. The HandoffOrchestration captured this intermediate message as the final reply instead of the synthesized data answer. Fixed by adding explicit rules:
+- "Do NOT write any planning or status messages. Just hand off immediately."
+- "Your ONLY user-facing response should be the final synthesized answer with real data."
+
+After fix, the agent consistently returns actual data (vacancy rates, violation counts, etc.) instead of planning stubs.
+
+### getTopViolators SQL Bug
+The `entityType=llc` filter used `p.owner_1` but the CTE query had no `p` table alias — only an unqualified `opa_properties` reference. The endpoint returned 500 for any LLC-filtered query. Fixed by removing the `p.` prefix.
+
+### SPA Loading UX
+Added live elapsed timer and rotating phase messages to the SK Agent thinking indicator:
+- Timer counts up: `0s`, `1s`, `2s`...
+- Phase messages rotate: "Routing to specialist agent..." → "Agent calling Philadelphia data APIs..." → "Processing results from Azure SQL..." → "Synthesizing findings..." → "Still working — complex queries take longer..."
+
+### Deployments
+- Rebuilt and deployed SK Agent container (`philly-sk-agent--0000002`)
+- Rebuilt and deployed Functions app via zip deploy
+- Deployed SPA to Azure Static Web Apps
+
+### Files Changed
+- `sk-agent/Program.cs` — Triage agent instructions (no planning messages)
+- `functions/src/functions/getTopViolators.ts` — Removed `p.` alias from ownerFilter
+- `web/index.html` — Live timer, phase messages, CSS for `.thinking-timer` and `.thinking-phases`

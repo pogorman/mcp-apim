@@ -13,8 +13,10 @@ A web app for investigating property ownership, code violations, demolitions, an
   - [Investigative Agent](#1-investigative-agent--chat-icon)
   - [City Portal](#2-city-portal--building-icon)
   - [Copilot Studio](#3-copilot-studio--star-icon)
-  - [Documentation](#4-documentation--book-icon)
-  - [MCP Tool Tester](#5-mcp-tool-tester--wrench-icon)
+  - [About](#4-about--question-mark-icon)
+  - [SK Agent](#5-sk-agent--brain-icon)
+  - [Documentation](#6-documentation--book-icon)
+  - [MCP Tool Tester](#7-mcp-tool-tester--wrench-icon)
 - [Things to Try](#things-to-try)
   - [Quick Wins](#quick-wins)
   - [Deep Investigations](#deep-investigations)
@@ -98,7 +100,25 @@ The left sidebar has seven icons. Click one to open that panel. You can have mul
 
 **Note:** This agent sometimes shows a "JavaScriptError" — that's a Copilot Studio issue, not ours. If it happens, close the widget and reopen it (the iframe reloads fresh each time).
 
-### 4. Documentation — Book Icon
+### 4. About — Question Mark Icon
+
+**What it is:** An overview page explaining the project — what it does, the architecture, and links to documentation. No AI here, just context.
+
+### 5. SK Agent — Brain Icon
+
+**What it is:** A multi-agent AI system built with Microsoft Semantic Kernel (C#/.NET). A Triage agent reads your question and routes it to the right specialist: OwnerAnalyst (property ownership), ViolationAnalyst (code violations), or AreaAnalyst (neighborhood stats). Uses GPT-4.1.
+
+**How to use it:**
+1. Click the brain icon in the sidebar
+2. Type a question or click a suggested prompt
+3. Watch the live timer and status messages while agents collaborate (typically 15-30 seconds)
+4. The response includes data from the specialist agents, with badges showing which agents participated
+
+**Example:** Type "Compare vacancy and violation rates in 19134 vs 19140" and the Triage agent routes to the AreaAnalyst, which calls the data APIs and returns a comparison.
+
+**Key difference:** Unlike the Investigative Agent (which runs one model in a loop), this runs multiple specialist agents that hand off to each other. It's the enterprise C# pattern using Semantic Kernel.
+
+### 6. Documentation — Book Icon
 
 **What it is:** A built-in reader for all project documentation (markdown files) and Jupyter notebooks. No need to leave the app to read the docs.
 
@@ -111,7 +131,7 @@ The left sidebar has seven icons. Click one to open that panel. You can have mul
 
 **What's available:** User Guide, FAQ, ELI5, Architecture, Commands, CLI Cheatsheet, Prompts, Session Log, README, plus 3 Jupyter notebooks (Setup, Analytics, LLC Analytics).
 
-### 5. MCP Tool Tester — Wrench Icon
+### 7. MCP Tool Tester — Wrench Icon
 
 **What it is:** A direct interface to the raw tools. No AI in the loop — you pick a tool, fill in parameters, and see the raw JSON data that comes back.
 

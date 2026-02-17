@@ -317,14 +317,14 @@ A C#/.NET 8 multi-agent system using Microsoft Semantic Kernel with Azure OpenAI
 
 - **Container App URL:** `https://philly-sk-agent.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io`
 - **Investigate endpoint:** `/investigate` (POST with `{"prompt": "..."}`)
-- **Health check:** `/health`
+- **Health check:** `/healthz`
 
 4 specialist agents orchestrated by a Triage agent:
 - **OwnerAnalyst** — Entity search, property networks, profiles (3 APIM endpoints)
 - **ViolationAnalyst** — Code violations, top violators, demolitions, appeals (4 APIM endpoints)
 - **AreaAnalyst** — Zip stats, businesses, assessments, licenses, custom SQL (5 APIM endpoints)
 
-The Triage agent routes questions to the right specialist based on the query content.
+The Triage agent routes questions to the right specialist. Its instructions explicitly prohibit emitting planning/status messages — it only returns the final synthesized answer with real data from the specialists.
 
 ## Bicep Infrastructure-as-Code
 
