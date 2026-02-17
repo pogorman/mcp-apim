@@ -113,13 +113,38 @@
       border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      align-items: center;
+      align-items: stretch;
       padding-top: 6px;
       gap: 2px;
+      transition: width 0.2s ease;
+      overflow: hidden;
     }
 
+    .activity-bar.expanded {
+      width: 180px;
+    }
+
+    /* ── Nav toggle button ── */
+    .nav-toggle {
+      width: 100%;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: none;
+      color: var(--muted);
+      cursor: pointer;
+      margin-bottom: 4px;
+      flex-shrink: 0;
+      border-radius: 6px;
+    }
+    .nav-toggle:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .nav-toggle svg { width: 18px; height: 18px; transition: transform 0.2s ease; }
+    .activity-bar.expanded .nav-toggle svg { transform: rotate(180deg); }
+    .activity-bar.expanded .nav-toggle { justify-content: flex-end; padding-right: 14px; }
+
     .activity-tab {
-      width: 40px;
       height: 40px;
       display: flex;
       align-items: center;
@@ -131,6 +156,14 @@
       border: none;
       background: none;
       position: relative;
+      white-space: nowrap;
+      padding: 0;
+    }
+
+    .activity-bar.expanded .activity-tab {
+      justify-content: flex-start;
+      padding: 0 12px;
+      gap: 10px;
     }
 
     .activity-tab:hover {
@@ -146,7 +179,7 @@
     .activity-tab.active::before {
       content: '';
       position: absolute;
-      left: -4px;
+      left: 0;
       top: 8px;
       bottom: 8px;
       width: 3px;
@@ -157,13 +190,20 @@
     .activity-tab svg {
       width: 22px;
       height: 22px;
+      flex-shrink: 0;
     }
 
-    .tab-label {
-      font-size: 0.55rem;
-      margin-top: 2px;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+    .activity-tab .tab-text {
+      font-size: 0.8rem;
+      opacity: 0;
+      width: 0;
+      overflow: hidden;
+      transition: opacity 0.15s ease, width 0.2s ease;
+    }
+
+    .activity-bar.expanded .activity-tab .tab-text {
+      opacity: 1;
+      width: auto;
     }
 
     /* ── Panel Area ───────────────────────────────────── */
@@ -1847,9 +1887,10 @@
       .activity-bar {
         width: 42px;
       }
+      .activity-bar.expanded { width: 160px; }
+      .nav-toggle { display: none; }
 
       .activity-tab {
-        width: 34px;
         height: 34px;
       }
 
@@ -1901,11 +1942,17 @@
 
   <div class="app-body">
     <!-- Activity Bar -->
-    <nav class="activity-bar">
+    <nav class="activity-bar" id="activityBar">
+      <button class="nav-toggle" onclick="toggleNav()" title="Expand menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
       <button class="activity-tab" id="tabAgent" onclick="togglePanel('agent')" title="Investigative Agent">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
+        <span class="tab-text">Agent</span>
       </button>
       <button class="activity-tab" id="tabCity" onclick="togglePanel('city')" title="City Portal (Foundry Agent)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1915,6 +1962,7 @@
           <line x1="17" y1="22" x2="17" y2="3"/>
           <path d="M17 6c2-2 4-1 4 1"/>
         </svg>
+        <span class="tab-text">City Portal</span>
       </button>
       <button class="activity-tab" id="tabCopilot" onclick="togglePanel('copilot')" title="Copilot Studio">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1923,25 +1971,25 @@
           <rect x="14" y="10" width="6" height="4" rx="2"/>
           <path d="M10 12h4"/>
         </svg>
+        <span class="tab-text">Copilot</span>
       </button>
       <button class="activity-tab" id="tabSK" onclick="togglePanel('sk')" title="Semantic Kernel Agent">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <!-- nucleus -->
           <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>
-          <!-- three elliptical orbits -->
           <ellipse cx="12" cy="12" rx="10" ry="4"/>
           <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/>
           <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)"/>
-          <!-- electrons -->
           <circle cx="22" cy="12" r="1.5" fill="currentColor" stroke="none"/>
           <circle cx="7" cy="8.1" r="1.5" fill="currentColor" stroke="none"/>
           <circle cx="7" cy="15.9" r="1.5" fill="currentColor" stroke="none"/>
         </svg>
+        <span class="tab-text">SK Agent</span>
       </button>
       <button class="activity-tab" id="tabTools" onclick="togglePanel('tools')" title="MCP Tool Tester">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
         </svg>
+        <span class="tab-text">Tools</span>
       </button>
       <div style="flex:1;"></div>
       <button class="activity-tab" id="tabDocs" onclick="togglePanel('docs')" title="Documentation">
@@ -1949,6 +1997,7 @@
           <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
           <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
         </svg>
+        <span class="tab-text">Docs</span>
       </button>
       <button class="activity-tab" id="tabAbout" onclick="togglePanel('about')" title="About This Site" style="margin-bottom:6px;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1956,6 +2005,7 @@
           <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
           <line x1="12" y1="17" x2="12.01" y2="17"/>
         </svg>
+        <span class="tab-text">About</span>
       </button>
     </nav>
 
@@ -2627,6 +2677,11 @@
     /* ================================================================
        PANEL MANAGEMENT
        ================================================================ */
+    function toggleNav() {
+      var bar = $('activityBar');
+      bar.classList.toggle('expanded');
+    }
+
     function togglePanel(name) {
       state.panels[name] = !state.panels[name];
       updatePanels();
