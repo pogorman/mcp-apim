@@ -100,20 +100,28 @@ mcp-apim/
 │       │   └── runQuery.ts
 │       └── shared/
 │           └── db.ts         # SQL connection pool (mssql + AAD)
+├── sk-agent/                 # Semantic Kernel multi-agent (C#/.NET 8)
+│   ├── Program.cs            # 4-agent orchestrator (Triage, Owner, Violation, Area)
+│   ├── Plugins/              # 3 plugin files calling APIM endpoints
+│   └── Dockerfile            # Container App deployment
 ├── agent/                    # Azure AI Foundry agent
 │   ├── foundry_agent.py      # Agent with MCP tools + optional Bing grounding
 │   └── requirements.txt      # Python dependencies
 ├── sql/
 │   └── schema.sql            # 10 tables, 3 views, 20+ indexes
 ├── infra/
+│   ├── main.bicep            # Bicep orchestrator — deploys all modules
+│   ├── main.bicepparam       # Parameters (secrets via CLI at deploy time)
+│   ├── modules/              # 7 Bicep modules (sql, storage, functionApp, apim, acr, containerApps, swa)
 │   ├── deploy.sh             # az CLI infrastructure provisioning
 │   ├── deploy-agent.sh       # ACR + Container App deployment
 │   ├── deploy-swa.sh         # SWA deploy (copies docs/notebooks/images, deploys, cleans up)
+│   ├── create-zip.ps1        # PowerShell zip with forward slashes for func deploy
 │   ├── set-policy.ps1        # APIM policy (injects function key)
 │   ├── apim-policy.json      # APIM policy XML
 │   └── func-app-body.json    # Function app ARM template
 ├── web/                      # Front-end multi-panel interface
-│   ├── index.html            # 5-panel SPA (Agent, City Portal, Copilot Studio, Docs, MCP Tools)
+│   ├── index.html            # 7-panel SPA (Agent, City Portal, Copilot, About, SK Agent, Docs, Tools)
 │   └── staticwebapp.config.json  # SWA auth config (Entra ID login required)
 ├── docs/                     # Project documentation
 │   ├── ARCHITECTURE.md       # Full technical reference
@@ -142,6 +150,7 @@ mcp-apim/
 | Container Registry | `phillymcpacr` | Basic |
 | Container App Env | `philly-mcp-env` | Consumption (scale to zero) |
 | Container App | `philly-mcp-server` | Consumption, 0-3 replicas |
+| Container App | `philly-sk-agent` | Consumption, 0-3 replicas |
 | AI Foundry Hub | `philly-ai-hub` | — (rg-foundry, eastus) |
 | AI Foundry Project | `philly-profiteering` | — (under philly-ai-hub) |
 | AI Services | `foundry-og-agents` | S0 (eastus, 6 model deployments) |
@@ -256,11 +265,13 @@ All resources are on consumption/serverless tiers — **~$1-2/month when idle**:
 
 ## Web Interface (Static Web App)
 
-SPA with VS Code-style activity bar demonstrating five panels using the same APIM backend. Protected by Azure SWA built-in authentication (Microsoft Entra ID login required — config in `web/staticwebapp.config.json`). User email and sign-out button in header.
+SPA with VS Code-style activity bar demonstrating multiple panels using the same APIM backend. Protected by Azure SWA built-in authentication (Microsoft Entra ID login required — config in `web/staticwebapp.config.json`). User email and sign-out button in header.
 
 - **Investigative Agent** — Chat Completions + Tools. Natural language chat with model selector (6 models). Our code runs the agentic loop (`/chat` endpoint).
 - **City Portal** — Assistants API (Foundry Agent). Philadelphia-branded page with floating chat widget. Azure manages the tool-calling loop with GPT-4.1 and threads persist server-side (`/agent` endpoints).
 - **Copilot Studio** — Microsoft Copilot Studio agent connected via MCP. Has its own panel with a floating chat widget. Demonstrates the low-code/no-code integration path.
+- **About** — Project overview and architecture documentation.
+- **SK Agent** — Semantic Kernel multi-agent panel. Chat widget connecting to the `philly-sk-agent` Container App. Demonstrates C#/.NET agent orchestration with 4 specialist agents.
 - **Documentation** — Built-in reader for all project markdown files and Jupyter notebooks. Files copied to `web/docs/` and `web/notebooks/` at deploy time.
 - **MCP Tool Tester** — Raw MCP protocol. Direct tool discovery and invocation via Streamable HTTP (`/mcp` endpoint).
 
@@ -299,6 +310,37 @@ python foundry_agent.py
 ```
 
 The agent combines MCP tools (12 property data tools) with optional Bing web search grounding for real-time internet data.
+
+## Semantic Kernel Agent (Container App)
+
+A C#/.NET 8 multi-agent system using Microsoft Semantic Kernel with Azure OpenAI GPT-4.1. Deployed as Container App `philly-sk-agent`.
+
+- **Container App URL:** `https://philly-sk-agent.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io`
+- **Investigate endpoint:** `/investigate` (POST with `{"prompt": "..."}`)
+- **Health check:** `/health`
+
+4 specialist agents orchestrated by a Triage agent:
+- **OwnerAnalyst** — Entity search, property networks, profiles (3 APIM endpoints)
+- **ViolationAnalyst** — Code violations, top violators, demolitions, appeals (4 APIM endpoints)
+- **AreaAnalyst** — Zip stats, businesses, assessments, licenses, custom SQL (5 APIM endpoints)
+
+The Triage agent routes questions to the right specialist based on the query content.
+
+## Bicep Infrastructure-as-Code
+
+All Azure resources can be recreated via Bicep:
+
+```bash
+az deployment group create \
+  --resource-group rg-philly-profiteering \
+  --template-file infra/main.bicep \
+  --parameters infra/main.bicepparam \
+  --parameters sqlAdminPassword=$SQL_ADMIN_PASSWORD clientIp=$(curl -s ifconfig.me)
+```
+
+7 modules in `infra/modules/`: sql, storage, functionApp, apim, containerRegistry, containerApps, staticWebApp. Orchestrated by `infra/main.bicep` with role assignments.
+
+Post-deploy manual steps: SQL schema + data load, SQL MI user creation, container image builds, function code deploy, SPA deploy, Azure OpenAI model deployments.
 
 ## Copilot Studio Integration
 

@@ -1593,6 +1593,40 @@
       line-height: 1.7;
     }
 
+    /* ── SK Agent Panel ─────────────────────────────────── */
+    .sk-agents-row {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      margin-top: 0.5rem;
+      font-size: 0.7rem;
+      color: var(--muted);
+    }
+
+    .sk-agent-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.2rem;
+      padding: 0.12rem 0.4rem;
+      background: rgba(139,92,246,0.15);
+      border: 1px solid rgba(139,92,246,0.3);
+      border-radius: 4px;
+      font-size: 0.65rem;
+      font-family: 'Cascadia Code', monospace;
+      color: #a78bfa;
+    }
+
+    .sk-agent-arrow {
+      color: var(--border);
+      font-size: 0.7rem;
+    }
+
+    .sk-time {
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
     /* ── Docs Panel ─────────────────────────────────────── */
     .docs-body {
       flex: 1;
@@ -1874,12 +1908,6 @@
           <path d="M10 12h4"/>
         </svg>
       </button>
-      <button class="activity-tab" id="tabDocs" onclick="togglePanel('docs')" title="Documentation">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-        </svg>
-      </button>
       <button class="activity-tab" id="tabAbout" onclick="togglePanel('about')" title="About This Site">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"/>
@@ -1887,7 +1915,23 @@
           <line x1="12" y1="17" x2="12.01" y2="17"/>
         </svg>
       </button>
+      <button class="activity-tab" id="tabSK" onclick="togglePanel('sk')" title="Semantic Kernel Agent">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="6" cy="6" r="3"/>
+          <circle cx="18" cy="6" r="3"/>
+          <circle cx="12" cy="18" r="3"/>
+          <line x1="8.5" y1="7.5" x2="10" y2="16"/>
+          <line x1="15.5" y1="7.5" x2="14" y2="16"/>
+          <line x1="9" y1="6" x2="15" y2="6"/>
+        </svg>
+      </button>
       <div style="flex:1;"></div>
+      <button class="activity-tab" id="tabDocs" onclick="togglePanel('docs')" title="Documentation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+        </svg>
+      </button>
       <button class="activity-tab" id="tabTools" onclick="togglePanel('tools')" title="MCP Tool Tester" style="margin-bottom:6px;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
@@ -1913,12 +1957,6 @@
               </svg>
               Open Agent
             </button>
-            <button class="welcome-btn" onclick="togglePanel('tools')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
-                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-              </svg>
-              Open Tools
-            </button>
             <button class="welcome-btn" onclick="togglePanel('city')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
                 <path d="M2 22h20"/>
@@ -1938,12 +1976,37 @@
               </svg>
               Copilot Studio
             </button>
+            <button class="welcome-btn" onclick="togglePanel('about')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+              About
+            </button>
+            <button class="welcome-btn" onclick="togglePanel('sk')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                <circle cx="6" cy="6" r="3"/>
+                <circle cx="18" cy="6" r="3"/>
+                <circle cx="12" cy="18" r="3"/>
+                <line x1="8.5" y1="7.5" x2="10" y2="16"/>
+                <line x1="15.5" y1="7.5" x2="14" y2="16"/>
+                <line x1="9" y1="6" x2="15" y2="6"/>
+              </svg>
+              SK Agent
+            </button>
             <button class="welcome-btn" onclick="togglePanel('docs')">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
                 <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
                 <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
               </svg>
               Docs
+            </button>
+            <button class="welcome-btn" onclick="togglePanel('tools')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+              </svg>
+              Tools
             </button>
           </div>
         </div>
@@ -2265,18 +2328,75 @@
                   exactly what data each tool returns.
                 </p>
               </div>
+
+              <div class="about-card">
+                <div class="about-card-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="6" cy="6" r="3"/>
+                    <circle cx="18" cy="6" r="3"/>
+                    <circle cx="12" cy="18" r="3"/>
+                    <line x1="8.5" y1="7.5" x2="10" y2="16"/>
+                    <line x1="15.5" y1="7.5" x2="14" y2="16"/>
+                    <line x1="9" y1="6" x2="15" y2="6"/>
+                  </svg>
+                </div>
+                <h3>Semantic Kernel Agent</h3>
+                <span class="about-card-pattern">Multi-Agent Orchestration &mdash; C# / .NET</span>
+                <p>
+                  A team of specialist agents built with Microsoft Semantic Kernel. A Triage agent
+                  routes your question to the right specialist &mdash; OwnerAnalyst, ViolationAnalyst,
+                  or AreaAnalyst &mdash; each with focused tools. Shows agent handoff badges so you can
+                  see which agents collaborated. The only C# component in the stack.
+                </p>
+              </div>
             </div>
 
             <div class="about-footer">
               <h3>The Big Picture</h3>
               <p>
-                This application demonstrates three fundamentally different ways to build AI agents on the same backend:
+                This application demonstrates four fundamentally different ways to build AI agents on the same backend:
                 <strong>custom code</strong> (Investigative Agent), <strong>platform-managed</strong> (City Portal via Foundry),
-                and <strong>low-code</strong> (Copilot Studio via MCP). The underlying data, tools, and API are identical &mdash;
-                only the integration pattern changes.
+                <strong>low-code</strong> (Copilot Studio via MCP), and <strong>enterprise SDK</strong> (Semantic Kernel with multi-agent orchestration).
+                The underlying data, tools, and API are identical &mdash; only the integration pattern changes.
               </p>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Panel 7: Semantic Kernel Agent -->
+      <div class="panel" id="panelSK">
+        <div class="panel-header">
+          <span class="panel-header-title">Semantic Kernel Agent</span>
+          <span style="font-size:0.65rem;color:var(--muted);margin-left:auto;">Multi-Agent &middot; C# &middot; HandoffOrchestration</span>
+          <button class="btn-small" onclick="clearSKChat()" style="margin-left:0.5rem;">Clear</button>
+        </div>
+        <div class="chat-scroll" id="skChatScroll">
+          <div class="chat-welcome" id="skChatWelcome">
+            <h3>Semantic Kernel Multi-Agent</h3>
+            <p>
+              Ask a question and watch a team of specialist agents collaborate. A <strong>Triage</strong> agent
+              routes your request to the right specialist &mdash; <strong>OwnerAnalyst</strong>,
+              <strong>ViolationAnalyst</strong>, or <strong>AreaAnalyst</strong> &mdash; each with its own focused tool set.
+              Built with Microsoft Semantic Kernel (C#) and HandoffOrchestration.
+            </p>
+            <div class="suggestions">
+              <div class="suggestion" onclick="useSKSuggestion(this)">Who are the top 10 LLC violators in Philadelphia?</div>
+              <div class="suggestion" onclick="useSKSuggestion(this)">Investigate GEENA LLC — properties, violations, and demolitions</div>
+              <div class="suggestion" onclick="useSKSuggestion(this)">Compare vacancy and violation rates in 19134 vs 19140</div>
+              <div class="suggestion" onclick="useSKSuggestion(this)">Find check cashing businesses in zip code 19134</div>
+            </div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <div class="chat-input-row">
+            <div class="chat-input-wrap">
+              <textarea id="skChatInput" rows="1" placeholder="Ask the multi-agent team..."
+                onkeydown="handleSKChatKey(event)" oninput="autoResize(this)"></textarea>
+            </div>
+            <button class="btn-send" id="skChatSendBtn" onclick="sendSKMessage()">Send</button>
+          </div>
+          <div class="chat-input-hint">Enter to send, Shift+Enter for new line</div>
         </div>
       </div>
 
@@ -2314,11 +2434,12 @@
     const API_BASE = 'https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io';
 
     const state = {
-      panels: { agent: false, tools: false, city: false, copilot: false, docs: false, about: false },
+      panels: { agent: false, tools: false, city: false, copilot: false, docs: false, about: false, sk: false },
       copilotOpen: false,
       chat: { history: [], isLoading: false, model: 'gpt-4.1' },
       city: { threadId: null, chatOpen: false, isLoading: false },
       docs: { selectedDoc: null, cache: {} },
+      sk: { isLoading: false },
       mcp: {
         sessionId: null,
         connected: false,
@@ -2488,6 +2609,9 @@
       if (name === 'agent' && state.panels.agent) {
         setTimeout(() => $('chatInput') && $('chatInput').focus(), 50);
       }
+      if (name === 'sk' && state.panels.sk) {
+        setTimeout(() => $('skChatInput') && $('skChatInput').focus(), 50);
+      }
     }
 
     function updatePanels() {
@@ -2497,6 +2621,7 @@
       const copilotOpen = state.panels.copilot;
       const docsOpen = state.panels.docs;
       const aboutOpen = state.panels.about;
+      const skOpen = state.panels.sk;
 
       // Activity bar tabs
       $('tabAgent').classList.toggle('active', agentOpen);
@@ -2505,6 +2630,7 @@
       $('tabCopilot').classList.toggle('active', copilotOpen);
       $('tabDocs').classList.toggle('active', docsOpen);
       $('tabAbout').classList.toggle('active', aboutOpen);
+      $('tabSK').classList.toggle('active', skOpen);
 
       // Panels
       $('panelAgent').classList.toggle('visible', agentOpen);
@@ -2513,13 +2639,14 @@
       $('panelCopilot').classList.toggle('visible', copilotOpen);
       $('panelDocs').classList.toggle('visible', docsOpen);
       $('panelAbout').classList.toggle('visible', aboutOpen);
+      $('panelSK').classList.toggle('visible', skOpen);
 
-      // Hide model selector when only City Portal/Copilot/Tools/Docs/About is active (model applies to Investigative Agent only)
-      const showModelSelect = agentOpen || (!agentOpen && !toolsOpen && !cityOpen && !copilotOpen && !docsOpen && !aboutOpen);
+      // Hide model selector unless Investigative Agent is open
+      const showModelSelect = agentOpen || (!agentOpen && !toolsOpen && !cityOpen && !copilotOpen && !docsOpen && !aboutOpen && !skOpen);
       $('modelSelect').style.display = showModelSelect ? '' : 'none';
 
       // Welcome screen
-      const anyOpen = agentOpen || toolsOpen || cityOpen || copilotOpen || docsOpen || aboutOpen;
+      const anyOpen = agentOpen || toolsOpen || cityOpen || copilotOpen || docsOpen || aboutOpen || skOpen;
       $('welcomeScreen').classList.toggle('hidden', anyOpen);
 
       // Close copilot widget if copilot panel is closed
@@ -2757,6 +2884,149 @@
       const el = $('connectStatus');
       el.className = 'connect-status ' + cls;
       el.textContent = text;
+    }
+
+    /* ================================================================
+       Semantic Kernel Agent Functions
+       ================================================================ */
+    var SK_API_BASE = 'https://philly-sk-agent.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io';
+
+    function useSKSuggestion(el) {
+      $('skChatInput').value = el.textContent;
+      $('skChatInput').focus();
+    }
+
+    function handleSKChatKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendSKMessage();
+      }
+    }
+
+    function clearSKChat() {
+      $('skChatScroll').innerHTML =
+        '<div class="chat-welcome" id="skChatWelcome">' +
+          '<h3>Semantic Kernel Multi-Agent</h3>' +
+          '<p>Ask a question and watch a team of specialist agents collaborate.</p>' +
+          '<div class="suggestions">' +
+            '<div class="suggestion" onclick="useSKSuggestion(this)">Who are the top 10 LLC violators in Philadelphia?</div>' +
+            '<div class="suggestion" onclick="useSKSuggestion(this)">Investigate GEENA LLC — properties, violations, and demolitions</div>' +
+            '<div class="suggestion" onclick="useSKSuggestion(this)">Compare vacancy and violation rates in 19134 vs 19140</div>' +
+            '<div class="suggestion" onclick="useSKSuggestion(this)">Find check cashing businesses in zip code 19134</div>' +
+          '</div>' +
+        '</div>';
+    }
+
+    function addSKMessage(role, content, agents, toolCalls, execTime) {
+      var welcome = $('skChatWelcome');
+      if (welcome) welcome.remove();
+
+      var container = $('skChatScroll');
+      var div = document.createElement('div');
+
+      if (role === 'user') {
+        div.className = 'message msg-user';
+        div.innerHTML =
+          '<div class="msg-label">You</div>' +
+          '<div class="msg-content">' + escapeHtml(content) + '</div>';
+      } else {
+        div.className = 'message msg-assistant';
+
+        // Agent handoff badges
+        var agentsHtml = '';
+        if (agents && agents.length > 0) {
+          agentsHtml = '<div class="sk-agents-row">';
+          for (var i = 0; i < agents.length; i++) {
+            if (i > 0) agentsHtml += '<span class="sk-agent-arrow">&rarr;</span>';
+            agentsHtml += '<span class="sk-agent-badge">' + escapeHtml(agents[i]) + '</span>';
+          }
+          agentsHtml += '</div>';
+        }
+
+        // Tool badges
+        var toolsHtml = '';
+        if (toolCalls && toolCalls.length > 0) {
+          toolsHtml = '<div class="msg-tools">';
+          for (var i = 0; i < toolCalls.length; i++) {
+            var tc = toolCalls[i];
+            var label = tc.agent ? tc.agent + '/' + tc.name : tc.name;
+            toolsHtml += '<span class="tool-badge">' + escapeHtml(label) + '</span>';
+          }
+          toolsHtml += '</div>';
+        }
+
+        // Execution time
+        var timeHtml = '';
+        if (execTime) {
+          timeHtml = '<div class="sk-time">' + (execTime / 1000).toFixed(1) + 's</div>';
+        }
+
+        div.innerHTML =
+          '<div class="msg-label">SK Agent</div>' +
+          '<div class="msg-content">' + formatContent(content) + '</div>' +
+          agentsHtml + toolsHtml + timeHtml;
+      }
+
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    async function sendSKMessage() {
+      var input = $('skChatInput');
+      var message = input.value.trim();
+      if (!message || state.sk.isLoading) return;
+
+      state.sk.isLoading = true;
+      $('skChatSendBtn').disabled = true;
+      input.value = '';
+      autoResize(input);
+
+      addSKMessage('user', message);
+
+      // Show thinking
+      var container = $('skChatScroll');
+      var thinking = document.createElement('div');
+      thinking.className = 'thinking';
+      thinking.id = 'skThinking';
+      thinking.innerHTML =
+        '<div class="thinking-inner">' +
+          '<div class="thinking-dots"><span></span><span></span><span></span></div>' +
+          '<span class="thinking-label">Agents collaborating...</span>' +
+        '</div>';
+      container.appendChild(thinking);
+      container.scrollTop = container.scrollHeight;
+
+      try {
+        var resp = await fetch(SK_API_BASE + '/investigate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: message }),
+        });
+
+        var el = $('skThinking');
+        if (el) el.remove();
+
+        if (!resp.ok) {
+          var errText = await resp.text();
+          throw new Error('Server error (' + resp.status + '): ' + errText);
+        }
+
+        var data = await resp.json();
+        addSKMessage('assistant', data.reply, data.agents, data.toolCalls, data.executionTimeMs);
+      } catch (err) {
+        var el = $('skThinking');
+        if (el) el.remove();
+        var errDiv = document.createElement('div');
+        errDiv.className = 'error-toast';
+        errDiv.textContent = err.message;
+        container.appendChild(errDiv);
+        container.scrollTop = container.scrollHeight;
+        setTimeout(function() { errDiv.remove(); }, 10000);
+      } finally {
+        state.sk.isLoading = false;
+        $('skChatSendBtn').disabled = false;
+        input.focus();
+      }
     }
 
     async function mcpConnect() {

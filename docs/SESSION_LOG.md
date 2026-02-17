@@ -24,6 +24,7 @@ Chronological record of what was built, what broke, and how it was fixed. Keeps 
 - [Session 16 — ELI5 Documentation, Doc Updates](#session-16--eli5-documentation-doc-updates-2026-02-15)
 - [Session 17 — Foundry Agent Fix, Token Docs, TOCs](#session-17--foundry-agent-fix-token-docs-tocs-2026-02-15)
 - [Session 18 — Authentication, Docs Panel, Background Image](#session-18--authentication-docs-panel-background-image-2026-02-16)
+- [Session 19 — SK Agent, Bicep IaC, MCAPS Fix](#session-19--sk-agent-bicep-iac-mcaps-fix-2026-02-16)
 
 ---
 
@@ -821,3 +822,90 @@ Added TOCs to all markdown files that didn't have them:
 - `web/index.html` — user indicator, docs panel, enhanced markdown renderer, notebook renderer, background image
 - `infra/deploy-swa.sh` — **created** (deploy script)
 - `.gitignore` — added `web/docs/`, `web/notebooks/`, `web/images/`
+
+---
+
+## Session 19 — SK Agent, Bicep IaC, MCAPS Fix (2026-02-16)
+
+### Semantic Kernel Agent (`sk-agent/`)
+- Built a C# Semantic Kernel multi-agent system with 4 specialists:
+  - **Triage** — Routes user questions to the right specialist
+  - **OwnerAnalyst** — Entity search, property networks, profiles
+  - **ViolationAnalyst** — Code violations, top violators, demolitions, appeals
+  - **AreaAnalyst** — Zip stats, business search, assessments, licenses, custom SQL
+- 3 plugin files (`OwnerPlugin.cs`, `ViolationPlugin.cs`, `AreaPlugin.cs`) call APIM endpoints
+- Deployed as Container App `philly-sk-agent` (image `phillymcpacr.azurecr.io/sk-agent:v2`)
+- System-assigned managed identity with Cognitive Services OpenAI User role on `foundry-og-agents`
+- Exposed via `/investigate` endpoint (POST with `prompt` field)
+- Added SK Agent panel to the SPA with floating chat widget
+
+### Plugin URL Fix
+All 3 plugin files had wrong APIM URLs (function-name style like `/getTopViolators` instead of RESTful paths like `/stats/top-violators`). Fixed to match `apim-client.ts` patterns:
+- `/searchEntities` → `/search-entities` (POST)
+- `/getEntityNetwork?entityId=...` → `/entities/{entityId}/network` (GET)
+- `/getPropertyViolations?parcelNumber=...` → `/properties/{parcelNumber}/violations` (GET)
+- `/getTopViolators?...` → `/stats/top-violators` (GET)
+- etc.
+
+### Container App Revision Caching
+`az containerapp update --image ...latest` didn't create a new revision because the tag hadn't changed. Fixed by rebuilding with `sk-agent:v2` tag to force a new revision.
+
+### Bicep Infrastructure-as-Code (`infra/modules/`)
+Created 9 Bicep files to recreate all Azure infrastructure:
+- `infra/main.bicep` — Orchestrator, deploys all modules, wires outputs, role assignments
+- `infra/main.bicepparam` — Parameters (secrets passed at deploy time via CLI)
+- `infra/modules/sql.bicep` — SQL Server + GP Serverless database + firewall rules
+- `infra/modules/storage.bicep` — Both storage accounts (`allowSharedKeyAccess: true` explicit)
+- `infra/modules/functionApp.bicep` — Flex Consumption Function App + plan
+- `infra/modules/apim.bicep` — APIM + 12 operations + inbound policy (function key injection)
+- `infra/modules/containerRegistry.bicep` — ACR Basic
+- `infra/modules/containerApps.bicep` — Environment + MCP Server + SK Agent container apps
+- `infra/modules/staticWebApp.bicep` — SWA Free tier
+
+#### Bicep Compilation Fixes
+- SQL `Microsoft.Sql/databases@2021-11-01` → `Microsoft.Sql/servers/databases@2021-11-01` (child resource type required for `parent` property)
+- Hardcoded `core.windows.net` → `environment().suffixes.storage` in function app blob URL
+- Circular dependency: storage ↔ functionApp resolved by moving role assignments to `main.bicep` with `existing` resource reference
+- Role assignment `guid()` names must use compile-time constants, not module outputs
+
+### MCAPS Policy Fix (Function App 503)
+Root cause chain:
+1. MCAPS policy set `publicNetworkAccess: Disabled` on `phillyfuncsa` storage account
+2. MCAPS policy set `allowSharedKeyAccess: false` on all storage accounts (subscription-wide)
+3. MCAPS policy set `publicNetworkAccess: Disabled` on SQL Server `philly-stats-sql-01`
+
+The function app MI had all correct roles (Blob Data Owner, Account Contributor, Queue/Table Data Contributor), and was using MI-based auth (`AzureWebJobsStorage__accountName`). But with `publicNetworkAccess: Disabled`, even Azure's own Kudu deployment engine couldn't write to storage.
+
+Fix:
+1. Re-enabled `publicNetworkAccess: Enabled` on `phillyfuncsa` (the `allowSharedKeyAccess: false` couldn't be changed — MCAPS reverts it)
+2. Re-enabled `publicNetworkAccess: Enabled` on SQL Server
+3. Redeployed function app zip via `az functionapp deployment source config-zip`
+4. All 12 endpoints working end-to-end
+
+**Important:** MCAPS may re-disable these settings. Need to monitor and re-enable as needed. The PowerShell zip creation script (`infra/create-zip.ps1`) handles the Windows backslash→forward-slash zip path issue.
+
+### SPA Navigation Reorganization
+- Moved Docs tab below the spacer (next to Tools) in activity bar
+- Reordered welcome page buttons to match nav order
+- Added About button to welcome screen
+- Activity bar order: Agent, City Portal, Copilot, About, SK Agent, [spacer], Docs, Tools
+
+### Key Lessons
+- MCAPS can silently disable `publicNetworkAccess` on storage AND SQL, not just `allowSharedKeyAccess`
+- Even with MI-based auth, `publicNetworkAccess: Disabled` blocks Kudu zip deployment
+- Container App revisions are NOT created when updating with the same image tag — use versioned tags
+- SK plugin URLs must match APIM's RESTful routes, not Azure Function names
+- PowerShell `Compress-Archive` creates backslash paths in zips — use `System.IO.Compression.ZipFile` with `.Replace('\', '/')`
+
+### Files Created
+- `sk-agent/Program.cs`, `sk-agent/PhillySkAgent.csproj`, `sk-agent/appsettings.json`, `sk-agent/Dockerfile`
+- `sk-agent/Plugins/OwnerPlugin.cs`, `sk-agent/Plugins/ViolationPlugin.cs`, `sk-agent/Plugins/AreaPlugin.cs`
+- `infra/main.bicep`, `infra/main.bicepparam`
+- `infra/modules/sql.bicep`, `infra/modules/storage.bicep`, `infra/modules/functionApp.bicep`
+- `infra/modules/apim.bicep`, `infra/modules/containerRegistry.bicep`
+- `infra/modules/containerApps.bicep`, `infra/modules/staticWebApp.bicep`
+- `infra/create-zip.ps1`
+
+### Files Changed
+- `web/index.html` — SK Agent panel, nav reorder, About button
+- `mcp-server/package.json`, `mcp-server/src/index.ts` — SK Agent health proxy

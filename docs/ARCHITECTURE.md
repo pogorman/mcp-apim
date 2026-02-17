@@ -901,7 +901,7 @@ APIM policy (injecting function key) is applied via `infra/set-policy.ps1`:
 
 ## Web Interface (Static Web App)
 
-A single-file SPA (`web/index.html`) with a VS Code-style activity bar demonstrating five panels (four AI-powered client patterns + a documentation reader) that all consume the same APIM backend. Protected by Azure Static Web Apps built-in authentication (Microsoft Entra ID login required). User email and sign-out button visible in the header.
+A single-file SPA (`web/index.html`) with a VS Code-style activity bar demonstrating seven panels (multiple AI-powered client patterns + documentation reader + tool tester) that all consume the same APIM backend. Protected by Azure Static Web Apps built-in authentication (Microsoft Entra ID login required). User email and sign-out button visible in the header.
 
 ### Pattern 1: Investigative Agent (Chat Completions + Tools)
 

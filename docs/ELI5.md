@@ -14,7 +14,7 @@ A plain-English guide to the Philly Poverty Profiteering platform. Use this for 
 - [What's Inside the Data](#whats-inside-the-data)
 - [How It Works — No Jargon](#how-it-works--no-jargon)
 - [How It Works — Some Jargon](#how-it-works--some-jargon)
-- [The Five Ways to Use It](#the-five-ways-to-use-it)
+- [The Seven Ways to Use It](#the-seven-ways-to-use-it)
 - [Why It Matters (The Story)](#why-it-matters-the-story)
 - [How AI Models Think — Tokens, Context, and Temperature](#how-ai-models-think--tokens-context-and-temperature)
 - [Why Each Panel Gives Different Answers](#why-each-panel-gives-different-answers)
@@ -46,9 +46,9 @@ Open the app: **https://kind-forest-06c4d3c0f.1.azurestaticapps.net/**
 
 ### Step 1 — Welcome Screen (30 seconds)
 
-You'll see a dark screen with a map of Philadelphia in the background and five buttons. Explain:
+You'll see a dark screen with a map of Philadelphia in the background and seven buttons. Explain:
 
-> "This is a web app. You sign in with your Microsoft account — it's protected by Azure authentication. It's got five different interfaces that all talk to the same data. Let me show you the main one."
+> "This is a web app. You sign in with your Microsoft account — it's protected by Azure authentication. It's got seven different interfaces that all talk to the same data. Let me show you the main one."
 
 Click **Investigative Agent**.
 
@@ -92,7 +92,7 @@ Click the purple chat icon and ask something.
 
 ### Wrap Up
 
-> "Five completely different interfaces — a custom chat agent, a government-branded portal, a Copilot Studio agent, a documentation reader, and a raw tool tester — all using the same 12 tools and the same 29 million rows of data. The whole thing runs serverless and costs about $1-2 a month when nobody's using it."
+> "Seven completely different interfaces — a custom chat agent, a government-branded portal, a Copilot Studio agent, a Semantic Kernel multi-agent, a project overview, a documentation reader, and a raw tool tester — all using the same 12 tools and the same 29 million rows of data. The whole thing runs serverless and costs about $1-2 a month when nobody's using it."
 
 ---
 
@@ -161,9 +161,9 @@ MCP Server (TypeScript, Container App, scales 0-3)
 
 ---
 
-## The Five Ways to Use It
+## The Seven Ways to Use It
 
-This is the demo's punchline: one backend, five completely different client experiences.
+This is the demo's punchline: one backend, seven completely different client experiences.
 
 ### 1. Investigative Agent (Chat icon)
 
@@ -198,7 +198,29 @@ This is the demo's punchline: one backend, five completely different client expe
 | **Maps** | No |
 | **Best for** | Showing the low-code/no-code path; enterprise agent platforms |
 
-### 4. Documentation (Book icon)
+### 4. About (Info icon)
+
+| | |
+|---|---|
+| **Pattern** | Static content |
+| **What it means** | Project overview and architecture documentation. No AI. |
+| **Model** | None |
+| **Memory** | None |
+| **Maps** | No |
+| **Best for** | Quick project overview during demos |
+
+### 5. SK Agent (Brain icon)
+
+| | |
+|---|---|
+| **Pattern** | Semantic Kernel multi-agent orchestration |
+| **What it means** | A C#/.NET 8 agent using Microsoft Semantic Kernel. A Triage agent routes questions to 3 specialist agents (OwnerAnalyst, ViolationAnalyst, AreaAnalyst), each with their own APIM-calling plugins. Azure OpenAI GPT-4.1. |
+| **Model** | GPT-4.1 (via Azure OpenAI, Semantic Kernel) |
+| **Memory** | None — each question is independent |
+| **Maps** | No (text responses only) |
+| **Best for** | Showing the Microsoft Semantic Kernel pattern; C# enterprise agent architecture |
+
+### 6. Documentation (Book icon)
 
 | | |
 |---|---|
@@ -209,7 +231,7 @@ This is the demo's punchline: one backend, five completely different client expe
 | **Maps** | No |
 | **Best for** | Reading docs during demos, quick reference, showing notebooks without Jupyter |
 
-### 5. MCP Tool Tester (Wrench icon, bottom of sidebar)
+### 7. MCP Tool Tester (Wrench icon, bottom of sidebar)
 
 | | |
 |---|---|

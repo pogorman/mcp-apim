@@ -1,0 +1,29 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sk-agent", "sk-agent", "{1DF69F71-6B00-D46F-9132-ADEA3394870F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhillySkAgent", "sk-agent\PhillySkAgent.csproj", "{3C2CB88D-2171-68A0-1EEA-302D6DDEF451}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3C2CB88D-2171-68A0-1EEA-302D6DDEF451}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C2CB88D-2171-68A0-1EEA-302D6DDEF451}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C2CB88D-2171-68A0-1EEA-302D6DDEF451}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C2CB88D-2171-68A0-1EEA-302D6DDEF451}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3C2CB88D-2171-68A0-1EEA-302D6DDEF451} = {1DF69F71-6B00-D46F-9132-ADEA3394870F}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CAE663C3-E571-4229-9728-0484177CDE29}
+	EndGlobalSection
+EndGlobal

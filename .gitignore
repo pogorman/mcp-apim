@@ -13,3 +13,5 @@ infra/apim-policy.json
 web/docs/
 web/notebooks/
 web/images/
+sk-agent/bin/
+sk-agent/obj/

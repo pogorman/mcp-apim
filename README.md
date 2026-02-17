@@ -67,11 +67,13 @@ The system has three layers: a **serverless data API** (Azure Functions + SQL), 
 
 Try it in your browser: **https://kind-forest-06c4d3c0f.1.azurestaticapps.net/**
 
-A SPA with a VS Code-style activity bar, demonstrating five panels. Protected by Azure SWA authentication (Microsoft login required). User email and sign-out button in header.
+A SPA with a VS Code-style activity bar, demonstrating multiple integration patterns. Protected by Azure SWA authentication (Microsoft login required). User email and sign-out button in header.
 
 - **Investigative Agent** — Chat Completions + Tools pattern. Ask questions in natural language; our code runs the agentic loop. Switch between 6 models (GPT-4.1, GPT-5, GPT-5 Mini, o4-mini, o3-mini, Phi-4) via the dropdown.
 - **City Portal** — Assistants API (Foundry Agent) pattern. A Philadelphia-branded government page with a floating chat widget. Azure manages the tool-calling loop with GPT-4.1 and threads persist server-side — follow-up questions remember context.
 - **Copilot Studio** — Microsoft Copilot Studio agent connected via MCP. Has its own panel with a floating chat widget. Demonstrates the low-code/no-code path to consuming the same 12 tools.
+- **About** — Project overview and architecture documentation.
+- **SK Agent** — Semantic Kernel multi-agent (C#/.NET 8). 4 specialist agents (Triage, OwnerAnalyst, ViolationAnalyst, AreaAnalyst) orchestrated by a routing agent. Demonstrates the Microsoft Semantic Kernel agent pattern.
 - **Documentation** — Built-in reader for all project markdown files and Jupyter notebooks. No need to leave the app.
 - **MCP Tool Tester** — Raw MCP protocol pattern. Connect directly to the MCP server, discover tools, and call them individually with specific parameters.
 
@@ -189,8 +191,12 @@ mcp-apim/
 │   └── Dockerfile           # Container App deployment (multi-stage, Alpine)
 ├── functions/               # Azure Functions (12 HTTP endpoints)
 │   └── src/functions/       # One file per endpoint
+├── sk-agent/                # Semantic Kernel multi-agent (C#/.NET 8)
+│   ├── Program.cs           # 4-agent orchestrator (Triage, Owner, Violation, Area)
+│   ├── Plugins/             # 3 plugin files calling APIM endpoints
+│   └── Dockerfile
 ├── web/                     # Browser-based multi-panel interface
-│   ├── index.html           # 5-panel SPA (Agent, City Portal, Copilot Studio, Docs, MCP Tools)
+│   ├── index.html           # 7-panel SPA (Agent, City Portal, Copilot, About, SK Agent, Docs, Tools)
 │   └── staticwebapp.config.json  # SWA auth config (Entra ID login required)
 ├── agent/                   # Azure AI Foundry agent
 │   └── foundry_agent.py     # MCP + Bing grounding
@@ -198,7 +204,7 @@ mcp-apim/
 ├── sql/schema.sql           # Database schema (10 tables, 3 views, 28+ indexes)
 ├── data/                    # Source CSV files (~4.4GB, 10 datasets)
 ├── jupyter-notebooks/       # Original PhillyStats Fabric/Synapse notebooks
-└── infra/                   # Azure provisioning + deployment scripts (deploy-swa.sh for SWA)
+└── infra/                   # Bicep IaC (modules/) + deployment scripts
 ```
 
 ## Costs

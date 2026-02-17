@@ -1,6 +1,6 @@
 # Philadelphia Property Data — User Guide
 
-A web app for investigating property ownership, code violations, demolitions, and poverty profiteering patterns in Philadelphia. Five panels (four AI-powered interfaces + a documentation reader), 12 tools, 29 million rows of public data.
+A web app for investigating property ownership, code violations, demolitions, and poverty profiteering patterns in Philadelphia. Seven panels (multiple AI-powered interfaces + documentation reader + tool tester), 12 tools, 29 million rows of public data.
 
 **Live URL:** https://kind-forest-06c4d3c0f.1.azurestaticapps.net/
 
@@ -9,7 +9,7 @@ A web app for investigating property ownership, code violations, demolitions, an
 ## Table of Contents
 
 - [Open the App](#open-the-app)
-- [The Five Panels](#the-five-panels)
+- [The Seven Panels](#the-seven-panels)
   - [Investigative Agent](#1-investigative-agent--chat-icon)
   - [City Portal](#2-city-portal--building-icon)
   - [Copilot Studio](#3-copilot-studio--star-icon)
@@ -51,9 +51,9 @@ A web app for investigating property ownership, code violations, demolitions, an
 
 ---
 
-## The Five Panels
+## The Seven Panels
 
-The left sidebar has five icons. Click one to open that panel. You can have multiple panels open at once (they'll split the screen side by side). Your logged-in email and a "Sign out" button are visible in the header.
+The left sidebar has seven icons. Click one to open that panel. You can have multiple panels open at once (they'll split the screen side by side). Your logged-in email and a "Sign out" button are visible in the header.
 
 ### 1. Investigative Agent — Chat Icon
 
