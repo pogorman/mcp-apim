@@ -10,6 +10,7 @@ Questions and answers that came up while building and managing this project.
 - [Azure Foundry & MCAPS](#azure-foundry--mcaps)
 - [Model Deployments](#model-deployments)
 - [Tokens, Context & Model Behavior](#tokens-context--model-behavior)
+- [Network Security (VNet + Private Endpoints)](#network-security-vnet--private-endpoints)
 - [Infrastructure & Costs](#infrastructure--costs)
 - [Agent Patterns: Tools vs Platform Agents vs Frameworks](#agent-patterns-tools-vs-platform-agents-vs-frameworks)
 - [Development & Deployment](#development--deployment)
@@ -116,6 +117,8 @@ az policy state list --resource-group rg-foundry \
 ### Does the portal lockout affect the running system?
 
 No. The Container App talks directly to `foundry-og-agents` (AI Services account), which has `publicNetworkAccess: Enabled` and is unaffected by the policy. The Hub and Project are just the portal management layer — they're not in the data path for the SPA, chat endpoint, or MCP tools.
+
+**Note:** MCAPS also targets `publicNetworkAccess` on Storage and SQL, which *did* break the Function App in Sessions 19 and 21. This is now permanently fixed by VNet + Private Endpoints — see [Network Security](#network-security-vnet--private-endpoints).
 
 ### What are my options for managing Foundry without the portal?
 
@@ -250,11 +253,88 @@ The biggest token consumers are tool results — a single `get_entity_network` c
 
 ---
 
+## Network Security (VNet + Private Endpoints)
+
+### What is a VNet and why do we have one?
+
+A **Virtual Network (VNet)** is a private, isolated network in Azure — like having your own private office building where only your services are allowed in. Without a VNet, all communication between Azure services goes over the public internet, even though it's encrypted.
+
+Our VNet (`vnet-philly-profiteering`, `10.0.0.0/16`) has two rooms (subnets):
+
+- **`snet-functions` (`10.0.1.0/24`)** — where the Function App lives. This subnet is "delegated" to Azure Functions, meaning only Functions can be placed here.
+- **`snet-private-endpoints` (`10.0.2.0/24`)** — where the private entry points to SQL and Storage live (see next question).
+
+### What is a Private Endpoint?
+
+A **Private Endpoint** gives an Azure service (like SQL or Storage) a private IP address inside your VNet, so traffic never leaves the private network. Without it, your Function App would talk to SQL over the public internet. With it, the traffic stays inside Azure's backbone on a private IP.
+
+Think of it like this: instead of mailing a letter through the post office (public internet), you're walking down an internal hallway to hand-deliver it (private network).
+
+We have 4 private endpoints:
+
+| Private Endpoint | What It Connects To | Why |
+|-----------------|--------------------|----|
+| `pe-sql-philly` | SQL Server (`philly-stats-sql-01`) | Database queries from Functions |
+| `pe-blob-philly` | Storage blob (`phillyfuncsa`) | Function App code deployment packages |
+| `pe-table-philly` | Storage table (`phillyfuncsa`) | Function App internal state (triggers, timers) |
+| `pe-queue-philly` | Storage queue (`phillyfuncsa`) | Function App internal messaging |
+
+### What are Private DNS Zones?
+
+When the Function App needs to connect to `phillyfuncsa.blob.core.windows.net`, DNS normally resolves to a public IP. A **Private DNS Zone** overrides this so it resolves to the private endpoint's IP instead.
+
+We have 4 Private DNS Zones, one for each endpoint type:
+- `privatelink.database.windows.net` → SQL private IP
+- `privatelink.blob.core.windows.net` → blob private IP
+- `privatelink.table.core.windows.net` → table private IP
+- `privatelink.queue.core.windows.net` → queue private IP
+
+Each zone is "linked" to our VNet, so any service inside the VNet automatically resolves these private IPs.
+
+### Why did we add all this?
+
+**MCAPS (Microsoft Corporate Azure Platform Standards)** security policies kept disabling `publicNetworkAccess` on our Storage Account and SQL Server. This happened automatically at the management group level — even as subscription admin, we couldn't prevent it. Every time MCAPS flipped the switch, the Function App couldn't reach its code (in blob storage) or the database (in SQL), causing **503 errors on every API call**.
+
+With VNet + Private Endpoints, the Function App communicates entirely over private links. `publicNetworkAccess` is now set to `Disabled` intentionally — and it stays that way. MCAPS can't break what's already locked down.
+
+### Does the Container App use the VNet too?
+
+No. The Container App doesn't connect directly to SQL or Storage — it goes through APIM (which is a public gateway). The data path is:
+
+```
+Container App → APIM (public) → Function App (VNet-integrated) → SQL/Storage (private endpoints)
+```
+
+Only the Function App needs VNet integration because it's the only service that talks directly to SQL and Storage. APIM Consumption tier doesn't support VNet integration, but that's fine — it's the public-facing gateway by design.
+
+### How much does the VNet cost?
+
+~$31/month:
+- 4 Private Endpoints × $7.20/month = ~$28.80
+- 4 Private DNS Zones × $0.50/month = ~$2.00
+- VNet itself: free
+- Function App VNet integration (Flex Consumption): free
+
+This is now the biggest line item in the idle budget. Before VNet, the project cost ~$1-2/month idle. Now it's ~$33/month. The trade-off: we never have to worry about MCAPS breaking the Function App again.
+
+### Can I still connect to SQL from my local machine?
+
+Not with `publicNetworkAccess: Disabled`. To do admin work on SQL (like running queries from SSMS or Azure Data Studio), you'd need to temporarily enable public access and add your client IP:
+
+```bash
+az sql server update --name philly-stats-sql-01 --resource-group rg-philly-profiteering --set publicNetworkAccess=Enabled
+az sql server firewall-rule create --server philly-stats-sql-01 --resource-group rg-philly-profiteering --name MyIP --start-ip-address <your-ip> --end-ip-address <your-ip>
+```
+
+Remember to disable public access when done. Or use the Bicep's `enablePublicAccess` param at deploy time.
+
+---
+
 ## Infrastructure & Costs
 
 ### What does this cost when idle?
 
-~$1-2/month. Every compute resource scales to zero:
+~$33/month. Every compute resource scales to zero, but the network security layer has fixed costs:
 
 - SQL Serverless auto-pauses after 60 minutes — $0 when paused
 - Functions Flex Consumption — $0 when idle
@@ -262,8 +342,11 @@ The biggest token consumers are tool results — a single `get_entity_network` c
 - Container App — scales to 0 replicas when idle
 - Azure OpenAI — pay-per-token only
 - Static Web App — Free tier
+- Storage (~$1/mo for two accounts) + Container Registry Basic (~$0.17/mo)
+- **Private Endpoints (×4) — ~$29/month** (the biggest line item)
+- **Private DNS Zones (×4) — ~$2/month**
 
-The only idle costs are storage (~$1/mo for two accounts) and Container Registry Basic (~$0.17/mo).
+Before adding VNet + Private Endpoints, idle cost was ~$1-2/month. The network layer adds ~$31/month but permanently solves the MCAPS problem (see [Network Security](#network-security-vnet--private-endpoints)).
 
 ### What's the cold start experience?
 

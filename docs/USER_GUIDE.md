@@ -321,11 +321,13 @@ Container App (Node.js, Express, MCP Server)
     ↓ HTTPS + Ocp-Apim-Subscription-Key
 Azure API Management (Consumption tier)
     ↓ HTTPS + x-functions-key (injected by APIM policy)
-Azure Functions (Flex Consumption, Node.js 20)
-    ↓ Azure AD token (DefaultAzureCredential, Managed Identity)
-Azure SQL Database (Serverless Gen5, 4 vCores)
+Azure Functions (Flex Consumption, Node.js 20, VNet-integrated)
+    ↓ Azure AD token via Private Endpoint (VNet, no public internet)
+Azure SQL Database (Serverless Gen5, public access disabled)
     (10 tables, 3 views, 28+ indexes, ~29M rows)
 ```
+
+The Function App communicates with SQL and Storage entirely over a private network (VNet + Private Endpoints). Public access is disabled on both — all data stays within Azure's private backbone.
 
 The 12 tools available to the AI:
 
@@ -419,7 +421,7 @@ No. All queries are read-only. The `run_query` tool blocks INSERT, UPDATE, DELET
 
 ### How much does this cost to run?
 
-About $1–2/month when idle. Every component scales to zero: SQL auto-pauses, Functions and APIM are pay-per-use, the Container App scales to 0 replicas, and AI models are pay-per-token. See [Costs](#costs) for details.
+About $33/month when idle (most of that is network security — private endpoints). Every compute component scales to zero: SQL auto-pauses, Functions and APIM are pay-per-use, the Container App scales to 0 replicas, and AI models are pay-per-token. See [Costs](#costs) for details.
 
 ### What if the AI gives a wrong answer?
 
@@ -433,7 +435,7 @@ Yes. The MCP endpoint is open and can be connected to any MCP-compatible client.
 
 ## Costs
 
-Everything scales to zero when idle:
+Everything scales to zero when idle. The biggest cost is network security (private endpoints):
 
 | Resource | Idle Cost | Active Cost |
 |----------|-----------|-------------|
@@ -445,8 +447,10 @@ Everything scales to zero when idle:
 | Static Web App | $0 | Free tier |
 | Storage (2 accounts) | ~$1/mo | Same |
 | Container Registry | ~$0.17/mo | Same |
+| Private Endpoints (×4) | ~$29/mo | Same |
+| Private DNS Zones (×4) | ~$2/mo | Same |
 
-**Total idle:** ~$1–2/month. No resources need manual start/stop.
+**Total idle:** ~$33/month. No resources need manual start/stop. The private endpoints keep the Function App's connection to SQL and Storage on a private network — this is a fixed cost but prevents Azure security policies from breaking the data path.
 
 ---
 

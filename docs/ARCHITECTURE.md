@@ -855,7 +855,7 @@ The Function App communicates with SQL and Storage entirely over private endpoin
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│  VNet: vnet-philly-profiteering (10.0.0.0/16, East US)              │
+│  VNet: vnet-philly-profiteering (10.0.0.0/16, East US 2)            │
 │                                                                      │
 │  ┌─────────────────────────────────┐                                 │
 │  │ snet-functions (10.0.1.0/24)    │  ← Function App VNet integration│

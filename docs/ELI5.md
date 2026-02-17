@@ -14,6 +14,7 @@ A plain-English guide to the Philly Poverty Profiteering platform. Use this for 
 - [What's Inside the Data](#whats-inside-the-data)
 - [How It Works — No Jargon](#how-it-works--no-jargon)
 - [How It Works — Some Jargon](#how-it-works--some-jargon)
+- [How the Network Security Works](#how-the-network-security-works)
 - [The Seven Ways to Use It](#the-seven-ways-to-use-it)
 - [Why It Matters (The Story)](#why-it-matters-the-story)
 - [How AI Models Think — Tokens, Context, and Temperature](#how-ai-models-think--tokens-context-and-temperature)
@@ -36,7 +37,7 @@ Philadelphia publishes data about every property in the city: who owns it, what 
 
 We loaded all of it into one database, built 12 search tools on top of it, and connected those tools to AI models (GPT-4.1, GPT-5, and others). Now you can ask plain-English questions like "Who are the worst landlords in Philadelphia?" or "Tell me about this LLC — how many properties do they own and how many have violations?" and the AI figures out which tools to use, runs the queries, and writes you a report. It even shows the properties on a map.
 
-The whole thing costs about $1-2/month when nobody's using it. Everything is serverless — it sleeps when idle and wakes up on demand.
+The whole thing costs about $33/month when nobody's using it (most of that is network security). Everything is serverless — it sleeps when idle and wakes up on demand.
 
 ---
 
@@ -92,7 +93,7 @@ Click the purple chat icon and ask something.
 
 ### Wrap Up
 
-> "Seven completely different interfaces — a custom chat agent, a government-branded portal, a Copilot Studio agent, a Semantic Kernel multi-agent, a project overview, a documentation reader, and a raw tool tester — all using the same 12 tools and the same 29 million rows of data. The whole thing runs serverless and costs about $1-2 a month when nobody's using it."
+> "Seven completely different interfaces — a custom chat agent, a government-branded portal, a Copilot Studio agent, a Semantic Kernel multi-agent, a project overview, a documentation reader, and a raw tool tester — all using the same 12 tools and the same 29 million rows of data. The whole thing runs serverless and costs about $33 a month when nobody's using it — most of that is network security keeping the data path private."
 
 ---
 
@@ -149,15 +150,38 @@ MCP Server (TypeScript, Container App, scales 0-3)
     └── APIM (API Management, routes to backend)
             ↓
         Azure Functions (12 HTTP endpoints, Node.js 20)
-            ↓
+            ↓ via VNet + Private Endpoints (private network, no public internet)
         Azure SQL Database (Serverless, 10 tables, ~29M rows)
+        Azure Storage (Function App code + internal state)
 ```
 
 **Key technologies:**
 - **MCP** (Model Context Protocol) — a standard from Anthropic for connecting AI agents to tools. Any MCP-compatible client can connect and auto-discover all 12 tools.
 - **Azure OpenAI** — runs the AI models. We have 6 deployed: GPT-4.1, GPT-5, GPT-5 Mini, o4-mini, o3-mini, Phi-4.
 - **API Management** — a gateway that handles auth and routing. The AI never touches the database directly.
+- **VNet + Private Endpoints** — the Function App talks to SQL and Storage over a private network. Public access is disabled on both. See [How the Network Security Works](#how-the-network-security-works).
 - **Serverless** — everything scales to zero when idle. No VMs, no always-on services. Pay only when someone's using it.
+
+---
+
+## How the Network Security Works
+
+Think of it like a building analogy:
+
+**Before VNet:** Our Function App (the worker) needed to walk outside on the public sidewalk to get to the database (the filing cabinet in another building) and the storage room (where the worker's own tools are kept). Azure's security team (MCAPS) kept locking the front doors of both buildings — "no public access allowed!" — which meant the worker couldn't get to the data or even to its own tools. The whole system went down every time MCAPS locked the doors.
+
+**After VNet:** We built an underground tunnel (the **VNet**) connecting all three buildings. The worker now uses the tunnel to reach the database and storage. The front doors are intentionally locked — nobody uses them anymore. MCAPS can lock them all day long; the worker doesn't care because it has its private tunnel.
+
+The technical pieces:
+
+| Component | Analogy | What It Does |
+|-----------|---------|-------------|
+| **VNet** | The underground tunnel system | A private network where only our services can communicate |
+| **Private Endpoints** (×4) | Private doorways from the tunnel into each building | Give SQL and Storage private addresses that only work inside the tunnel |
+| **Private DNS Zones** (×4) | Address book updates | When the worker asks "where is the database?", the answer is now the private tunnel door, not the public front door |
+| **VNet Integration** | The worker's connection to the tunnel | Function App routes all traffic through the VNet instead of the public internet |
+
+This costs ~$31/month (the "construction cost" of the tunnel), but it permanently solves the problem. MCAPS can't break what's already locked down.
 
 ---
 
@@ -352,7 +376,7 @@ The data was loaded from a snapshot. It's not live-updating from the city's port
 No. The SQL endpoint only allows read-only queries. There are no write operations. The database enforces read-only access at the permission level.
 
 **Q: How much does this cost to run?**
-About $1-2/month when nobody's using it. Everything is serverless — it scales to zero. When someone IS using it, you pay a few cents per query. See the [cost section](#cost--how-is-this-not-expensive) below.
+About $33/month when nobody's using it (most of that is network security — private endpoints that keep the data path secure). When someone IS using it, you pay a few cents per query on top of that. See the [cost section](#cost--how-is-this-not-expensive) below.
 
 **Q: Can other AI tools connect to this?**
 Yes. Claude Code, Claude Desktop, Azure AI Foundry, Copilot Studio, or any MCP-compatible client can connect and auto-discover all 12 tools. The MCP endpoint is publicly available.
@@ -404,7 +428,11 @@ For when someone in your audience asks "what does that mean?"
 | **Cold start** | When a serverless resource wakes up from sleep. Takes 30-60 seconds for the database, a few seconds for the container. |
 | **Flex Consumption** | Azure's pricing tier for Functions — you only pay when a function actually runs. Idle = free. |
 | **Managed identity** | Instead of passwords, our services authenticate to each other using Azure's identity system. No secrets to manage or rotate. |
+| **VNet** | Virtual Network — a private, isolated network in Azure. Think of it as your own private office building where only your services can communicate. |
+| **Private Endpoint** | A private doorway that gives an Azure service (like SQL or Storage) a private IP address inside your VNet. Traffic never goes over the public internet. |
+| **Private DNS Zone** | An address book override that makes service names resolve to private IPs instead of public ones. Without this, the Function App would try to reach SQL at its public address (which is blocked). |
+| **MCAPS** | Microsoft Corporate Azure Platform Standards — security policies applied at a level above your subscription. They can automatically change settings on your resources. The VNet + Private Endpoints setup makes us immune to the most disruptive MCAPS policies. |
 
 ---
 
-*Last updated: Session 18 (2026-02-16). This file should be updated whenever features, panels, data, architecture, or costs change.*
+*Last updated: Session 21 (2026-02-17). This file should be updated whenever features, panels, data, architecture, or costs change.*

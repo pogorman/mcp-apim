@@ -7,6 +7,7 @@ All CLI commands used to build, deploy, and manage this project. Grouped by cate
 ## Table of Contents
 
 - [Build & Development](#build--development)
+- [VNet + Private Endpoints](#vnet--private-endpoints)
 - [Azure Infrastructure](#azure-infrastructure-infradeploysh)
 - [Container App Deployment](#container-app-deployment-infradeploy-agentsh)
 - [Function App Deployment](#function-app-deployment)
@@ -38,6 +39,113 @@ MCP_TRANSPORT=http PORT=3000 \
   APIM_BASE_URL=https://philly-profiteering-apim.azure-api.net/api \
   APIM_SUBSCRIPTION_KEY=<key> \
   node mcp-server/dist/index.js
+```
+
+---
+
+## VNet + Private Endpoints
+
+All resources in `eastus2`. The Function App communicates with SQL and Storage entirely over private links.
+
+### VNet + Subnets
+
+```bash
+# Create VNet with private endpoints subnet
+az network vnet create --name vnet-philly-profiteering --resource-group rg-philly-profiteering \
+  --location eastus2 --address-prefix 10.0.0.0/16 \
+  --subnet-name snet-private-endpoints --subnet-prefix 10.0.2.0/24
+
+# Create functions subnet with Web delegation
+az network vnet subnet create --name snet-functions \
+  --vnet-name vnet-philly-profiteering --resource-group rg-philly-profiteering \
+  --address-prefix 10.0.1.0/24 --delegations Microsoft.Web/serverFarms
+```
+
+### Private DNS Zones + VNet Links
+
+```bash
+# Create 4 DNS zones (SQL, blob, table, queue)
+az network private-dns zone create --name privatelink.database.windows.net --resource-group rg-philly-profiteering
+az network private-dns zone create --name privatelink.blob.core.windows.net --resource-group rg-philly-profiteering
+az network private-dns zone create --name privatelink.table.core.windows.net --resource-group rg-philly-profiteering
+az network private-dns zone create --name privatelink.queue.core.windows.net --resource-group rg-philly-profiteering
+
+# Link each zone to the VNet
+az network private-dns link vnet create --name vnet-sql-link --zone-name privatelink.database.windows.net \
+  --virtual-network vnet-philly-profiteering --resource-group rg-philly-profiteering --registration-enabled false
+az network private-dns link vnet create --name vnet-blob-link --zone-name privatelink.blob.core.windows.net \
+  --virtual-network vnet-philly-profiteering --resource-group rg-philly-profiteering --registration-enabled false
+az network private-dns link vnet create --name vnet-table-link --zone-name privatelink.table.core.windows.net \
+  --virtual-network vnet-philly-profiteering --resource-group rg-philly-profiteering --registration-enabled false
+az network private-dns link vnet create --name vnet-queue-link --zone-name privatelink.queue.core.windows.net \
+  --virtual-network vnet-philly-profiteering --resource-group rg-philly-profiteering --registration-enabled false
+```
+
+### Private Endpoints (use MSYS_NO_PATHCONV=1 on Git Bash to prevent path conversion)
+
+```bash
+SQL_ID=$(az sql server show --name philly-stats-sql-01 --resource-group rg-philly-profiteering --query id -o tsv)
+STORAGE_ID=$(az storage account show --name phillyfuncsa --resource-group rg-philly-profiteering --query id -o tsv)
+
+# SQL private endpoint
+MSYS_NO_PATHCONV=1 az network private-endpoint create --name pe-sql-philly \
+  --resource-group rg-philly-profiteering --location eastus2 \
+  --vnet-name vnet-philly-profiteering --subnet snet-private-endpoints \
+  --private-connection-resource-id "$SQL_ID" --group-id sqlServer --connection-name sql-connection
+
+# Storage blob, table, queue private endpoints
+MSYS_NO_PATHCONV=1 az network private-endpoint create --name pe-blob-philly \
+  --resource-group rg-philly-profiteering --location eastus2 \
+  --vnet-name vnet-philly-profiteering --subnet snet-private-endpoints \
+  --private-connection-resource-id "$STORAGE_ID" --group-id blob --connection-name blob-connection
+
+MSYS_NO_PATHCONV=1 az network private-endpoint create --name pe-table-philly \
+  --resource-group rg-philly-profiteering --location eastus2 \
+  --vnet-name vnet-philly-profiteering --subnet snet-private-endpoints \
+  --private-connection-resource-id "$STORAGE_ID" --group-id table --connection-name table-connection
+
+MSYS_NO_PATHCONV=1 az network private-endpoint create --name pe-queue-philly \
+  --resource-group rg-philly-profiteering --location eastus2 \
+  --vnet-name vnet-philly-profiteering --subnet snet-private-endpoints \
+  --private-connection-resource-id "$STORAGE_ID" --group-id queue --connection-name queue-connection
+```
+
+### DNS Zone Groups (auto-register A records in private DNS)
+
+```bash
+# Each PE gets a DNS zone group so private IPs are automatically registered
+MSYS_NO_PATHCONV=1 az network private-endpoint dns-zone-group create --endpoint-name pe-sql-philly \
+  --name sql-dns-group --resource-group rg-philly-profiteering --zone-name sql-dns-config \
+  --private-dns-zone "/subscriptions/<sub-id>/resourceGroups/rg-philly-profiteering/providers/Microsoft.Network/privateDnsZones/privatelink.database.windows.net"
+
+# Repeat for blob, table, queue (same pattern, different zone names and PE names)
+```
+
+### Function App VNet Integration
+
+```bash
+# Add VNet integration
+MSYS_NO_PATHCONV=1 az functionapp vnet-integration add --name philly-profiteering-func \
+  --resource-group rg-philly-profiteering --vnet vnet-philly-profiteering --subnet snet-functions
+
+# Route all traffic through VNet
+az functionapp config set --name philly-profiteering-func \
+  --resource-group rg-philly-profiteering --vnet-route-all-enabled true
+
+# Add storage service URI app settings (for private endpoint DNS resolution)
+az functionapp config appsettings set --name philly-profiteering-func \
+  --resource-group rg-philly-profiteering --settings \
+  "AzureWebJobsStorage__blobServiceUri=https://phillyfuncsa.blob.core.windows.net" \
+  "AzureWebJobsStorage__queueServiceUri=https://phillyfuncsa.queue.core.windows.net" \
+  "AzureWebJobsStorage__tableServiceUri=https://phillyfuncsa.table.core.windows.net"
+```
+
+### Disable Public Access
+
+```bash
+# Disable public access on storage and SQL (safe after VNet + PE is verified)
+az storage account update --name phillyfuncsa --resource-group rg-philly-profiteering --public-network-access Disabled
+az sql server update --name philly-stats-sql-01 --resource-group rg-philly-profiteering --set publicNetworkAccess=Disabled
 ```
 
 ---
@@ -591,17 +699,17 @@ az functionapp show \
   --resource-group rg-philly-profiteering \
   --query "state" -o tsv
 
-# Check storage public access (MCAPS may disable this)
-az storage account show \
-  --name phillyfuncsa \
-  --query "publicNetworkAccess" -o tsv
+# Verify VNet + PE health (all 4 should show "Approved")
+az network private-endpoint list --resource-group rg-philly-profiteering \
+  --query "[].{name:name, status:privateLinkServiceConnections[0].properties.privateLinkServiceConnectionState.status}" -o table
 
-# Check SQL public access (MCAPS may disable this)
-az sql server show \
-  --name philly-stats-sql-01 \
-  --resource-group rg-philly-profiteering \
-  --query "publicNetworkAccess" -o tsv
+# Verify public access is disabled (both should return "Disabled" — that's correct now)
+az storage account show --name phillyfuncsa --query publicNetworkAccess -o tsv
+az sql server show --name philly-stats-sql-01 --resource-group rg-philly-profiteering --query publicNetworkAccess -o tsv
 
-# MSYS path conversion fix for Git Bash
+# If Function App 503: check VNet integration is intact
+az functionapp vnet-integration list --name philly-profiteering-func --resource-group rg-philly-profiteering -o table
+
+# MSYS path conversion fix for Git Bash (needed for Azure resource ID args)
 MSYS_NO_PATHCONV=1 az <command with path args>
 ```

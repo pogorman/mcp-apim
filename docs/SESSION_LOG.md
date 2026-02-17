@@ -973,7 +973,7 @@ Azure security policies (MCAPS) had disabled `publicNetworkAccess` on both the S
 Added VNet + Private Endpoints so the Function App communicates with SQL and Storage entirely over private links. Public access can stay disabled permanently.
 
 **New Bicep module:** `infra/modules/networking.bicep`
-- VNet `vnet-philly-profiteering` (10.0.0.0/16) in East US
+- VNet `vnet-philly-profiteering` (10.0.0.0/16) in East US 2
 - Subnet `snet-functions` (10.0.1.0/24) — delegated to Microsoft.Web/serverFarms
 - Subnet `snet-private-endpoints` (10.0.2.0/24)
 - 4 Private Endpoints: SQL (pe-sql-philly), Storage blob/table/queue (pe-blob/table/queue-philly)
@@ -984,14 +984,26 @@ Added VNet + Private Endpoints so the Function App communicates with SQL and Sto
 - `storage.bicep` — `publicNetworkAccess: 'Disabled'` + `networkAcls: Deny/bypass AzureServices` on phillyfuncsa
 - `functionApp.bicep` — VNet integration (`virtualNetworkSubnetId`), `vnetRouteAllEnabled`, explicit storage service URI app settings for private DNS resolution
 - `main.bicep` — Wired networking module between sql/storage → functionApp
+- `main.bicepparam` — Fixed `sqlLocation` from `eastus` to `eastus2` (all resources are in East US 2, not East US)
+
+**Deployment:** Deployed via targeted az CLI commands (not full Bicep) to avoid risk of overwriting working APIM/Container App config. Initially created VNet in `eastus` (wrong) — Function App VNet integration requires same region. Deleted and recreated everything in `eastus2`. Verified all endpoints working, then disabled public access on SQL and Storage.
 
 **Cost impact:** ~$31/month additional (4 private endpoints @ $7.20 each + 4 DNS zones @ $0.50 each). VNet integration for Functions Flex Consumption is free. Total idle cost: ~$33/month (up from ~$1-2/month).
 
 ### SWA Redeployment
 Redeployed the Static Web App to pick up Session 19/20 changes (SK Agent panel, nav reorder, bell favicon) that hadn't been deployed to the live site.
 
-### Documentation Updates
-Updated HTML architecture diagram, ARCHITECTURE.md, CLAUDE.md, README.md, ELI5.md, SESSION_LOG.md, and PROMPTS.md with VNet + Private Endpoints details.
+### Documentation Updates (Round 2)
+Comprehensive update of ALL project documentation with VNet + Private Endpoints details:
+- **FAQ.md** — New "Network Security (VNet + Private Endpoints)" section with 8 Q&As explaining VNet, PEs, DNS zones, costs, and MCAPS resolution in plain English. Updated cost section.
+- **CLI_CHEATSHEET.md** — New "VNet + Private Endpoints" section with management commands. Updated MCAPS section to reflect the fix. Updated SQL section for private-endpoint-first workflow.
+- **COMMANDS.md** — New "VNet + Private Endpoints" section with all deployment commands. Updated Troubleshooting section.
+- **ELI5.md** — New "How the Network Security Works" section with building/tunnel analogy. Updated cost references, glossary (4 new terms: VNet, Private Endpoint, Private DNS Zone, MCAPS), architecture diagram, last-updated.
+- **USER_GUIDE.md** — Updated technical architecture diagram, cost table, FAQ cost reference.
+- **ARCHITECTURE.md** — Fixed region from "East US" to "East US 2" in VNet diagram.
+- **CLAUDE.md** — Fixed VNet region from eastus to eastus2.
+- **SESSION_LOG.md** — Updated Session 21 with deployment details, region fix, and round-2 doc updates.
+- **PROMPTS.md** — Added Sessions 19, 20, 21.
 
 ### Files Changed
 - `infra/modules/networking.bicep` — **NEW** — VNet, subnets, private endpoints, DNS zones

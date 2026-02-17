@@ -154,7 +154,7 @@ mcp-apim/
 | AI Foundry Hub | `philly-ai-hub` | — (rg-foundry, eastus) |
 | AI Foundry Project | `philly-profiteering` | — (under philly-ai-hub) |
 | AI Services | `foundry-og-agents` | S0 (eastus, 6 model deployments) |
-| VNet | `vnet-philly-profiteering` | 10.0.0.0/16 (eastus) |
+| VNet | `vnet-philly-profiteering` | 10.0.0.0/16 (eastus2) |
 | Private Endpoints | `pe-sql/blob/table/queue-philly` | SQL + Storage private connectivity |
 | Private DNS Zones | `privatelink.database/blob/table/queue` | DNS resolution for private endpoints |
 | Static Web App | `philly-profiteering-spa` | Free |

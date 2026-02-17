@@ -7,6 +7,7 @@ Day-to-day management commands for the Philly Poverty Profiteering platform. For
 ## Table of Contents
 
 - [Quick Status Check](#quick-status-check)
+- [VNet + Private Endpoints](#vnet--private-endpoints)
 - [AI Foundry (Portal Blocked by MCAPS)](#ai-foundry-portal-blocked-by-mcaps)
 - [Container App Management](#container-app-management)
 - [APIM](#apim)
@@ -27,6 +28,42 @@ curl -s https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainer
 
 # SQL database status (Running or Paused)
 az sql db show --name phillystats --server philly-stats-sql-01 --resource-group rg-philly-profiteering --query "{status:status, currentSku:currentSku.name}" -o table
+```
+
+---
+
+## VNet + Private Endpoints
+
+The Function App communicates with SQL and Storage entirely over VNet + Private Endpoints. Public access is disabled on both. These commands check and manage the networking layer.
+
+```bash
+# Check VNet and subnets
+az network vnet show --name vnet-philly-profiteering --resource-group rg-philly-profiteering \
+  --query "{addressSpace:addressSpace.addressPrefixes[0], subnets:subnets[].{name:name, prefix:addressPrefix}}" -o json
+
+# Check Function App VNet integration
+az functionapp vnet-integration list --name philly-profiteering-func --resource-group rg-philly-profiteering -o table
+
+# Check private endpoint status (all 4 should show "Approved")
+az network private-endpoint list --resource-group rg-philly-profiteering \
+  --query "[].{name:name, status:privateLinkServiceConnections[0].properties.privateLinkServiceConnectionState.status, target:privateLinkServiceConnections[0].properties.groupIds[0]}" -o table
+
+# Check private DNS zones
+az network private-dns zone list --resource-group rg-philly-profiteering \
+  --query "[].{zone:name, records:numberOfRecordSets}" -o table
+
+# Verify DNS resolution (A records should show private IPs like 10.0.2.x)
+az network private-dns record-set a list --zone-name privatelink.database.windows.net --resource-group rg-philly-profiteering -o table
+az network private-dns record-set a list --zone-name privatelink.blob.core.windows.net --resource-group rg-philly-profiteering -o table
+
+# Verify public access is disabled (both should return "Disabled")
+az storage account show --name phillyfuncsa --resource-group rg-philly-profiteering --query publicNetworkAccess -o tsv
+az sql server show --name philly-stats-sql-01 --resource-group rg-philly-profiteering --query publicNetworkAccess -o tsv
+
+# Temporarily enable SQL public access for admin work (don't forget to disable after!)
+az sql server update --name philly-stats-sql-01 --resource-group rg-philly-profiteering --set publicNetworkAccess=Enabled
+# ... do your admin work, then:
+az sql server update --name philly-stats-sql-01 --resource-group rg-philly-profiteering --set publicNetworkAccess=Disabled
 ```
 
 ---
@@ -278,23 +315,25 @@ az sql db show --name phillystats --server philly-stats-sql-01 \
 az sql db update --name phillystats --server philly-stats-sql-01 \
   --resource-group rg-philly-profiteering
 
-# Check firewall rules
-az sql server firewall-rule list \
-  --server philly-stats-sql-01 --resource-group rg-philly-profiteering -o table
-
-# Add your current IP to firewall
+# NOTE: Public network access is DISABLED (VNet + Private Endpoints).
+# The Function App accesses SQL through the private endpoint.
+# For local admin access (SSMS, Azure Data Studio), temporarily enable public access:
+az sql server update --name philly-stats-sql-01 --resource-group rg-philly-profiteering --set publicNetworkAccess=Enabled
 MY_IP=$(curl -s ifconfig.me)
 az sql server firewall-rule create \
   --server philly-stats-sql-01 --resource-group rg-philly-profiteering \
   --name "MyIP-$(date +%Y%m%d)" \
   --start-ip-address $MY_IP --end-ip-address $MY_IP
+
+# When done, disable public access again:
+az sql server update --name philly-stats-sql-01 --resource-group rg-philly-profiteering --set publicNetworkAccess=Disabled
 ```
 
 ---
 
 ## MCAPS Policy Checks
 
-Corporate MCAPS policies (assigned at management group level) can silently revert settings. These commands check for common issues.
+Corporate MCAPS policies (assigned at management group level) can silently revert settings. The **SQL and Storage public access issue is now permanently solved** by VNet + Private Endpoints (Session 21) — MCAPS can't break what's already disabled. The Foundry portal issue remains (no fix needed since the portal isn't in the data path).
 
 ```bash
 # Check what's non-compliant
@@ -306,9 +345,11 @@ az policy state list --resource-group rg-foundry \
   --filter "isCompliant eq false" \
   --query "[].{policy:policyDefinitionName, resource:resourceId}" -o table
 
-# Check specific settings MCAPS likes to flip
+# Verify VNet + PE is protecting us (both should show "Disabled" — that's intentional now)
 az storage account show --name phillyfuncsa --query publicNetworkAccess -o tsv
 az sql server show --name philly-stats-sql-01 --resource-group rg-philly-profiteering --query publicNetworkAccess -o tsv
+
+# Foundry portal — still blocked by MCAPS, use CLI instead (see AI Foundry section above)
 az ml workspace show --name philly-ai-hub --resource-group rg-foundry --query public_network_access -o tsv
 
 # Find the specific policy blocking Foundry portal access
