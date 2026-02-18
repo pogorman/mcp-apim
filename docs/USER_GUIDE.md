@@ -312,8 +312,9 @@ Everything in this system scales to zero when idle to save money. The first requ
 | **Appeals** | 316K | L&I zoning and code appeals |
 | **Addresses** | 987K | Standardized address records |
 | **Demolitions** | 13.5K | Demolition records — city-initiated vs. owner-initiated |
+| **Real Estate Transfers** | 5.05M | 🆕 Every property deed, mortgage, and sheriff sale — the V2 game changer |
 
-Data is sourced from Philadelphia's open data portals and the [PhillyStats project](https://github.com/davew-msft/PhillyStats).
+Data is sourced from Philadelphia's open data portals (via [Carto API](https://phl.carto.com)) and the [PhillyStats project](https://github.com/davew-msft/PhillyStats).
 
 ---
 
@@ -368,9 +369,11 @@ The 14 tools available to the AI:
 | `get_property_licenses` | Business licenses at a property |
 | `get_property_appeals` | L&I appeals for a property |
 | `get_property_demolitions` | Demolition records for a property |
+| `get_property_transfers` | 🆕 Transfer/sale history for a property |
+| `search_transfers` | 🆕 Search 5M+ transfers by name, type, zip, price |
 | `search_businesses` | Search licenses by keyword, type, or zip |
 | `get_top_violators` | Ranked owners by violation count |
-| `get_area_stats` | Zip code aggregate statistics |
+| `get_area_stats` | Zip code aggregate statistics (now includes transfer stats) |
 | `run_query` | Custom read-only SQL (SELECT only) |
 
 ---

@@ -120,7 +120,7 @@ No passwords or API keys are stored in application code. The Function App's syst
 
 ## Data Sources
 
-All data comes from Philadelphia's open data portals. The original datasets were curated by [davew-msft/PhillyStats](https://github.com/davew-msft/PhillyStats).
+All data comes from Philadelphia's open data portals. The original 10 datasets were curated by [davew-msft/PhillyStats](https://github.com/davew-msft/PhillyStats) as static CSV exports. In V2, we added a live data pipeline from the **Philadelphia Carto SQL API** (`https://phl.carto.com/api/v2/sql`) to download the 11th dataset (RTT Summary — 5.05M real estate transfer records).
 
 | Dataset | Source Agency | Rows | Description |
 |---------|-------------|------|-------------|
@@ -135,6 +135,28 @@ All data comes from Philadelphia's open data portals. The original datasets were
 | Appeals | Board of L&I Review | 316K | L&I appeals: zoning, use, building code appeals with decisions |
 | Demolitions | Dept. of Licenses & Inspections | 13.5K | Demolition permits: city-initiated (taxpayer-funded) vs owner-initiated |
 | RTT Summary | Dept. of Revenue | 5.05M | Real estate transfer tax records (deeds, sheriff sales, mortgages) |
+
+### Data Import Pipeline
+
+```
+V1 Data (Sessions 1-25):
+  Static CSV exports (from PhillyStats repo)
+    → sql/bulk_import.js (TDS bulk copy, ~25K rows/sec)
+    → Azure SQL (10 tables, ~29M rows)
+
+V2 Data (Session 26 — "The Game Changer"):
+  Philadelphia Carto SQL API (https://phl.carto.com/api/v2/sql)
+    → sql/download-carto.js (batch download, 50K rows/batch, retry + backoff)
+    → CSV file (data/rtt_summary.csv, 1.2GB)
+    → sql/bulk_import.js (TDS bulk copy)
+    → Azure SQL (11 tables, ~34M rows)
+```
+
+**Carto API pipeline details:**
+- **Public, no auth** — the same API the original Jupyter notebooks query interactively
+- **Pagination**: Query `MIN/MAX(cartodb_id)` for ID range, then `WHERE cartodb_id BETWEEN` in 50,000-row batches
+- **Rate limiting**: 200ms courtesy delay between requests, exponential backoff on 429 errors
+- **Reusable**: Same script can refresh existing tables or add new datasets (violations, permits)
 
 ---
 

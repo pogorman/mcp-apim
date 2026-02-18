@@ -116,7 +116,15 @@ Click the purple chat icon and ask something.
 
 The transfer data reveals property flipping patterns, $1 LLC-to-LLC shuffles, and sheriff sale purchases — key indicators of poverty profiteering.
 
-**Source:** Philadelphia open data portals, via [davew-msft/PhillyStats](https://github.com/davew-msft/PhillyStats).
+**Source:** Philadelphia open data portals, via [davew-msft/PhillyStats](https://github.com/davew-msft/PhillyStats) and the [Philadelphia Carto API](https://phl.carto.com).
+
+### How the Data Evolved (V1 → V2)
+
+**V1 (Sessions 1-25):** We started with 10 static CSV files — one-time data exports. This gave us 29 million rows covering ownership, violations, assessments, and demolitions. Powerful, but we couldn't track property sales or detect $1 transfers.
+
+**V2 (Session 26 — "The Game Changer"):** We went back to the original Jupyter notebooks and discovered that the Philadelphia Carto API has live, daily-updated data — including 5 million real estate transfer records we never had. We built a download pipeline (`sql/download-carto.js`) that pulls data directly from the public API, downloaded all 5M records, and loaded them into our database. This unlocked three previously impossible analyses: sheriff sale tracking, $1 transfer detection, and complete ownership chain history.
+
+The same pipeline can refresh all existing data and add two more datasets (violations, permits) when we're ready for V3.
 
 ---
 

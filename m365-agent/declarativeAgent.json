@@ -36,6 +36,10 @@
     {
       "title": "Sheriff sale purchases",
       "text": "Show me recent sheriff sale purchases and identify which LLCs are buying the most properties at sheriff sales."
+    },
+    {
+      "title": "Follow the money",
+      "text": "Deep investigation: Find LLCs that bought properties at sheriff sales for cheap, accumulated code violations, then did $1 transfers to other LLCs. This is the poverty profiteering playbook."
     }
   ],
   "actions": [

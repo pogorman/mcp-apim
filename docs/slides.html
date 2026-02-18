@@ -306,15 +306,15 @@
       <div class="label">Client Patterns</div>
     </div>
     <div class="stat fragment" data-fragment-index="2">
-      <div class="num c-green">12</div>
+      <div class="num c-green">14</div>
       <div class="label">MCP Tools</div>
     </div>
     <div class="stat fragment" data-fragment-index="3">
-      <div class="num c-orange">29M</div>
+      <div class="num c-orange">34M</div>
       <div class="label">Rows</div>
     </div>
     <div class="stat fragment" data-fragment-index="4">
-      <div class="num c-cyan">10</div>
+      <div class="num c-cyan">11</div>
       <div class="label">Public Datasets</div>
     </div>
     <div class="stat fragment" data-fragment-index="5">
@@ -324,7 +324,7 @@
   </div>
 
   <p class="subtitle fragment" data-fragment-index="6" style="text-align:center; max-width:100%;">
-    Seven live client patterns consuming the same 12 tools and 29M rows of Philadelphia property data.<br>
+    Seven live client patterns consuming the same 14 tools and 34M rows of Philadelphia property data.<br>
     Two Container Apps. Azure APIM as the security front door. VNet + Private Endpoints. ~$33/month idle.
   </p>
 </section>
@@ -334,7 +334,7 @@
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <section data-transition="slide">
   <span class="tag c-green">What's Live Today</span>
-  <h2>7 Client Patterns, Same 12 Tools</h2>
+  <h2>7 Client Patterns, Same 14 Tools</h2>
 
   <div style="display:grid; gap:8px; margin-top:16px;">
     <div class="step-box fragment">
@@ -362,7 +362,7 @@
       <div class="step-num" style="background:var(--accent-purple); color:var(--bg);">4</div>
       <div class="step-content">
         <div class="step-title">Copilot Studio <span style="font-weight:400; color:var(--text-dim);">— MCP via Low-Code</span></div>
-        <div class="step-desc">Embedded widget. Auto-discovers 12 tools via MCP protocol. No custom code.</div>
+        <div class="step-desc">Embedded widget. Auto-discovers 14 tools via MCP protocol. No custom code.</div>
       </div>
     </div>
     <div class="step-box fragment">
@@ -376,7 +376,7 @@
       <div class="step-num" style="background:var(--accent-green); color:var(--bg);">6</div>
       <div class="step-content">
         <div class="step-title">Claude Code / Desktop <span style="font-weight:400; color:var(--text-dim);">— stdio MCP</span></div>
-        <div class="step-desc">Local MCP server process. Full access to all 12 tools + ad-hoc SQL.</div>
+        <div class="step-desc">Local MCP server process. Full access to all 14 tools + ad-hoc SQL.</div>
       </div>
     </div>
     <div class="step-box fragment">
@@ -435,7 +435,7 @@
       <div class="card fragment">
         <div class="card-label"><span class="dot dot-purple"></span> <span class="c-purple">Low-Code</span> <span class="badge badge-live">LIVE</span></div>
         <div class="card-title">Copilot Studio</div>
-        <div class="card-desc">Auto-discovers 12 tools via MCP. No custom code.</div>
+        <div class="card-desc">Auto-discovers 14 tools via MCP. No custom code.</div>
         <div class="chips">
           <span class="chip chip-purple">POST /mcp</span>
           <span class="chip chip-purple">MCP GA</span>
@@ -453,7 +453,7 @@
       <div class="card fragment">
         <div class="card-label"><span class="dot dot-green"></span> <span class="c-green">Pro-Code</span> <span class="badge badge-live">LIVE</span></div>
         <div class="card-title">Claude Code</div>
-        <div class="card-desc">Local MCP server (stdio). Full access to all 12 tools.</div>
+        <div class="card-desc">Local MCP server (stdio). Full access to all 14 tools.</div>
         <div class="chips">
           <span class="chip chip-green">stdio</span>
           <span class="chip chip-green">Ad-hoc SQL</span>
@@ -501,7 +501,7 @@
         <div class="step-num" style="background:var(--accent-green); color:var(--bg);">=</div>
         <div class="step-content">
           <div class="step-title" style="color:var(--accent-green);">The Tools and Data Are Identical</div>
-          <div class="step-desc">All clients hit the same 12 Functions via APIM, query the same 29M rows. The divergence is entirely in the intelligence layer above.</div>
+          <div class="step-desc">All clients hit the same 14 Functions via APIM, query the same 34M rows. The divergence is entirely in the intelligence layer above.</div>
         </div>
       </div>
     </div>
@@ -535,7 +535,7 @@
       <div class="card fragment">
         <div class="card-label"><span class="dot dot-lime"></span> <span class="c-lime">Chat Completions</span></div>
         <div class="card-title">POST /chat + GET /models</div>
-        <div class="card-desc">Natural language &rarr; Azure OpenAI (selected model) with 12 tool definitions. Our code runs the agentic loop. 6 models. Stateless.</div>
+        <div class="card-desc">Natural language &rarr; Azure OpenAI (selected model) with 14 tool definitions. Our code runs the agentic loop. 6 models. Stateless.</div>
         <div class="chips">
           <span class="chip chip-lime">GPT-4.1</span>
           <span class="chip chip-lime">GPT-5</span>
@@ -587,13 +587,13 @@
         <div class="card-label"><span class="dot dot-red"></span> <span class="c-red">philly-profiteering-apim</span></div>
         <div class="card-title">Azure API Management (Consumption)</div>
         <div class="card-desc">
-          Validates <code>Ocp-Apim-Subscription-Key</code> on every inbound request, injects <code>x-functions-key</code> for backend auth. Function key never exposed to clients. 12 operations (9 GET, 3 POST).<br><br>
+          Validates <code>Ocp-Apim-Subscription-Key</code> on every inbound request, injects <code>x-functions-key</code> for backend auth. Function key never exposed to clients. 14 operations (10 GET, 4 POST).<br><br>
           <strong>Every client path hits APIM</strong> &mdash; <code>/chat</code> tool calls, <code>/agent</code> tool calls, <code>/mcp tools/call</code>, stdio MCP. No exceptions.
         </div>
         <div class="chips">
           <span class="chip chip-red">Subscription Key</span>
           <span class="chip chip-red">Function Key Injection</span>
-          <span class="chip chip-red">12 Operations</span>
+          <span class="chip chip-red">14 Operations</span>
         </div>
       </div>
 
@@ -653,7 +653,7 @@
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════════ -->
-<!--  SLIDE 6: LAYER 4 — AZURE FUNCTIONS (12 TOOLS)                -->
+<!--  SLIDE 6: LAYER 4 — AZURE FUNCTIONS (14 TOOLS)                -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <section data-transition="slide">
   <span class="tag c-green">
@@ -683,6 +683,7 @@
         <span class="chip chip-green">get_property_licenses</span>
         <span class="chip chip-green">get_property_appeals</span>
         <span class="chip chip-green">get_property_demolitions</span>
+        <span class="chip chip-green">get_property_transfers</span>
       </div>
     </div>
     <div class="card fragment">
@@ -691,6 +692,7 @@
       <div class="card-desc">Business license search, top violator rankings, zip code stats, and safety-constrained custom SQL.</div>
       <div class="chips">
         <span class="chip chip-green">search_businesses</span>
+        <span class="chip chip-green">search_transfers</span>
         <span class="chip chip-green">get_top_violators</span>
         <span class="chip chip-green">get_area_stats</span>
         <span class="chip chip-green">run_query</span>
@@ -702,7 +704,7 @@
     <div class="card-desc" style="font-family:'JetBrains Mono',monospace; font-size:0.42em; line-height:1.6;">
       <span class="c-green">philly-profiteering-func</span> &middot;
       Node.js 20 &middot; TypeScript &rarr; JS &middot;
-      12 HTTP triggers &middot;
+      14 HTTP triggers &middot;
       System-assigned managed identity (db_datareader) &middot;
       Flex Consumption FC1 &middot;
       <span class="c-cyan">VNet-integrated (snet-functions)</span>
@@ -724,12 +726,13 @@
     <div class="card-grid cols-2" style="margin-top:20px;">
       <div class="card fragment">
         <div class="card-label"><span class="dot dot-orange"></span> <span class="c-orange">phillystats &middot; GP_S_Gen5_2 &middot; Auto-pause 60min &middot; <span class="c-cyan">Private Endpoint</span></span></div>
-        <div class="card-title">Azure SQL &mdash; 10 Tables, 3 Views, 29M Rows</div>
+        <div class="card-title">Azure SQL &mdash; 11 Tables, 3 Views, 34M Rows</div>
         <div class="card-desc">
           <strong>Entity resolution:</strong> master_entity (2.8M), master_address (987K), master_entity_address (15.5M links)<br>
           <strong>Property:</strong> opa_properties (584K, ~88 cols), assessments (6.4M, 2015-2025)<br>
           <strong>Licenses:</strong> business_licenses (422K), commercial_activity_licenses (508K)<br>
           <strong>Enforcement:</strong> case_investigations (1.6M), appeals (316K), demolitions (13.5K)<br>
+          <strong>Transfers:</strong> rtt_summary (5.05M) — real estate transfer tax records via Carto API pipeline<br>
           <strong>Views:</strong> vw_entity_properties, vw_property_violation_summary, vw_owner_portfolio
         </div>
       </div>
@@ -753,7 +756,7 @@
   <!-- Database deep dive (vertical sub-slide) -->
   <section>
     <span class="tag c-orange">Data &amp; LLMs</span>
-    <h2>The Database: 10 Public Datasets</h2>
+    <h2>The Database: 11 Public Datasets</h2>
 
     <table style="margin-top:16px;">
       <thead>
@@ -770,6 +773,7 @@
         <tr class="fragment"><td class="resource">case_investigations</td><td>1.6M</td><td>Code enforcement violations</td></tr>
         <tr class="fragment"><td class="resource">appeals</td><td>316K</td><td>L&amp;I appeals</td></tr>
         <tr class="fragment"><td class="resource">demolitions</td><td>13.5K</td><td>Demolition records</td></tr>
+        <tr class="fragment"><td class="resource">rtt_summary</td><td>5.05M</td><td>Real estate transfer tax records (Carto API pipeline)</td></tr>
       </tbody>
     </table>
   </section>
@@ -815,7 +819,7 @@
         <div class="step-num" style="background:var(--accent-orange); color:var(--bg);">3</div>
         <div class="step-content">
           <div class="step-title">LLM decides which tools to call</div>
-          <div class="step-desc">Azure OpenAI sees 12 tool definitions + system prompt. Returns: <code>search_entities({ name: "GEENA LLC" })</code></div>
+          <div class="step-desc">Azure OpenAI sees 14 tool definitions + system prompt. Returns: <code>search_entities({ name: "GEENA LLC" })</code></div>
         </div>
       </div>
       <div class="step-box fragment">
@@ -853,7 +857,7 @@
         <div class="step-num" style="background:var(--accent-pink); color:var(--bg);">1</div>
         <div class="step-content">
           <div class="step-title">M365 Copilot Orchestration</div>
-          <div class="step-desc">Your prompt + agent instructions (<code>declarativeAgent.json</code>) + 12 tool schemas (<code>ai-plugin.json</code>) are assembled. Microsoft's orchestration model decides which tools to call.</div>
+          <div class="step-desc">Your prompt + agent instructions (<code>declarativeAgent.json</code>) + 14 tool schemas (<code>ai-plugin.json</code>) are assembled. Microsoft's orchestration model decides which tools to call.</div>
         </div>
       </div>
       <div class="step-box fragment">
@@ -934,8 +938,8 @@
       <tr class="fragment"><td class="resource">Container App</td><td>philly-mcp-server &middot; 0-3</td><td>Layer 2 &mdash; Multi-protocol host</td><td>rg-philly-profiteering</td></tr>
       <tr class="fragment"><td class="resource">Container App</td><td>philly-sk-agent &middot; 0-3</td><td>Layer 2 &mdash; SK multi-agent host</td><td>rg-philly-profiteering</td></tr>
       <tr class="fragment"><td class="resource">API Management</td><td>philly-profiteering-apim &middot; Consumption</td><td>Layer 3 &mdash; Security front door</td><td>rg-philly-profiteering</td></tr>
-      <tr class="fragment"><td class="resource">Function App</td><td>philly-profiteering-func &middot; FC1 Flex</td><td>Layer 4 &mdash; 12 HTTP functions</td><td>rg-philly-profiteering</td></tr>
-      <tr class="fragment"><td class="resource">SQL Database</td><td>phillystats &middot; GP_S_Gen5_2</td><td>Layer 5 &mdash; 10 tables, 29M rows</td><td>rg-philly-profiteering</td></tr>
+      <tr class="fragment"><td class="resource">Function App</td><td>philly-profiteering-func &middot; FC1 Flex</td><td>Layer 4 &mdash; 14 HTTP functions</td><td>rg-philly-profiteering</td></tr>
+      <tr class="fragment"><td class="resource">SQL Database</td><td>phillystats &middot; GP_S_Gen5_2</td><td>Layer 5 &mdash; 11 tables, 34M rows</td><td>rg-philly-profiteering</td></tr>
       <tr class="fragment"><td class="resource">AI Services</td><td>foundry-og-agents &middot; S0</td><td>Layer 5 &mdash; 6 model deployments</td><td>rg-foundry</td></tr>
       <tr class="fragment"><td class="resource">Static Web App</td><td>philly-profiteering-spa &middot; Free</td><td>Layer 1 &mdash; 7-panel SPA</td><td>rg-philly-profiteering</td></tr>
       <tr class="fragment"><td class="resource">VNet + PEs (x4)</td><td>vnet-philly-profiteering &middot; 10.0.0.0/16</td><td>Layer 3 &mdash; Network isolation</td><td>rg-philly-profiteering</td></tr>
@@ -959,7 +963,7 @@
       <div class="card fragment" style="border-top: 2px solid var(--accent-pink);">
         <div class="card-label"><span class="dot dot-pink"></span> <span class="c-pink">No-Code</span> <span class="badge badge-planned">PLANNED</span></div>
         <div class="card-title">M365 Agent Builder</div>
-        <div class="card-desc">Declarative "neighborhood watchdog" agent. MCP actions via Agents Toolkit. Ground in SharePoint + 12 tools.</div>
+        <div class="card-desc">Declarative "neighborhood watchdog" agent. MCP actions via Agents Toolkit. Ground in SharePoint + 14 tools.</div>
       </div>
       <div class="card fragment" style="border-top: 2px solid var(--accent-yellow);">
         <div class="card-label"><span class="dot" style="background:var(--accent-yellow);box-shadow:0 0 8px var(--accent-yellow);"></span> <span class="c-yellow">Automation</span> <span class="badge badge-planned">PLANNED</span></div>
@@ -1003,7 +1007,7 @@
         <div class="step-num" style="background:var(--accent-pink); color:var(--bg);">3</div>
         <div class="step-content">
           <div class="step-title">M365 Agent Builder + SharePoint</div>
-          <div class="step-desc">Declarative agent for council members. Ground in SharePoint docs + 12 MCP tools.</div>
+          <div class="step-desc">Declarative agent for council members. Ground in SharePoint docs + 14 MCP tools.</div>
         </div>
       </div>
       <div class="step-box fragment">
@@ -1077,7 +1081,7 @@
 
   <div class="callout fragment" style="border-left: 3px solid var(--accent-blue); margin-top:20px;">
     <ul>
-      <li><strong>All 7 patterns</strong> hit the same 12 Functions via APIM, query the same 29M rows</li>
+      <li><strong>All 7 patterns</strong> hit the same 14 Functions via APIM, query the same 34M rows</li>
       <li>The divergence is entirely in the <strong>intelligence layer</strong> above</li>
       <li>Pro-code gives you <strong>full control</strong>. Platform-managed gives you <strong>zero code</strong>. Pick based on your needs.</li>
     </ul>
@@ -1097,11 +1101,11 @@
       <div class="label">Client Patterns</div>
     </div>
     <div class="stat">
-      <div class="num c-green">12</div>
+      <div class="num c-green">14</div>
       <div class="label">MCP Tools</div>
     </div>
     <div class="stat">
-      <div class="num c-orange">29M</div>
+      <div class="num c-orange">34M</div>
       <div class="label">Rows</div>
     </div>
     <div class="stat">
@@ -1120,7 +1124,7 @@
       <span class="c-lime">Container Apps</span> &rarr;
       <span class="c-red">APIM</span> &rarr;
       <span class="c-green">Functions</span> &rarr;
-      <span class="c-orange">SQL (29M rows)</span>
+      <span class="c-orange">SQL (34M rows)</span>
     </div>
   </div>
 

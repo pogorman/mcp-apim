@@ -233,22 +233,22 @@
   <header>
     <div class="tag">Combined Architecture &amp; Implementation Map — v2</div>
     <h1>Philly Profiteering <span>→ Multi-Client Agent Platform</span></h1>
-    <p class="subtitle">Seven live client patterns — Chat Completions (6 models), Semantic Kernel multi-agent (.NET), Assistants API, MCP (Copilot Studio), M365 Copilot declarative agent, raw MCP tool tester, and stdio (Claude) — all consuming the same 12 tools and 29M rows. Two Container Apps host MCP, chat, agent, and SK endpoints. Azure APIM is the security front door. VNet + Private Endpoints isolate SQL &amp; Storage. ~$33/month idle. Mapped onto the enterprise multi-client pattern with Power Platform expansion paths.</p>
+    <p class="subtitle">Seven live client patterns — Chat Completions (6 models), Semantic Kernel multi-agent (.NET), Assistants API, MCP (Copilot Studio), M365 Copilot declarative agent, raw MCP tool tester, and stdio (Claude) — all consuming the same 14 tools and 34M rows. Two Container Apps host MCP, chat, agent, and SK endpoints. Azure APIM is the security front door. VNet + Private Endpoints isolate SQL &amp; Storage. ~$33/month idle. Mapped onto the enterprise multi-client pattern with Power Platform expansion paths.</p>
   </header>
 
   <!-- ══════════════════════════════════════════════════════ -->
   <!--  WHAT'S LIVE NOW                                      -->
   <!-- ══════════════════════════════════════════════════════ -->
   <div class="callout" style="border-left: 3px solid var(--accent-green);">
-    <h3 style="color:var(--accent-green);">What's Live Today — 7 Client Patterns, Same 12 Tools</h3>
+    <h3 style="color:var(--accent-green);">What's Live Today — 7 Client Patterns, Same 14 Tools</h3>
     <ul>
       <li><strong>Investigative Agent (Chat Completions + Tools)</strong> — SPA panel. 6 selectable models (GPT-4.1, GPT-5, GPT-5 Mini, o4-mini, o3-mini, Phi-4). Stateless agentic loop in <code>chat.ts</code>, up to 10 tool-call rounds.</li>
       <li><strong>SK Agent (Semantic Kernel Multi-Agent)</strong> — SPA panel. C#/.NET 8 orchestration with 4 specialist agents (Triage, OwnerAnalyst, ViolationAnalyst, AreaAnalyst). Triage routes questions to the right specialist. Each specialist has its own APIM-backed tools. GPT-4.1.</li>
       <li><strong>City Portal (Assistants API)</strong> — SPA panel. GPT-4.1 via Assistants API. Azure manages the tool-calling loop. Persistent threads — follow-ups remember context without resending history.</li>
-      <li><strong>Copilot Studio (MCP)</strong> — Embedded iframe widget (floating purple star). Auto-discovers all 12 tools via MCP protocol. No custom code on the Copilot Studio side.</li>
-      <li><strong>M365 Copilot (Declarative Agent)</strong> — Teams / Outlook / Edge. Declarative agent with RemoteMCPServer runtime pointing to the MCP endpoint. Sideloaded via Teams app manifest. 6 conversation starters, all 12 tools.</li>
+      <li><strong>Copilot Studio (MCP)</strong> — Embedded iframe widget (floating purple star). Auto-discovers all 14 tools via MCP protocol. No custom code on the Copilot Studio side.</li>
+      <li><strong>M365 Copilot (Declarative Agent)</strong> — Teams / Outlook / Edge. Declarative agent with RemoteMCPServer runtime pointing to the MCP endpoint. Sideloaded via Teams app manifest. 6 conversation starters, all 14 tools.</li>
       <li><strong>MCP Tool Tester (Raw Protocol)</strong> — SPA panel. Connects directly to Streamable HTTP endpoint. Manual tool selection, raw JSON results. No AI in the loop.</li>
-      <li><strong>Claude Code / Desktop (stdio)</strong> — Local MCP server process. Full access to all 12 tools + ad-hoc SQL via <code>run_query</code>.</li>
+      <li><strong>Claude Code / Desktop (stdio)</strong> — Local MCP server process. Full access to all 14 tools + ad-hoc SQL via <code>run_query</code>.</li>
     </ul>
   </div>
 
@@ -282,7 +282,7 @@
       <div class="cell-items">
         <span class="chip">POST /investigate</span>
         <span class="chip">4 agents</span>
-        <span class="chip">12 APIM tools</span>
+        <span class="chip">14 APIM tools</span>
         <span class="chip">Triage routing</span>
       </div>
     </div>
@@ -304,7 +304,7 @@
     <div class="cell c-purple">
       <div class="cell-label"><span class="dot"></span>Low-Code <span class="badge badge-live">LIVE</span></div>
       <div class="cell-title">Copilot Studio</div>
-      <div class="cell-desc">Embedded iframe widget (floating purple star, all panels). Auto-discovers 12 tools via MCP. No custom code. Generative orchestration — Microsoft's LLM decides tool calls. Separate agents in Commercial and GCC.</div>
+      <div class="cell-desc">Embedded iframe widget (floating purple star, all panels). Auto-discovers 14 tools via MCP. No custom code. Generative orchestration — Microsoft's LLM decides tool calls. Separate agents in Commercial and GCC.</div>
       <div class="cell-items">
         <span class="chip">POST /mcp</span>
         <span class="chip">MCP Connector (GA)</span>
@@ -316,7 +316,7 @@
     <div class="cell c-pink">
       <div class="cell-label"><span class="dot"></span>No-Code <span class="badge badge-live">LIVE</span></div>
       <div class="cell-title">M365 Copilot</div>
-      <div class="cell-desc">Declarative agent — 3 JSON files + 2 icons, zero custom code. Sideloaded via <code>teamsapp install</code> (M365 Agents Toolkit CLI). <code>RemoteMCPServer</code> runtime in <code>ai-plugin.json</code> points to the same <code>/mcp</code> endpoint. Available in Teams, Outlook, and Edge alongside enterprise data.</div>
+      <div class="cell-desc">Declarative agent — 3 JSON files + 2 icons, zero custom code. Sideloaded via <code>teamsapp install</code> (M365 Agents Toolkit CLI). <code>RemoteMCPServer</code> runtime in <code>ai-plugin.json</code> points to the same <code>/mcp</code> endpoint. Available in Teams, Outlook, and Edge alongside enterprise data. 6 conversation starters, all 14 tools.</div>
       <div class="cell-items">
         <span class="chip">POST /mcp</span>
         <span class="chip">RemoteMCPServer</span>
@@ -329,10 +329,10 @@
     <div class="cell c-green">
       <div class="cell-label"><span class="dot"></span>Pro-Code <span class="badge badge-live">LIVE</span></div>
       <div class="cell-title">Claude Code / Desktop</div>
-      <div class="cell-desc">Local MCP server (stdio transport). Developer/analyst workflow. Claude's LLM decides tool calls. Full access to all 12 tools including <code>run_query</code> for ad-hoc SQL.</div>
+      <div class="cell-desc">Local MCP server (stdio transport). Developer/analyst workflow. Claude's LLM decides tool calls. Full access to all 14 tools including <code>run_query</code> for ad-hoc SQL.</div>
       <div class="cell-items">
         <span class="chip">stdio</span>
-        <span class="chip">12 tools</span>
+        <span class="chip">14 tools</span>
         <span class="chip">Ad-hoc SQL</span>
       </div>
     </div>
@@ -358,7 +358,7 @@
       <li><strong>Different orchestration</strong> — <code>/chat</code> runs your agentic loop (up to 10 rounds). <code>/agent</code> lets Azure manage the loop via Assistants API. Copilot Studio has its own generative orchestration. Claude has its own planning. Each may call different tools in different order with different parameters.</li>
       <li><strong>Different system prompts &amp; safety filters</strong> — Your <code>/chat</code> system prompt says "investigative analyst." Assistants API has its own instructions. Copilot Studio wraps your agent in Microsoft's responsible AI guardrails. GCC adds additional government compliance filtering on top. Claude has Anthropic's safety layer.</li>
       <li><strong>GCC vs. Commercial Copilot Studio</strong> — different model versions, different content filtering thresholds, different feature rollout timelines. Microsoft doesn't guarantee parity between cloud boundaries.</li>
-      <li><strong>The tools and data are identical</strong> — all clients hit the same 12 Functions via APIM, query the same 29M rows. The divergence is entirely in the intelligence layer above.</li>
+      <li><strong>The tools and data are identical</strong> — all clients hit the same 14 Functions via APIM, query the same 34M rows. The divergence is entirely in the intelligence layer above.</li>
     </ul>
   </div>
 
@@ -393,7 +393,7 @@
     <div class="cell c-lime">
       <div class="cell-label"><span class="dot"></span>Chat Completions</div>
       <div class="cell-title">POST /chat + GET /models</div>
-      <div class="cell-desc">Natural language → Azure OpenAI (selected model) with 12 tool definitions. Our code runs the agentic loop: model decides tools → execute against APIM → feed results back → repeat up to 10 rounds. 6 models available. Stateless.</div>
+      <div class="cell-desc">Natural language → Azure OpenAI (selected model) with 14 tool definitions. Our code runs the agentic loop: model decides tools → execute against APIM → feed results back → repeat up to 10 rounds. 6 models available. Stateless.</div>
       <div class="cell-items">
         <span class="chip">GPT-4.1</span>
         <span class="chip">GPT-5</span>
@@ -424,7 +424,7 @@
         <span class="chip">GPT-4.1</span>
         <span class="chip">4 agents</span>
         <span class="chip">Triage routing</span>
-        <span class="chip">12 APIM tools</span>
+        <span class="chip">14 APIM tools</span>
       </div>
     </div>
   </div>
@@ -472,13 +472,13 @@
       <div class="cell-label"><span class="dot"></span>philly-profiteering-apim.azure-api.net/api</div>
       <div class="cell-title">Azure API Management (Consumption)</div>
       <div class="cell-desc">
-        Single front door for all tool calls. Validates <code>Ocp-Apim-Subscription-Key</code> on every inbound request, injects <code>x-functions-key</code> for backend auth — Function key never exposed to clients. 12 operations (9 GET, 3 POST).<br><br>
+        Single front door for all tool calls. Validates <code>Ocp-Apim-Subscription-Key</code> on every inbound request, injects <code>x-functions-key</code> for backend auth — Function key never exposed to clients. 14 operations (10 GET, 4 POST).<br><br>
         <strong>Every client path hits APIM:</strong> <code>/chat</code> tool calls → APIM, <code>/agent</code> tool calls → APIM, <code>/mcp tools/call</code> → APIM, stdio MCP → APIM. No exceptions.
       </div>
       <div class="cell-items">
         <span class="chip">Subscription Key</span>
         <span class="chip">Function Key Injection</span>
-        <span class="chip">12 Operations</span>
+        <span class="chip">14 Operations</span>
         <span class="chip" style="color:var(--accent-yellow);border-color:var(--accent-yellow-dim);background:var(--accent-yellow-dim);">+ JWT Validation</span>
         <span class="chip" style="color:var(--accent-yellow);border-color:var(--accent-yellow-dim);background:var(--accent-yellow-dim);">+ MCP Gateway</span>
         <span class="chip" style="color:var(--accent-yellow);border-color:var(--accent-yellow-dim);background:var(--accent-yellow-dim);">+ A2A Gateway</span>
@@ -544,6 +544,7 @@
         <span class="chip">get_property_licenses</span>
         <span class="chip">get_property_appeals</span>
         <span class="chip">get_property_demolitions</span>
+        <span class="chip">get_property_transfers</span>
       </div>
     </div>
 
@@ -553,6 +554,7 @@
       <div class="cell-desc">Business license search, top violator rankings, zip code stats, and safety-constrained custom SQL (SELECT only, TOP/OFFSET required, max 1000 rows).</div>
       <div class="cell-items">
         <span class="chip">search_businesses</span>
+        <span class="chip">search_transfers</span>
         <span class="chip">get_top_violators</span>
         <span class="chip">get_area_stats</span>
         <span class="chip">run_query</span>
@@ -563,7 +565,7 @@
     <div class="cell" style="padding:14px 18px;">
       <div class="cell-desc" style="font-family:'JetBrains Mono',monospace; font-size:11px;">
         <span style="color:var(--accent-green);">philly-profiteering-func</span>
-        &ensp;·&ensp; Node.js 20 &ensp;·&ensp; TypeScript → JS &ensp;·&ensp; 12 HTTP triggers &ensp;·&ensp; System-assigned managed identity (db_datareader) &ensp;·&ensp; Flex Consumption FC1 &ensp;·&ensp; <span style="color:var(--accent-cyan);">VNet-integrated (snet-functions)</span>
+        &ensp;·&ensp; Node.js 20 &ensp;·&ensp; TypeScript → JS &ensp;·&ensp; 14 HTTP triggers &ensp;·&ensp; System-assigned managed identity (db_datareader) &ensp;·&ensp; Flex Consumption FC1 &ensp;·&ensp; <span style="color:var(--accent-cyan);">VNet-integrated (snet-functions)</span>
       </div>
     </div>
   </div>
@@ -585,12 +587,13 @@
 
     <div class="cell c-orange">
       <div class="cell-label"><span class="dot"></span>phillystats · GP_S_Gen5_2 · Auto-pause 60min · <span style="color:var(--accent-cyan);">Private Endpoint only</span></div>
-      <div class="cell-title">Azure SQL — 10 Tables, 3 Views, 29M Rows</div>
+      <div class="cell-title">Azure SQL — 11 Tables, 3 Views, 34M Rows</div>
       <div class="cell-desc">
         <strong>Entity resolution:</strong> master_entity (2.8M), master_address (987K), master_entity_address (15.5M junction links)<br>
         <strong>Property:</strong> opa_properties (584K, ~88 cols), assessments (6.4M, 2015-2025)<br>
         <strong>Licenses:</strong> business_licenses (422K), commercial_activity_licenses (508K)<br>
         <strong>Enforcement:</strong> case_investigations (1.6M), appeals (316K), demolitions (13.5K)<br>
+        <strong>Transfers:</strong> rtt_summary (5.05M) — real estate transfer tax records via Carto API pipeline<br>
         <strong>Views:</strong> vw_entity_properties, vw_property_violation_summary, vw_owner_portfolio
       </div>
     </div>
@@ -624,7 +627,7 @@
     <div class="cell c-pink">
       <div class="cell-label"><span class="dot"></span>No-Code <span class="badge badge-planned">PLANNED</span></div>
       <div class="cell-title">M365 Agent Builder</div>
-      <div class="cell-desc">Declarative "neighborhood watchdog" agent for council members. MCP actions via Agents Toolkit — point it at the Container App's <code>/mcp</code> endpoint. Ground in SharePoint (council reports, meeting minutes) alongside your 12 tools.</div>
+      <div class="cell-desc">Declarative "neighborhood watchdog" agent for council members. MCP actions via Agents Toolkit — point it at the Container App's <code>/mcp</code> endpoint. Ground in SharePoint (council reports, meeting minutes) alongside your 14 tools.</div>
       <div class="cell-items">
         <span class="chip">Declarative Agent</span>
         <span class="chip">MCP Actions</span>
@@ -701,14 +704,14 @@
         <tr>
           <td class="resource">Function App</td>
           <td>philly-profiteering-func · FC1 Flex</td>
-          <td>Layer 4 — 12 HTTP functions that query Azure SQL. Every MCP tool maps 1:1 to a function.</td>
+          <td>Layer 4 — 14 HTTP functions that query Azure SQL. Every MCP tool maps 1:1 to a function.</td>
           <td>rg-philly-profiteering</td>
           <td><span class="badge badge-live">LIVE</span></td>
         </tr>
         <tr>
           <td class="resource">SQL Database</td>
           <td>phillystats · GP_S_Gen5_2</td>
-          <td>Layer 5 — 10 tables, 3 views, 29M rows. Auto-pauses 60 min. Managed identity auth only (db_datareader).</td>
+          <td>Layer 5 — 11 tables, 3 views, 34M rows. Auto-pauses 60 min. Managed identity auth only (db_datareader).</td>
           <td>rg-philly-profiteering</td>
           <td><span class="badge badge-live">LIVE</span></td>
         </tr>
@@ -771,7 +774,7 @@
         <tr>
           <td class="resource">API Center</td>
           <td>—</td>
-          <td>Discovery registry. Catalog your 12 MCP tools + future A2A agent cards for enterprise discovery.</td>
+          <td>Discovery registry. Catalog your 14 MCP tools + future A2A agent cards for enterprise discovery.</td>
           <td>—</td>
           <td><span class="badge badge-future">FUTURE</span></td>
         </tr>
@@ -813,7 +816,7 @@
       <li><strong>Build an M365 Agent Builder declarative agent</strong> — use Agents Toolkit in VS Code, point at <code>/mcp</code> endpoint. Ground in SharePoint docs + your MCP tools. Deploy for council members / community organizers.</li>
       <li><strong>Add Power Automate flows</strong> — connect Copilot Studio agent to cloud flows for report generation, email alerts to council members, SharePoint logging of investigations.</li>
       <li><strong>Build a Power Apps investigation dashboard</strong> — canvas app with embedded Copilot agent + map component. Custom connector → APIM for direct data access alongside conversational agent.</li>
-      <li><strong>Register tools in API Center</strong> — create an enterprise catalog so other teams can discover and reuse your 12 tools.</li>
+      <li><strong>Register tools in API Center</strong> — create an enterprise catalog so other teams can discover and reuse your 14 tools.</li>
       <li><strong>A2A specialist agents (long-term)</strong> — spin up autonomous agents for gentrification analysis, tax lien tracking, census correlation. Each gets its own Function App, agent card, and APIM route. Foundry orchestrator delegates via A2A.</li>
     </ul>
   </div>

@@ -27,7 +27,10 @@ User prompts from each session of building this project, reconstructed from sess
 - [Session 19 — SK Agent, Bicep IaC, MCAPS Fix](#session-19--sk-agent-bicep-iac-mcaps-fix)
 - [Session 20 — SK Agent UX, SQL Bug Fix](#session-20--sk-agent-ux-sql-bug-fix)
 - [Session 21 — VNet + Private Endpoints, Function App Fix](#session-21--vnet--private-endpoints-function-app-fix)
+- [Session 22-25 — SPA Polish, Slides, M365 Agent](#sessions-22-25--spa-polish-slides-m365-agent)
+- [Session 26 — V2: Real Estate Transfer Data (The Game Changer)](#session-26--v2-real-estate-transfer-data-the-game-changer)
 - [Example Analysis Prompts](#example-analysis-prompts-for-use-with-the-connected-agent)
+- [NEW! Transfer Data Prompts (V2)](#new-transfer-data-prompts-v2)
 
 ---
 
@@ -222,6 +225,22 @@ User prompts from each session of building this project, reconstructed from sess
 - "let's update all important md files, especially the architecture md and any diagrams. i also added a html file to the docs folder. i had that created in another session using the architecture md document we have in this project. check that out and update it as well to map up with everything we did in this session so far."
 - "it didn't look like you updated the prompts, or readme files. read me should reflect the changes we made today since that's the first thing people will read"
 
+## Sessions 22-25 — SPA Polish, Slides, M365 Agent
+
+- "the investigative agent tab should say 'Agent', Foundry Portal should say 'City Portal'..."
+- "I want a Reveal.js slide deck that walks through the entire architecture"
+- "build me a microsoft 365 copilot declarative agent that uses our mcp server"
+- "update all docs and push to git"
+
+## Session 26 — V2: Real Estate Transfer Data (The Game Changer)
+
+- "in the jupyter notebooks, there are discussions around queries that can be run around the philly atlas public facing site. can you look at those, then compare that with what we have in our database, and see if there's anyway we can make use of the public facing philly atlas site to improve our data. make it more recent, make it more thorough and complete."
+- "i want the game changer"
+- "and make sure you document the shit out of it in our md files along the way so we dont lose anything"
+- "i also want to make sure you create a new md thats called v2... b/c we should consider this v2 since this seems like a big step forward. it should show the capabilities, additions etc that we didnt have in v1"
+- "make sure you write the game changer plan somewhere i can easily find it and study it"
+- "i need some new updated prompts based on this new information and i want them labeled as NEW! or some shit just so we can see exactly why this new data is a game changer"
+
 ---
 
 ## Example Analysis Prompts (for use with the connected agent)
@@ -238,3 +257,54 @@ These are prompts for use with Claude or any MCP-connected agent once the tools 
 - "Deep dive on 2837 Kensington Ave — who owns it, what violations, any demolitions?"
 - "Who are the top violators that are LLCs specifically, not government entities?"
 - "Compare violation rates between zip codes 19134 and 19140"
+
+---
+
+## NEW! Transfer Data Prompts (V2)
+
+These prompts showcase the **game changer** — 5 million real estate transfer records added in V2. These were previously impossible.
+
+### 🆕 Dollar Transfer Detection (Factor F19)
+
+$1 transfers are a telltale sign of LLC-to-LLC ownership shuffling to hide the true beneficial owner.
+
+- **"Find all $1 property transfers in zip code 19134"** — Searches 5M+ transfer records for transfers where total_consideration <= $1. These are almost always LLC-to-LLC shuffles, not real sales.
+- **"Which LLCs are doing the most $1 transfers city-wide?"** — Cross-references $1 transfers with entity search to find the worst offenders.
+- **"Show me $1 transfers in the last 2 years in North Philadelphia zip codes"** — Time-scoped search across multiple zip codes.
+- **"Find all transfers for GEENA LLC where the sale price was $1 or less"** — Combines entity name with price filter.
+
+### 🆕 Sheriff Sale Tracking (Factor F10)
+
+Sheriff sales mean a property was sold at auction — often due to tax delinquency. LLCs that buy dozens of sheriff sale properties are a poverty profiteering red flag.
+
+- **"Find all sheriff sale purchases in 19134"** — Searches transfers with document type SHERIFF.
+- **"Which entities have purchased the most properties at sheriff sales?"** — Identifies bulk sheriff sale buyers.
+- **"Show me sheriff sales in Kensington over the last 5 years"** — Geographic and time-scoped sheriff sale analysis.
+- **"Did GEENA LLC acquire any properties through sheriff sales?"** — Entity-specific sheriff sale lookup.
+
+### 🆕 Ownership Chain Analysis (Factor F13)
+
+See the complete chain of ownership for any property — who sold to whom, for how much, and when.
+
+- **"Show me the complete transfer history for 2837 Kensington Ave"** — Every deed, mortgage, sheriff sale, and assignment for one property.
+- **"How many times has parcel 405100505 changed hands?"** — Quick ownership turnover check.
+- **"What's the price history for properties owned by GEENA LLC?"** — Cross-references entity network with transfer prices to detect buy-low-flip-high patterns.
+- **"Find properties that were bought for under $10,000 and later sold for over $100,000"** — Classic flip detection across the entire city.
+
+### 🆕 Property Flipping Patterns
+
+Flipping isn't illegal, but serial flipping in distressed neighborhoods while ignoring code violations is a profiteering indicator.
+
+- **"Find properties in 19134 that have been transferred more than 3 times since 2020"** — High-turnover property detection.
+- **"Show me all transfers by entities that also have code violations"** — Combines transfer data with violation data to find negligent flippers.
+- **"What's the average time between purchase and resale for LLCs with the most violations?"** — Advanced flip pattern analysis.
+
+### 🆕 Combined Investigations (Using V1 + V2 Data Together)
+
+The real power is combining transfer records with the existing ownership, violation, and demolition data.
+
+- **"Deep investigation: Find LLCs that bought properties at sheriff sales, accumulated violations, then transferred them for $1 to another LLC"** — The complete poverty profiteering playbook in one query.
+- **"For the top 10 worst violators, show me their transfer history — did they buy cheap and let properties deteriorate?"** — Connects V1 violation rankings with V2 transfer price history.
+- **"Compare: properties in 19134 that had demolitions — who owned them before demolition, how much did they pay, and did they transfer ownership before the city demolished?"** — Tracks the ownership trail before taxpayer-funded demolitions.
+- **"Find entities that appear as both grantee on sheriff sales AND grantor on $1 transfers"** — Identifies the buy-at-auction-shuffle-to-LLC pipeline.
+- **"Which zip codes have the highest rate of $1 transfers AND the highest violation rates?"** — Area-level cross-analysis between V1 and V2 data.

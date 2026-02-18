@@ -58,7 +58,7 @@ Azure API Management (Consumption tier)
 Azure Functions v4 (Node.js 20, Flex Consumption FC1)
     |  (Azure AD token auth via DefaultAzureCredential)
 Azure SQL Database (General Purpose Serverless, Gen5 2 vCores)
-    (10 tables, 3 views, 20+ indexes)
+    (11 tables, 3 views, 28+ indexes)
 
 Chat endpoint (/chat — Investigative Agent):
     Browser SPA → Container App /chat
@@ -425,4 +425,6 @@ teamsapp install --file-path philly-investigator.zip -i false
 
 ## Data Source
 
-Based on [davew-msft/PhillyStats](https://github.com/davew-msft/PhillyStats) which used 10 Philadelphia public datasets. Original used Fabric/Synapse; this project uses Azure SQL + Azure Functions for a production-ready API.
+**V1 (10 tables):** Based on [davew-msft/PhillyStats](https://github.com/davew-msft/PhillyStats) — static CSV exports from 10 Philadelphia public datasets. Original used Fabric/Synapse; this project uses Azure SQL + Azure Functions for a production-ready API.
+
+**V2 (11 tables):** Added live data pipeline from the [Philadelphia Carto SQL API](https://phl.carto.com/api/v2/sql) (`sql/download-carto.js`). Downloaded 5.05M real estate transfer records (rtt_summary) enabling $1 transfer detection, sheriff sale tracking, and property flip analysis. The same pipeline can refresh all existing tables and add new datasets (violations, permits). See `docs/V2.md` for the full V2 story.
