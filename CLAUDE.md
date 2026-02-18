@@ -244,6 +244,12 @@ The MCP server is configured in `.mcp.json` for Claude Code. It starts automatic
 ```
 This creates ACR, builds the Docker image, and deploys to Container Apps. The MCP server is then accessible at `https://philly-mcp-server.<env>.azurecontainerapps.io/mcp`.
 
+**Important:** When updating just the image, use a distinct tag + revision suffix to force a new container revision. Using `:latest` with `az containerapp update --image` may not create a new revision:
+```bash
+az acr build --registry phillymcpacr -g rg-philly-profiteering --image mcp-server:v2 --file mcp-server/Dockerfile mcp-server/
+az containerapp update --name philly-mcp-server -g rg-philly-profiteering --image phillymcpacr.azurecr.io/mcp-server:v2 --revision-suffix v2
+```
+
 ### Deploy Functions
 
 Due to npm workspace hoisting, deployment requires a staging directory:

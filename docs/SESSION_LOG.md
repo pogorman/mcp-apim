@@ -1347,3 +1347,22 @@ All 14 endpoints working end-to-end (MCP Server → APIM → Functions → SQL):
 - 6,541 sheriff sales
 - 12,908 $1 transfers (LLC shuffling indicator)
 - $92,209 average sale price
+
+### Session 26c — Final Fixes (2026-02-18)
+
+#### SPA Count Updates
+All references in `web/index.html` still said V1 counts (29M rows, 12 tools, 10 datasets). Updated 10 instances across both HTML and JS template strings to V2 counts (34M rows, 14 tools, 11 datasets).
+
+#### Prompt Grid Redesign
+Changed prompt suggestions from stacked vertical list to responsive grid tiles (`grid-template-columns: repeat(auto-fill, minmax(200px, 1fr))`). V2 transfer prompts now display `*NEW` badge with accent-colored border. Removed the `count < 5` cap that was hiding the 4th prompt category entirely.
+
+#### Foundry Agent Tool Sync Bug
+The City Portal (Assistants API) was using stale tool definitions (12 tools, no transfer tools). Three issues:
+1. **`ensureAgent()` never updated existing assistants** — only created new ones or cached existing. Fixed: now calls `client.beta.assistants.update()` to sync tools + instructions on every cold start.
+2. **Container wasn't restarting** — `az containerapp update --image` with same `:latest` tag didn't create new revisions. Fixed: use distinct tag (`:v2`) + `--revision-suffix` to force new revision.
+3. **`run_query` had no table list** — model guessed table names (`transfers` instead of `rtt_summary`). Fixed: added explicit 11-table list to description + note to prefer dedicated transfer tools.
+
+After fix: `[agent] Found and updated existing assistant: asst_CiN7zyMnsQxEcgG5JdTRXOpZ (14 tools)` — Foundry Agent now correctly uses `search_transfers` for sheriff sales and $1 transfer queries.
+
+#### No-Cache Headers
+Added `Cache-Control: no-cache, no-store, must-revalidate` to `staticwebapp.config.json` global headers. Prevents stale SWA content after deploys.
