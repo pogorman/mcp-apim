@@ -28,6 +28,7 @@ Chronological record of what was built, what broke, and how it was fixed. Keeps 
 - [Session 20 — SK Agent UX, SQL Bug Fix](#session-20--sk-agent-ux-sql-bug-fix-2026-02-17)
 - [Session 22 — Dashboard, Architecture Panel, Warm-Up Button](#session-22--dashboard-architecture-panel-warm-up-button-2026-02-17)
 - [Session 23 — M365 Copilot Declarative Agent](#session-23--m365-copilot-declarative-agent-2026-02-17)
+- [Session 24 — FAQ, Slide Deck, SPA Panel](#session-24--faq-slide-deck-spa-panel-2026-02-17)
 
 ---
 
@@ -1101,4 +1102,50 @@ teamsapp install --file-path philly-investigator.zip -i false
 - `CLAUDE.md` — Added M365 section, updated architecture diagram, project structure
 - `docs/architecture-combined-v2.html` — Added M365 cell (7th client), updated counts
 - `docs/ELI5.md` — Added M365 panel description, updated glossary and wrap-up counts
+- `docs/SESSION_LOG.md` — Sessions 22 and 23
+
+---
+
+## Session 24 — FAQ, Slide Deck, SPA Panel (2026-02-17)
+
+### What Happened
+
+Three things this session:
+
+1. **FAQ: M365 Copilot Round Trip** — Added a comprehensive new section to `docs/FAQ.md` explaining how the M365 Copilot declarative agent works end-to-end. Covers the full 6-hop round trip (M365 Copilot → Container App /mcp → APIM → Functions → SQL → back), who decides which tools to call, static vs dynamic tool discovery, RemoteMCPServer runtime type, and how it compares to the other 4 client patterns. 8 Q&A entries.
+
+2. **Reveal.js Slide Deck** — Created `docs/slides.html`, a full architecture presentation using Reveal.js (loaded from CDN). 13 slides organized by the architecture document's logical sections. Each section uses fragment animations for step-by-step builds (stat cards, client cards, round-trip steps, table rows, etc.). Vertical sub-slides for drill-downs on client differences, VNet, database tables, M365 Copilot MCP path, and expansion playbook. Dark theme matching the SPA's color palette (JetBrains Mono + DM Sans, same CSS variables). Fully self-contained HTML — works standalone or embedded.
+
+3. **SPA Integration** — Added the slide deck as a new panel in `web/index.html`:
+   - New activity bar button (monitor icon) between Docs and Architecture
+   - New `panelSlides` div with iframe loading `docs/slides.html`
+   - Updated `state.panels` object, `updatePanels()` function (tab toggle, panel visibility, model selector logic, welcome screen logic)
+   - Navigate with arrow keys, spacebar. Press O for overview, F for fullscreen.
+
+### Slide Deck Structure (13 slides)
+
+| # | Slide | Key Content |
+|---|-------|-------------|
+| 1 | Title | Stat cards: 7 clients, 12 tools, 29M rows, 10 datasets, $33/mo |
+| 2 | What's Live | 7 client patterns as numbered step boxes |
+| 3 | Layer 1: Clients | 7 client cards + "Why Different Answers" sub-slide |
+| 4 | Layer 2: Container App | 4 protocol endpoints + infrastructure details |
+| 5 | Layer 3: Security | APIM + auth chains + VNet/PE sub-slide |
+| 6 | Layer 4: Functions | 12 tools in 3 groups |
+| 7 | Layer 5: Data & LLMs | SQL + OpenAI + database table sub-slide |
+| 8 | Round Trip | 6-step request flow + M365 Copilot MCP path sub-slide |
+| 9 | Cost Model | Scale-to-zero table, $33/mo highlight |
+| 10 | Resource Map | Azure resources → architecture layers |
+| 11 | Expansion | Power Platform & A2A cards + playbook sub-slide |
+| 12 | Agent Patterns | Comparison table: who decides tools, who runs loop |
+| 13 | Closing | Summary stats + flow diagram |
+
+### Files Created/Changed
+- `docs/slides.html` — **NEW** — Reveal.js slide deck (1160 lines)
+- `docs/FAQ.md` — Added M365 Copilot Declarative Agent section (8 Q&As, ~175 lines)
+- `web/index.html` — Added Slides panel (nav button, panel div, state + updatePanels)
+- `CLAUDE.md` — Updated panel count (8→9), added Slide Deck to panel list
+- `docs/ELI5.md` — Updated counts (Seven→Eight), added Slides panel entry (#7), renumbered #8-9
+- `docs/ARCHITECTURE.md` — Updated panel count (seven→eight), updated activity bar description
+- `docs/USER_GUIDE.md` — Updated counts (Seven→Eight), added Slides panel section (#7), renumbered #8
 - `docs/SESSION_LOG.md` — This entry

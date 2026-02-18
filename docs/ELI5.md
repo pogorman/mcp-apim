@@ -15,7 +15,7 @@ A plain-English guide to the Philly Poverty Profiteering platform. Use this for 
 - [How It Works — No Jargon](#how-it-works--no-jargon)
 - [How It Works — Some Jargon](#how-it-works--some-jargon)
 - [How the Network Security Works](#how-the-network-security-works)
-- [The Seven Ways to Use It](#the-seven-ways-to-use-it)
+- [The Eight Ways to Use It](#the-eight-ways-to-use-it)
 - [Why It Matters (The Story)](#why-it-matters-the-story)
 - [How AI Models Think — Tokens, Context, and Temperature](#how-ai-models-think--tokens-context-and-temperature)
 - [Why Each Panel Gives Different Answers](#why-each-panel-gives-different-answers)
@@ -47,9 +47,9 @@ Open the app: **https://kind-forest-06c4d3c0f.1.azurestaticapps.net/**
 
 ### Step 1 — Welcome Screen (30 seconds)
 
-You'll see a dark screen with a map of Philadelphia in the background and seven buttons. Explain:
+You'll see a dark screen with a map of Philadelphia in the background and eight buttons. Explain:
 
-> "This is a web app. You sign in with your Microsoft account — it's protected by Azure authentication. It's got seven different interfaces that all talk to the same data. Let me show you the main one."
+> "This is a web app. You sign in with your Microsoft account — it's protected by Azure authentication. It's got eight different interfaces that all talk to the same data. Let me show you the main one."
 
 Click **Investigative Agent**.
 
@@ -93,7 +93,7 @@ Click the purple chat icon and ask something.
 
 ### Wrap Up
 
-> "Eight completely different interfaces — a custom chat agent, a government-branded portal, a Copilot Studio agent, a Semantic Kernel multi-agent, an M365 Copilot declarative agent, a project overview, a documentation reader, and a raw tool tester — all using the same 12 tools and the same 29 million rows of data. The whole thing runs serverless and costs about $33 a month when nobody's using it — most of that is network security keeping the data path private."
+> "Nine completely different interfaces — a custom chat agent, a government-branded portal, a Copilot Studio agent, a Semantic Kernel multi-agent, an M365 Copilot declarative agent, a Reveal.js slide deck, a project overview, a documentation reader, and a raw tool tester — all using the same 12 tools and the same 29 million rows of data. The whole thing runs serverless and costs about $33 a month when nobody's using it — most of that is network security keeping the data path private."
 
 ---
 
@@ -185,9 +185,9 @@ This costs ~$31/month (the "construction cost" of the tunnel), but it permanentl
 
 ---
 
-## The Seven Ways to Use It
+## The Eight Ways to Use It
 
-This is the demo's punchline: one backend, seven completely different client experiences.
+This is the demo's punchline: one backend, eight completely different client experiences.
 
 ### 1. Investigative Agent (Chat icon)
 
@@ -257,7 +257,18 @@ This is the demo's punchline: one backend, seven completely different client exp
 | **How it differs from Copilot Studio** | Copilot Studio is a separate low-code agent builder. This lives _inside_ M365 Copilot alongside your emails, files, and calendar. Both connect to the same `/mcp` endpoint. |
 | **Best for** | Showing that the same MCP backend works in M365 Copilot; enterprise distribution via Teams; demonstrating the simplest possible integration path |
 
-### 7. Documentation (Book icon)
+### 7. Slide Deck (Monitor icon)
+
+| | |
+|---|---|
+| **Pattern** | Reveal.js HTML presentation embedded in an iframe |
+| **What it means** | A full architecture walkthrough slide deck built with Reveal.js. Steps through all 5 layers of the platform — clients, container apps, security, functions, data — with animated builds, the request round-trip flow, cost model, and expansion path. Same dark theme as the rest of the SPA. |
+| **Model** | None |
+| **Memory** | None |
+| **Maps** | No |
+| **Best for** | Demos and presentations. Walk someone through the entire architecture without leaving the app. Arrow keys or spacebar to advance. Press O for overview mode. |
+
+### 8. Documentation (Book icon)
 
 | | |
 |---|---|
@@ -268,7 +279,7 @@ This is the demo's punchline: one backend, seven completely different client exp
 | **Maps** | No |
 | **Best for** | Reading docs during demos, quick reference, showing notebooks without Jupyter |
 
-### 8. MCP Tool Tester (Wrench icon, bottom of sidebar)
+### 9. MCP Tool Tester (Wrench icon, bottom of sidebar)
 
 | | |
 |---|---|

@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Philly Profiteering — Architecture Deck</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/black.css">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #12151c;
+    --surface2: #1a1e28;
+    --surface3: #1f2330;
+    --border: #252a36;
+    --text: #e2e4e9;
+    --text-dim: #7a8192;
+    --text-muted: #4a5168;
+    --accent-blue: #4a9eff;
+    --accent-green: #3dd68c;
+    --accent-orange: #f59e0b;
+    --accent-purple: #a78bfa;
+    --accent-red: #f87171;
+    --accent-cyan: #22d3ee;
+    --accent-pink: #f472b6;
+    --accent-yellow: #fbbf24;
+    --accent-lime: #a3e635;
+    --r-background-color: #0a0c10;
+    --r-main-font: 'DM Sans', sans-serif;
+    --r-heading-font: 'DM Sans', sans-serif;
+    --r-code-font: 'JetBrains Mono', monospace;
+    --r-main-font-size: 28px;
+    --r-main-color: #e2e4e9;
+    --r-heading-color: #e2e4e9;
+    --r-link-color: #4a9eff;
+  }
+
+  .reveal { font-family: 'DM Sans', sans-serif; }
+  .reveal h1, .reveal h2, .reveal h3 { font-weight: 700; letter-spacing: -0.5px; }
+  .reveal h1 { font-size: 2.2em; }
+  .reveal h2 { font-size: 1.5em; margin-bottom: 0.5em; }
+  .reveal h3 { font-size: 1.1em; }
+  .reveal code { font-family: 'JetBrains Mono', monospace; }
+  .reveal pre { font-size: 0.55em; }
+  .reveal section { text-align: left; }
+
+  /* ─── Tag (section label) ─── */
+  .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.4em; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 10px; display: block;
+  }
+
+  /* ─── Subtitle text ─── */
+  .subtitle {
+    font-size: 0.55em; color: var(--text-dim);
+    line-height: 1.6; max-width: 900px; margin-top: 16px;
+  }
+
+  /* ─── Stat cards row ─── */
+  .stats {
+    display: flex; gap: 20px; flex-wrap: wrap;
+    justify-content: center; margin: 30px 0;
+  }
+  .stat {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px 28px; text-align: center;
+    min-width: 140px;
+  }
+  .stat .num { font-size: 2em; font-weight: 700; line-height: 1; }
+  .stat .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.45em; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 1px; margin-top: 6px;
+  }
+
+  /* ─── Client cards ─── */
+  .card-grid {
+    display: grid; gap: 12px; margin: 20px 0;
+  }
+  .card-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .card-grid.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .card-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px 14px;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .card:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+  .card-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.38em; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    margin-bottom: 5px; display: flex; align-items: center; gap: 6px;
+  }
+  .card-label .dot {
+    width: 6px; height: 6px; border-radius: 50%; display: inline-block;
+  }
+  .card-title { font-size: 0.62em; font-weight: 600; margin-bottom: 3px; }
+  .card-desc { font-size: 0.42em; color: var(--text-dim); line-height: 1.5; }
+
+  /* ─── Chips ─── */
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .chip {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.35em; padding: 2px 7px; border-radius: 3px;
+    border: 1px solid; font-weight: 400;
+  }
+
+  /* ─── Color helpers ─── */
+  .c-blue { color: var(--accent-blue); }
+  .c-green { color: var(--accent-green); }
+  .c-orange { color: var(--accent-orange); }
+  .c-purple { color: var(--accent-purple); }
+  .c-red { color: var(--accent-red); }
+  .c-cyan { color: var(--accent-cyan); }
+  .c-pink { color: var(--accent-pink); }
+  .c-yellow { color: var(--accent-yellow); }
+  .c-lime { color: var(--accent-lime); }
+
+  .bg-blue { background: #1a3a66; }
+  .bg-green { background: #153d2a; }
+  .bg-orange { background: #3d2a08; }
+  .bg-purple { background: #2a1f4e; }
+  .bg-red { background: #3d1515; }
+  .bg-cyan { background: #0a3038; }
+  .bg-pink { background: #3d152a; }
+  .bg-lime { background: #253d08; }
+
+  .dot-blue { background: var(--accent-blue); box-shadow: 0 0 8px var(--accent-blue); }
+  .dot-green { background: var(--accent-green); box-shadow: 0 0 8px var(--accent-green); }
+  .dot-orange { background: var(--accent-orange); box-shadow: 0 0 8px var(--accent-orange); }
+  .dot-purple { background: var(--accent-purple); box-shadow: 0 0 8px var(--accent-purple); }
+  .dot-red { background: var(--accent-red); box-shadow: 0 0 8px var(--accent-red); }
+  .dot-cyan { background: var(--accent-cyan); box-shadow: 0 0 8px var(--accent-cyan); }
+  .dot-pink { background: var(--accent-pink); box-shadow: 0 0 8px var(--accent-pink); }
+  .dot-lime { background: var(--accent-lime); box-shadow: 0 0 8px var(--accent-lime); }
+
+  .chip-blue { color: var(--accent-blue); border-color: #1a3a66; background: #1a3a66; }
+  .chip-green { color: var(--accent-green); border-color: #153d2a; background: #153d2a; }
+  .chip-orange { color: var(--accent-orange); border-color: #3d2a08; background: #3d2a08; }
+  .chip-purple { color: var(--accent-purple); border-color: #2a1f4e; background: #2a1f4e; }
+  .chip-red { color: var(--accent-red); border-color: #3d1515; background: #3d1515; }
+  .chip-cyan { color: var(--accent-cyan); border-color: #0a3038; background: #0a3038; }
+  .chip-pink { color: var(--accent-pink); border-color: #3d152a; background: #3d152a; }
+  .chip-lime { color: var(--accent-lime); border-color: #253d08; background: #253d08; }
+
+  /* ─── Badge ─── */
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6em; font-weight: 600;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    padding: 2px 7px; border-radius: 3px; margin-left: 6px;
+  }
+  .badge-live { background: #153d2a; color: var(--accent-green); }
+  .badge-planned { background: #3d3008; color: var(--accent-yellow); }
+  .badge-future { background: #2a1f4e; color: var(--accent-purple); }
+
+  /* ─── Flow diagrams ─── */
+  .flow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55em; line-height: 1.9;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 20px 24px; margin: 16px 0;
+  }
+  .flow .arrow { color: var(--text-muted); }
+  .flow .comment { color: var(--text-muted); font-size: 0.9em; }
+
+  /* ─── Tables ─── */
+  .reveal table {
+    border-collapse: collapse; width: 100%;
+    font-size: 0.55em; margin: 16px 0;
+  }
+  .reveal table th {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85em; font-weight: 600;
+    letter-spacing: 1px; text-transform: uppercase;
+    text-align: left; padding: 10px 14px;
+    border-bottom: 2px solid var(--border); color: var(--text-dim);
+  }
+  .reveal table td {
+    padding: 8px 14px; border-bottom: 1px solid var(--border);
+    color: var(--text-dim); vertical-align: top;
+  }
+  .reveal table .resource { color: var(--text); font-weight: 500; }
+
+  /* ─── Callout boxes ─── */
+  .callout {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 18px 20px; margin: 16px 0;
+  }
+  .callout h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55em; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px;
+  }
+  .callout ul { list-style: none; padding: 0; }
+  .callout li {
+    font-size: 0.48em; color: var(--text-dim); line-height: 1.6;
+    padding: 4px 0 4px 16px; position: relative;
+  }
+  .callout li::before { content: '\2192'; position: absolute; left: 0; color: var(--text-muted); }
+  .callout li strong { color: var(--text); }
+
+  /* ─── Section number bubble ─── */
+  .section-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6em; font-weight: 700; margin-right: 10px;
+  }
+
+  /* ─── Connector arrow ─── */
+  .connector {
+    text-align: center; padding: 12px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.45em; color: var(--text-muted);
+    letter-spacing: 1px; text-transform: uppercase;
+  }
+
+  /* ─── Round-trip step boxes ─── */
+  .step-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 16px; margin: 8px 0;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65em; font-weight: 700;
+    min-width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 6px; flex-shrink: 0;
+  }
+  .step-content { flex: 1; }
+  .step-title { font-size: 0.6em; font-weight: 600; margin-bottom: 2px; }
+  .step-desc { font-size: 0.42em; color: var(--text-dim); line-height: 1.5; }
+
+  /* ─── Noise overlay ─── */
+  .noise {
+    position: fixed; inset: 0; opacity: 0.015;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 100;
+  }
+
+  /* ─── Auth chain styling ─── */
+  .auth-chain {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.5em; line-height: 2;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px 20px; margin: 12px 0;
+  }
+  .auth-chain .path-label { font-weight: 600; }
+  .auth-chain .auth-detail { color: var(--text-muted); padding-left: 20px; }
+
+  /* ─── Centered text helper ─── */
+  .centered { text-align: center; }
+
+  /* ─── Cost highlight ─── */
+  .cost-total {
+    font-size: 1.8em; font-weight: 700; text-align: center;
+    margin: 20px 0; line-height: 1.2;
+  }
+  .cost-total small {
+    display: block; font-size: 0.35em; color: var(--text-dim);
+    font-weight: 400; margin-top: 4px;
+  }
+
+  /* ─── Comparison table fix ─── */
+  .reveal table.compact td,
+  .reveal table.compact th { padding: 6px 10px; font-size: 0.95em; }
+
+  /* Fragment custom: grow-in */
+  .reveal .slides section .fragment.grow-in {
+    opacity: 0; transform: scale(0.9);
+  }
+  .reveal .slides section .fragment.grow-in.visible {
+    opacity: 1; transform: scale(1);
+    transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Override reveal.js defaults */
+  .reveal .slides { text-align: left; }
+  .reveal .slide-number { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+  .reveal .progress { height: 3px; }
+  .reveal .progress span { background: var(--accent-blue); }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="reveal">
+<div class="slides">
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  SLIDE 1: TITLE                                                -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section data-transition="fade">
+  <span class="tag c-blue">Combined Architecture &amp; Implementation</span>
+  <h1 style="font-size:1.8em;">Philly Profiteering</h1>
+  <h2 style="font-size:0.9em; font-weight:400; color:var(--text-dim); margin-top:-8px;">Multi-Client Agent Platform</h2>
+
+  <div class="stats" style="margin-top:40px;">
+    <div class="stat fragment" data-fragment-index="1">
+      <div class="num c-blue">7</div>
+      <div class="label">Client Patterns</div>
+    </div>
+    <div class="stat fragment" data-fragment-index="2">
+      <div class="num c-green">12</div>
+      <div class="label">MCP Tools</div>
+    </div>
+    <div class="stat fragment" data-fragment-index="3">
+      <div class="num c-orange">29M</div>
+      <div class="label">Rows</div>
+    </div>
+    <div class="stat fragment" data-fragment-index="4">
+      <div class="num c-cyan">10</div>
+      <div class="label">Public Datasets</div>
+    </div>
+    <div class="stat fragment" data-fragment-index="5">
+      <div class="num c-green">$33</div>
+      <div class="label">/Month Idle</div>
+    </div>
+  </div>
+
+  <p class="subtitle fragment" data-fragment-index="6" style="text-align:center; max-width:100%;">
+    Seven live client patterns consuming the same 12 tools and 29M rows of Philadelphia property data.<br>
+    Two Container Apps. Azure APIM as the security front door. VNet + Private Endpoints. ~$33/month idle.
+  </p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  SLIDE 2: WHAT'S LIVE TODAY                                    -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section data-transition="slide">
+  <span class="tag c-green">What's Live Today</span>
+  <h2>7 Client Patterns, Same 12 Tools</h2>
+
+  <div style="display:grid; gap:8px; margin-top:16px;">
+    <div class="step-box fragment">
+      <div class="step-num" style="background:var(--accent-blue); color:var(--bg);">1</div>
+      <div class="step-content">
+        <div class="step-title">Investigative Agent <span style="font-weight:400; color:var(--text-dim);">— Chat Completions + Tools</span></div>
+        <div class="step-desc">SPA panel. 6 selectable models. Stateless agentic loop in <code>chat.ts</code>, up to 10 tool-call rounds.</div>
+      </div>
+    </div>
+    <div class="step-box fragment">
+      <div class="step-num" style="background:var(--accent-orange); color:var(--bg);">2</div>
+      <div class="step-content">
+        <div class="step-title">SK Agent <span style="font-weight:400; color:var(--text-dim);">— Semantic Kernel Multi-Agent</span></div>
+        <div class="step-desc">C#/.NET 8 orchestration. Triage routes to 3 specialists (Owner, Violation, Area). GPT-4.1.</div>
+      </div>
+    </div>
+    <div class="step-box fragment">
+      <div class="step-num" style="background:var(--accent-cyan); color:var(--bg);">3</div>
+      <div class="step-content">
+        <div class="step-title">City Portal <span style="font-weight:400; color:var(--text-dim);">— Assistants API (Foundry Agent)</span></div>
+        <div class="step-desc">Philly-branded gov page. Azure manages the tool-calling loop. Persistent threads.</div>
+      </div>
+    </div>
+    <div class="step-box fragment">
+      <div class="step-num" style="background:var(--accent-purple); color:var(--bg);">4</div>
+      <div class="step-content">
+        <div class="step-title">Copilot Studio <span style="font-weight:400; color:var(--text-dim);">— MCP via Low-Code</span></div>
+        <div class="step-desc">Embedded widget. Auto-discovers 12 tools via MCP protocol. No custom code.</div>
+      </div>
+    </div>
+    <div class="step-box fragment">
+      <div class="step-num" style="background:var(--accent-pink); color:var(--bg);">5</div>
+      <div class="step-content">
+        <div class="step-title">M365 Copilot <span style="font-weight:400; color:var(--text-dim);">— Declarative Agent</span></div>
+        <div class="step-desc">Teams / Outlook / Edge. 3 JSON files + 2 icons. RemoteMCPServer runtime. Zero code.</div>
+      </div>
+    </div>
+    <div class="step-box fragment">
+      <div class="step-num" style="background:var(--accent-green); color:var(--bg);">6</div>
+      <div class="step-content">
+        <div class="step-title">Claude Code / Desktop <span style="font-weight:400; color:var(--text-dim);">— stdio MCP</span></div>
+        <div class="step-desc">Local MCP server process. Full access to all 12 tools + ad-hoc SQL.</div>
+      </div>
+    </div>
+    <div class="step-box fragment">
+      <div class="step-num" style="background:var(--surface3); color:var(--text);">7</div>
+      <div class="step-content">
+        <div class="step-title">MCP Tool Tester <span style="font-weight:400; color:var(--text-dim);">— Raw Protocol</span></div>
+        <div class="step-desc">SPA panel. No AI. Manual tool selection, raw JSON results. Debug &amp; exploration.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  SLIDE 3: LAYER 1 — CLIENT CARDS (top row)                    -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section data-transition="slide">
+  <section>
+    <span class="tag c-blue">
+      <span class="section-num" style="background:var(--accent-blue); color:var(--bg);">1</span>
+      Layer 1 — Consuming Clients
+    </span>
+    <h2>Who Investigates Poverty Profiteering?</h2>
+
+    <div class="card-grid cols-3" style="margin-top:20px;">
+      <div class="card fragment">
+        <div class="card-label"><span class="dot dot-blue"></span> <span class="c-blue">Pro-Code</span> <span class="badge badge-live">LIVE</span></div>
+        <div class="card-title">Investigative Agent</div>
+        <div class="card-desc">Chat Completions + tool calling. 6-model dropdown. Stateless — our code runs the agentic loop.</div>
+        <div class="chips">
+          <span class="chip chip-blue">POST /chat</span>
+          <span class="chip chip-blue">6 models</span>
+          <span class="chip chip-blue">10-round loop</span>
+        </div>
+      </div>
+      <div class="card fragment">
+        <div class="card-label"><span class="dot dot-orange"></span> <span class="c-orange">Pro-Code</span> <span class="badge badge-live">LIVE</span></div>
+        <div class="card-title">SK Agent (Semantic Kernel)</div>
+        <div class="card-desc">C#/.NET 8 multi-agent. Triage routes to OwnerAnalyst, ViolationAnalyst, AreaAnalyst. GPT-4.1.</div>
+        <div class="chips">
+          <span class="chip chip-orange">POST /investigate</span>
+          <span class="chip chip-orange">4 agents</span>
+        </div>
+      </div>
+      <div class="card fragment">
+        <div class="card-label"><span class="dot dot-cyan"></span> <span class="c-cyan">Pro-Code</span> <span class="badge badge-live">LIVE</span></div>
+        <div class="card-title">City Portal</div>
+        <div class="card-desc">Assistants API. Azure manages the tool-calling loop. Persistent threads. GPT-4.1 only.</div>
+        <div class="chips">
+          <span class="chip chip-cyan">POST /agent/*</span>
+          <span class="chip chip-cyan">Assistants API</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-grid cols-4" style="margin-top:12px;">
+      <div class="card fragment">
+        <div class="card-label"><span class="dot dot-purple"></span> <span class="c-purple">Low-Code</span> <span class="badge badge-live">LIVE</span></div>
+        <div class="card-title">Copilot Studio</div>
+        <div class="card-desc">Auto-discovers 12 tools via MCP. No custom code.</div>
+        <div class="chips">
+          <span class="chip chip-purple">POST /mcp</span>
+          <span class="chip chip-purple">MCP GA</span>
+        </div>
+      </div>
+      <div class="card fragment">
+        <div class="card-label"><span class="dot dot-pink"></span> <span class="c-pink">No-Code</span> <span class="badge badge-live">LIVE</span></div>
+        <div class="card-title">M365 Copilot</div>
+        <div class="card-desc">3 JSON files. RemoteMCPServer runtime. Teams / Outlook / Edge.</div>
+        <div class="chips">
+          <span class="chip chip-pink">POST /mcp</span>
+          <span class="chip chip-pink">3 JSON files</span>
+        </div>
+      </div>
+      <div class="card fragment">
+        <div class="card-label"><span class="dot dot-green"></span> <span class="c-green">Pro-Code</span> <span class="badge badge-live">LIVE</span></div>
+        <div class="card-title">Claude Code</div>
+        <div class="card-desc">Local MCP server (stdio). Full access to all 12 tools.</div>
+        <div class="chips">
+          <span class="chip chip-green">stdio</span>
+          <span class="chip chip-green">Ad-hoc SQL</span>
+        </div>
+      </div>
+      <div class="card fragment">
+        <div class="card-label"><span class="dot" style="background:var(--text-dim);box-shadow:0 0 8px var(--text-dim);"></span> Debug <span class="badge badge-live">LIVE</span></div>
+        <div class="card-title">MCP Tool Tester</div>
+        <div class="card-desc">Raw MCP protocol. No AI in the loop. Debug tool.</div>
+        <div class="chips">
+          <span class="chip" style="color:var(--text-dim); border-color:var(--border); background:var(--surface2);">Raw JSON-RPC</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHY DIFFERENT ANSWERS (vertical sub-slide) -->
+  <section>
+    <span class="tag c-orange">Consuming Clients</span>
+    <h2>Why Same Question <span style="color:var(--accent-orange);">&rarr;</span> Different Answers?</h2>
+
+    <div style="display:grid; gap:10px; margin-top:20px;">
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-orange); color:var(--bg);">1</div>
+        <div class="step-content">
+          <div class="step-title">Different LLMs</div>
+          <div class="step-desc">GPT-4.1 is methodical. GPT-5 reasons deeply. Phi-4 sometimes misses nuance. Copilot Studio uses Microsoft's orchestration model. Claude uses Anthropic's model. Each reasons differently.</div>
+        </div>
+      </div>
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-orange); color:var(--bg);">2</div>
+        <div class="step-content">
+          <div class="step-title">Different Orchestration</div>
+          <div class="step-desc"><code>/chat</code> runs our loop (10 rounds). <code>/agent</code> lets Azure manage the loop. Copilot Studio has its own generative orchestration. Each may call different tools in different order.</div>
+        </div>
+      </div>
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-orange); color:var(--bg);">3</div>
+        <div class="step-content">
+          <div class="step-title">Different System Prompts &amp; Safety Filters</div>
+          <div class="step-desc">Each client has different instructions. Copilot Studio wraps your agent in Microsoft's responsible AI guardrails. GCC adds government compliance filtering on top.</div>
+        </div>
+      </div>
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-green); color:var(--bg);">=</div>
+        <div class="step-content">
+          <div class="step-title" style="color:var(--accent-green);">The Tools and Data Are Identical</div>
+          <div class="step-desc">All clients hit the same 12 Functions via APIM, query the same 29M rows. The divergence is entirely in the intelligence layer above.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  SLIDE 4: LAYER 2 — CONTAINER APP                             -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section data-transition="slide">
+  <section>
+    <span class="tag c-lime">
+      <span class="section-num" style="background:var(--accent-lime); color:var(--bg);">2</span>
+      Layer 2 — Container App
+    </span>
+    <h2>Multi-Protocol Agent Host</h2>
+
+    <div class="connector fragment">&#9660; 7 paths into the same backend: stdio | /mcp | /chat | /agent | /investigate | raw HTTP &#9660;</div>
+
+    <div class="card-grid cols-3" style="margin-top:12px;">
+      <div class="card fragment">
+        <div class="card-label"><span class="dot dot-lime"></span> <span class="c-lime">MCP Protocol</span></div>
+        <div class="card-title">POST/GET/DELETE /mcp</div>
+        <div class="card-desc">Streamable HTTP. JSON-RPC 2.0. Session-based. Tool discovery (<code>tools/list</code>) and invocation (<code>tools/call</code>).</div>
+        <div class="chips">
+          <span class="chip chip-lime">Copilot Studio</span>
+          <span class="chip chip-lime">M365 Copilot</span>
+          <span class="chip chip-lime">MCP Tester</span>
+        </div>
+      </div>
+      <div class="card fragment">
+        <div class="card-label"><span class="dot dot-lime"></span> <span class="c-lime">Chat Completions</span></div>
+        <div class="card-title">POST /chat + GET /models</div>
+        <div class="card-desc">Natural language &rarr; Azure OpenAI (selected model) with 12 tool definitions. Our code runs the agentic loop. 6 models. Stateless.</div>
+        <div class="chips">
+          <span class="chip chip-lime">GPT-4.1</span>
+          <span class="chip chip-lime">GPT-5</span>
+          <span class="chip chip-lime">o4-mini</span>
+          <span class="chip chip-lime">Phi-4</span>
+        </div>
+      </div>
+      <div class="card fragment">
+        <div class="card-label"><span class="dot dot-lime"></span> <span class="c-lime">Assistants API</span></div>
+        <div class="card-title">POST /agent/thread + /agent/message</div>
+        <div class="card-desc">GPT-4.1 via Assistants API. Azure manages the tool-calling loop. Persistent threads (server-side state).</div>
+        <div class="chips">
+          <span class="chip chip-lime">GPT-4.1 only</span>
+          <span class="chip chip-lime">Thread persistence</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-grid cols-2" style="margin-top:12px;">
+      <div class="card fragment">
+        <div class="card-label"><span class="dot dot-orange"></span> <span class="c-orange">Semantic Kernel</span></div>
+        <div class="card-title">POST /investigate (separate Container App)</div>
+        <div class="card-desc">C#/.NET 8. Triage agent &rarr; OwnerAnalyst (3 tools), ViolationAnalyst (4 tools), AreaAnalyst (5 tools). GPT-4.1 via managed identity.</div>
+      </div>
+      <div class="card fragment" style="background: var(--surface2);">
+        <div class="card-desc" style="font-family:'JetBrains Mono',monospace; font-size:0.42em; line-height:1.8;">
+          <span class="c-lime">philly-mcp-server</span> &middot; Consumption 0-3 replicas &middot; ~180MB Alpine &middot; Cold start ~5-10s<br>
+          <span class="c-orange">philly-sk-agent</span> &middot; Consumption 0-3 replicas &middot; .NET 8 &middot; Cold start ~8-15s<br>
+          <span class="c-green">MCP Server (local)</span> &middot; Same TypeScript codebase &middot; stdio transport
+        </div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  SLIDE 5: LAYER 3 — SECURITY                                  -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section data-transition="slide">
+  <section>
+    <span class="tag c-red">
+      <span class="section-num" style="background:var(--accent-red); color:var(--bg);">3</span>
+      Layer 3 — Security &amp; Governance
+    </span>
+    <h2>APIM: The Single Front Door</h2>
+
+    <div class="card-grid cols-2" style="margin-top:20px;">
+      <div class="card fragment">
+        <div class="card-label"><span class="dot dot-red"></span> <span class="c-red">philly-profiteering-apim</span></div>
+        <div class="card-title">Azure API Management (Consumption)</div>
+        <div class="card-desc">
+          Validates <code>Ocp-Apim-Subscription-Key</code> on every inbound request, injects <code>x-functions-key</code> for backend auth. Function key never exposed to clients. 12 operations (9 GET, 3 POST).<br><br>
+          <strong>Every client path hits APIM</strong> &mdash; <code>/chat</code> tool calls, <code>/agent</code> tool calls, <code>/mcp tools/call</code>, stdio MCP. No exceptions.
+        </div>
+        <div class="chips">
+          <span class="chip chip-red">Subscription Key</span>
+          <span class="chip chip-red">Function Key Injection</span>
+          <span class="chip chip-red">12 Operations</span>
+        </div>
+      </div>
+
+      <div class="card fragment">
+        <div class="card-label"><span class="dot dot-red"></span> <span class="c-red">Auth Chains</span></div>
+        <div class="card-title">Zero Passwords in Code</div>
+        <div class="auth-chain">
+          <span class="path-label c-blue">Tool calls (all clients):</span><br>
+          Client &rarr; Container App &rarr; APIM<br>
+          <span class="auth-detail">&mdash; Ocp-Apim-Subscription-Key</span><br>
+          APIM &rarr; Functions<br>
+          <span class="auth-detail">&mdash; x-functions-key (injected by policy)</span><br>
+          Functions &rarr; SQL<br>
+          <span class="auth-detail">&mdash; Azure AD token (managed identity)</span><br><br>
+          <span class="path-label c-orange">LLM calls (/chat + /agent):</span><br>
+          Container App &rarr; Azure OpenAI<br>
+          <span class="auth-detail">&mdash; Managed identity &rarr; "Cognitive Services OpenAI User"</span><br><br>
+          <span class="path-label c-purple">SPA access:</span><br>
+          Browser &rarr; Static Web App<br>
+          <span class="auth-detail">&mdash; Entra ID login (/.auth/login/aad)</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VNet + Private Endpoints (vertical sub-slide) -->
+  <section>
+    <span class="tag c-cyan">Security &amp; Governance</span>
+    <h2>VNet + Private Endpoints</h2>
+
+    <div class="flow fragment" style="text-align:center; line-height:2.2;">
+      <span class="c-lime">Container App</span> <span class="arrow">&rarr;</span>
+      <span class="c-red">APIM</span> <span style="color:var(--text-muted);">(public gateway)</span> <span class="arrow">&rarr;</span>
+      <span class="c-green">Function App</span> <span style="color:var(--accent-cyan);">(VNet-integrated)</span> <span class="arrow">&rarr;</span>
+      <span class="c-orange">SQL / Storage</span> <span style="color:var(--accent-cyan);">(private endpoints)</span>
+    </div>
+
+    <div class="card-grid cols-2" style="margin-top:16px;">
+      <div class="card fragment" style="border-left: 3px solid var(--accent-cyan);">
+        <div class="card-title" style="font-size:0.6em;">Why?</div>
+        <div class="card-desc">
+          MCAPS corporate policies kept disabling <code>publicNetworkAccess</code> on SQL and Storage, causing 503 errors on every API call. VNet + Private Endpoints route all traffic over private links. Public access is now <em>intentionally</em> disabled. MCAPS can't break what's already locked down.
+        </div>
+      </div>
+      <div class="card fragment" style="border-left: 3px solid var(--accent-cyan);">
+        <div class="card-title" style="font-size:0.6em;">4 Private Endpoints</div>
+        <div class="card-desc">
+          <strong>pe-sql-philly</strong> &mdash; SQL Server (database queries)<br>
+          <strong>pe-blob-philly</strong> &mdash; Storage blob (Function App code)<br>
+          <strong>pe-table-philly</strong> &mdash; Storage table (internal state)<br>
+          <strong>pe-queue-philly</strong> &mdash; Storage queue (internal messaging)<br><br>
+          + 4 Private DNS Zones for name resolution inside the VNet.
+        </div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  SLIDE 6: LAYER 4 — AZURE FUNCTIONS (12 TOOLS)                -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section data-transition="slide">
+  <span class="tag c-green">
+    <span class="section-num" style="background:var(--accent-green); color:var(--bg);">4</span>
+    Layer 4 — MCP Tool Servers
+  </span>
+  <h2>Azure Functions v4 (Flex Consumption FC1)</h2>
+
+  <div class="card-grid cols-3" style="margin-top:20px;">
+    <div class="card fragment">
+      <div class="card-label"><span class="dot dot-green"></span> <span class="c-green">Entity &amp; Network</span></div>
+      <div class="card-title">Ownership Graph</div>
+      <div class="card-desc">Search 2.8M entities, traverse the 15.5M-link entity &rarr; address &rarr; parcel ownership graph.</div>
+      <div class="chips">
+        <span class="chip chip-green">search_entities</span>
+        <span class="chip chip-green">get_entity_network</span>
+      </div>
+    </div>
+    <div class="card fragment">
+      <div class="card-label"><span class="dot dot-green"></span> <span class="c-green">Property Detail</span></div>
+      <div class="card-title">Property Investigation</div>
+      <div class="card-desc">Full profiles with assessments, violations, licenses, appeals, and demolitions.</div>
+      <div class="chips">
+        <span class="chip chip-green">get_property_profile</span>
+        <span class="chip chip-green">get_property_violations</span>
+        <span class="chip chip-green">get_property_assessments</span>
+        <span class="chip chip-green">get_property_licenses</span>
+        <span class="chip chip-green">get_property_appeals</span>
+        <span class="chip chip-green">get_property_demolitions</span>
+      </div>
+    </div>
+    <div class="card fragment">
+      <div class="card-label"><span class="dot dot-green"></span> <span class="c-green">Search &amp; Analytics</span></div>
+      <div class="card-title">Analytics &amp; Ad-Hoc SQL</div>
+      <div class="card-desc">Business license search, top violator rankings, zip code stats, and safety-constrained custom SQL.</div>
+      <div class="chips">
+        <span class="chip chip-green">search_businesses</span>
+        <span class="chip chip-green">get_top_violators</span>
+        <span class="chip chip-green">get_area_stats</span>
+        <span class="chip chip-green">run_query</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card fragment" style="margin-top:12px; background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:12px 16px;">
+    <div class="card-desc" style="font-family:'JetBrains Mono',monospace; font-size:0.42em; line-height:1.6;">
+      <span class="c-green">philly-profiteering-func</span> &middot;
+      Node.js 20 &middot; TypeScript &rarr; JS &middot;
+      12 HTTP triggers &middot;
+      System-assigned managed identity (db_datareader) &middot;
+      Flex Consumption FC1 &middot;
+      <span class="c-cyan">VNet-integrated (snet-functions)</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  SLIDE 7: LAYER 5 — DATA & LLMs                               -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section data-transition="slide">
+  <section>
+    <span class="tag c-orange">
+      <span class="section-num" style="background:var(--accent-orange); color:var(--bg);">5</span>
+      Layer 5 — Data &amp; LLMs
+    </span>
+    <h2>Azure SQL + Azure OpenAI</h2>
+
+    <div class="card-grid cols-2" style="margin-top:20px;">
+      <div class="card fragment">
+        <div class="card-label"><span class="dot dot-orange"></span> <span class="c-orange">phillystats &middot; GP_S_Gen5_2 &middot; Auto-pause 60min &middot; <span class="c-cyan">Private Endpoint</span></span></div>
+        <div class="card-title">Azure SQL &mdash; 10 Tables, 3 Views, 29M Rows</div>
+        <div class="card-desc">
+          <strong>Entity resolution:</strong> master_entity (2.8M), master_address (987K), master_entity_address (15.5M links)<br>
+          <strong>Property:</strong> opa_properties (584K, ~88 cols), assessments (6.4M, 2015-2025)<br>
+          <strong>Licenses:</strong> business_licenses (422K), commercial_activity_licenses (508K)<br>
+          <strong>Enforcement:</strong> case_investigations (1.6M), appeals (316K), demolitions (13.5K)<br>
+          <strong>Views:</strong> vw_entity_properties, vw_property_violation_summary, vw_owner_portfolio
+        </div>
+      </div>
+
+      <div class="card fragment">
+        <div class="card-label"><span class="dot dot-orange"></span> <span class="c-orange">foundry-og-agents &middot; S0</span></div>
+        <div class="card-title">Azure OpenAI &mdash; 6 Models</div>
+        <div class="card-desc" style="line-height:1.8;">
+          <strong>GPT-4.1</strong> &mdash; Default. Complex multi-tool investigations<br>
+          <strong>GPT-5</strong> &mdash; Flagship reasoning model<br>
+          <strong>GPT-5 Mini</strong> &mdash; Fast and capable<br>
+          <strong>o4-mini</strong> &mdash; Efficient reasoning<br>
+          <strong>o3-mini</strong> &mdash; Compact reasoning<br>
+          <strong>Phi-4</strong> &mdash; Microsoft's lightweight SLM<br><br>
+          All GlobalStandard (pay-per-token). $0 when idle.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Database deep dive (vertical sub-slide) -->
+  <section>
+    <span class="tag c-orange">Data &amp; LLMs</span>
+    <h2>The Database: 10 Public Datasets</h2>
+
+    <table style="margin-top:16px;">
+      <thead>
+        <tr><th>Table</th><th>Rows</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr class="fragment"><td class="resource">master_entity</td><td>2.8M</td><td>Entity names (people, LLCs, corporations)</td></tr>
+        <tr class="fragment"><td class="resource">master_address</td><td>987K</td><td>Addresses</td></tr>
+        <tr class="fragment"><td class="resource">master_entity_address</td><td>15.5M</td><td>Entity &rarr; address &rarr; parcel graph (junction)</td></tr>
+        <tr class="fragment"><td class="resource">opa_properties</td><td>584K</td><td>OPA property registry (~88 columns)</td></tr>
+        <tr class="fragment"><td class="resource">assessments</td><td>6.4M</td><td>Historical assessments by year (2015-2025)</td></tr>
+        <tr class="fragment"><td class="resource">business_licenses</td><td>422K</td><td>Business licenses</td></tr>
+        <tr class="fragment"><td class="resource">commercial_activity_licenses</td><td>508K</td><td>Commercial activity licenses</td></tr>
+        <tr class="fragment"><td class="resource">case_investigations</td><td>1.6M</td><td>Code enforcement violations</td></tr>
+        <tr class="fragment"><td class="resource">appeals</td><td>316K</td><td>L&amp;I appeals</td></tr>
+        <tr class="fragment"><td class="resource">demolitions</td><td>13.5K</td><td>Demolition records</td></tr>
+      </tbody>
+    </table>
+  </section>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  SLIDE 8: THE ROUND TRIP                                       -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section data-transition="slide">
+  <section>
+    <span class="tag c-pink">Request Round Trip</span>
+    <h2>What Happens When You Type a Prompt?</h2>
+
+    <div style="text-align:center; margin:16px 0;">
+      <div class="flow fragment" style="display:inline-block; text-align:center;">
+        User Prompt &rarr;
+        <span class="c-blue">Client</span> &rarr;
+        <span class="c-lime">Container App</span> &rarr;
+        <span class="c-orange">Azure OpenAI</span> &rarr;
+        <span class="c-red">APIM</span> &rarr;
+        <span class="c-green">Functions</span> &rarr;
+        <span class="c-orange">SQL</span> &rarr;
+        <span style="color:var(--text-dim);">back</span>
+      </div>
+    </div>
+
+    <div style="display:grid; gap:6px; margin-top:8px;">
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-blue); color:var(--bg);">1</div>
+        <div class="step-content">
+          <div class="step-title">User types a question</div>
+          <div class="step-desc">"Show me all properties owned by GEENA LLC and their violations"</div>
+        </div>
+      </div>
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-lime); color:var(--bg);">2</div>
+        <div class="step-content">
+          <div class="step-title">Container App receives the request</div>
+          <div class="step-desc">Routes to the right handler: <code>/chat</code> (Chat Completions), <code>/agent</code> (Assistants), <code>/mcp</code> (MCP protocol), or <code>/investigate</code> (SK).</div>
+        </div>
+      </div>
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-orange); color:var(--bg);">3</div>
+        <div class="step-content">
+          <div class="step-title">LLM decides which tools to call</div>
+          <div class="step-desc">Azure OpenAI sees 12 tool definitions + system prompt. Returns: <code>search_entities({ name: "GEENA LLC" })</code></div>
+        </div>
+      </div>
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-red); color:var(--bg);">4</div>
+        <div class="step-content">
+          <div class="step-title">Tool call &rarr; APIM &rarr; Functions &rarr; SQL</div>
+          <div class="step-desc">APIM validates subscription key, injects function key. Function queries SQL via private endpoint. Returns results.</div>
+        </div>
+      </div>
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-orange); color:var(--bg);">5</div>
+        <div class="step-content">
+          <div class="step-title">Results fed back to the LLM</div>
+          <div class="step-desc">Model sees GEENA LLC has 47 properties. Decides to call <code>get_entity_network</code>, then <code>get_property_violations</code>. Repeats steps 3-5.</div>
+        </div>
+      </div>
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-green); color:var(--bg);">6</div>
+        <div class="step-content">
+          <div class="step-title">Final response generated</div>
+          <div class="step-desc">After 2-5 tool call rounds, the model synthesizes a narrative: property counts, violation patterns, demolitions, and entity relationships.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- M365 Copilot specific round trip -->
+  <section>
+    <span class="tag c-pink">Request Round Trip</span>
+    <h2>M365 Copilot: The MCP Path</h2>
+    <p class="subtitle" style="margin-top:0; margin-bottom:16px;">When you @mention the Philly Investigator agent in Teams, Outlook, or Edge:</p>
+
+    <div style="display:grid; gap:6px;">
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-pink); color:var(--bg);">1</div>
+        <div class="step-content">
+          <div class="step-title">M365 Copilot Orchestration</div>
+          <div class="step-desc">Your prompt + agent instructions (<code>declarativeAgent.json</code>) + 12 tool schemas (<code>ai-plugin.json</code>) are assembled. Microsoft's orchestration model decides which tools to call.</div>
+        </div>
+      </div>
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-pink); color:var(--bg);">2</div>
+        <div class="step-content">
+          <div class="step-title">RemoteMCPServer Runtime</div>
+          <div class="step-desc">M365 Copilot sends a Streamable HTTP request (POST) to our Container App's <code>/mcp</code> endpoint &mdash; the same one Copilot Studio uses.</div>
+        </div>
+      </div>
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-lime); color:var(--bg);">3</div>
+        <div class="step-content">
+          <div class="step-title">Container App &rarr; APIM &rarr; Functions &rarr; SQL</div>
+          <div class="step-desc">MCP server maps the tool call to APIM endpoint. Same 6-hop path as every other client. Results flow back to M365 Copilot.</div>
+        </div>
+      </div>
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-pink); color:var(--bg);">4</div>
+        <div class="step-content">
+          <div class="step-title">Response in M365 Copilot</div>
+          <div class="step-desc">M365 Copilot synthesizes all tool results into a response. Appears in the Teams/Outlook/Edge chat window alongside your enterprise data.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout fragment" style="border-left: 3px solid var(--accent-pink); margin-top:16px;">
+      <h3 class="c-pink">What makes M365 Copilot unique?</h3>
+      <ul>
+        <li>It's the only pattern that runs <strong>inside M365 Copilot</strong> &mdash; alongside emails, files, calendar, Teams messages</li>
+        <li>3 JSON files + 2 icons. Zero code. Zero new infrastructure</li>
+        <li><strong>Static tool discovery</strong> (schemas in <code>ai-plugin.json</code>), unlike Copilot Studio's dynamic MCP discovery</li>
+      </ul>
+    </div>
+  </section>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  SLIDE 9: COST MODEL                                          -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section data-transition="slide">
+  <span class="tag c-green">Scale to Zero Everywhere</span>
+  <h2>Cost Model</h2>
+
+  <div class="cost-total fragment c-green">
+    ~$33<small>/month idle &mdash; everything scales to zero except private endpoints</small>
+  </div>
+
+  <table style="margin-top:8px;">
+    <thead>
+      <tr><th>Resource</th><th>Idle Cost</th><th>Active Cost</th></tr>
+    </thead>
+    <tbody>
+      <tr class="fragment"><td class="resource">SQL Database</td><td>$0 (auto-paused)</td><td>~$0.75/vCore-hour</td></tr>
+      <tr class="fragment"><td class="resource">Function App</td><td>$0</td><td>Pay per execution (1M/month free)</td></tr>
+      <tr class="fragment"><td class="resource">APIM</td><td>$0</td><td>~$3.50/M calls (1M/month free)</td></tr>
+      <tr class="fragment"><td class="resource">Container Apps (x2)</td><td>$0 (0 replicas)</td><td>Pay per use</td></tr>
+      <tr class="fragment"><td class="resource">Azure OpenAI</td><td>$0</td><td>Pay per token (GPT-4.1: ~$2/M input)</td></tr>
+      <tr class="fragment"><td class="resource">Static Web App</td><td>$0</td><td>Free tier</td></tr>
+      <tr class="fragment"><td class="resource" style="color:var(--accent-cyan);">Private Endpoints (x4)</td><td style="color:var(--accent-cyan);">~$29/month</td><td>$7.20/endpoint/month</td></tr>
+      <tr class="fragment"><td class="resource">Private DNS Zones (x4)</td><td>~$2/month</td><td>$0.50/zone/month</td></tr>
+      <tr class="fragment"><td class="resource">Storage (x2) + ACR</td><td>~$1.17/month</td><td>Minimal</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  SLIDE 10: RESOURCE MAP                                        -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section data-transition="slide">
+  <span class="tag c-cyan">Azure Resources</span>
+  <h2>Architecture Layer Map</h2>
+
+  <table style="font-size:0.48em; margin-top:12px;">
+    <thead>
+      <tr><th>Resource</th><th>Name / SKU</th><th>Layer</th><th>RG</th></tr>
+    </thead>
+    <tbody>
+      <tr class="fragment"><td class="resource">Container App</td><td>philly-mcp-server &middot; 0-3</td><td>Layer 2 &mdash; Multi-protocol host</td><td>rg-philly-profiteering</td></tr>
+      <tr class="fragment"><td class="resource">Container App</td><td>philly-sk-agent &middot; 0-3</td><td>Layer 2 &mdash; SK multi-agent host</td><td>rg-philly-profiteering</td></tr>
+      <tr class="fragment"><td class="resource">API Management</td><td>philly-profiteering-apim &middot; Consumption</td><td>Layer 3 &mdash; Security front door</td><td>rg-philly-profiteering</td></tr>
+      <tr class="fragment"><td class="resource">Function App</td><td>philly-profiteering-func &middot; FC1 Flex</td><td>Layer 4 &mdash; 12 HTTP functions</td><td>rg-philly-profiteering</td></tr>
+      <tr class="fragment"><td class="resource">SQL Database</td><td>phillystats &middot; GP_S_Gen5_2</td><td>Layer 5 &mdash; 10 tables, 29M rows</td><td>rg-philly-profiteering</td></tr>
+      <tr class="fragment"><td class="resource">AI Services</td><td>foundry-og-agents &middot; S0</td><td>Layer 5 &mdash; 6 model deployments</td><td>rg-foundry</td></tr>
+      <tr class="fragment"><td class="resource">Static Web App</td><td>philly-profiteering-spa &middot; Free</td><td>Layer 1 &mdash; 7-panel SPA</td><td>rg-philly-profiteering</td></tr>
+      <tr class="fragment"><td class="resource">VNet + PEs (x4)</td><td>vnet-philly-profiteering &middot; 10.0.0.0/16</td><td>Layer 3 &mdash; Network isolation</td><td>rg-philly-profiteering</td></tr>
+      <tr class="fragment"><td class="resource">AI Foundry</td><td>philly-ai-hub / philly-profiteering</td><td>Agent management</td><td>rg-foundry</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  SLIDE 11: EXPANSION PATH                                     -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section data-transition="slide">
+  <section>
+    <span class="tag c-yellow">
+      <span class="section-num" style="background:var(--accent-yellow); color:var(--bg);">+</span>
+      Expansion Path
+    </span>
+    <h2>Power Platform &amp; A2A</h2>
+
+    <div class="card-grid cols-4" style="margin-top:20px;">
+      <div class="card fragment" style="border-top: 2px solid var(--accent-pink);">
+        <div class="card-label"><span class="dot dot-pink"></span> <span class="c-pink">No-Code</span> <span class="badge badge-planned">PLANNED</span></div>
+        <div class="card-title">M365 Agent Builder</div>
+        <div class="card-desc">Declarative "neighborhood watchdog" agent. MCP actions via Agents Toolkit. Ground in SharePoint + 12 tools.</div>
+      </div>
+      <div class="card fragment" style="border-top: 2px solid var(--accent-yellow);">
+        <div class="card-label"><span class="dot" style="background:var(--accent-yellow);box-shadow:0 0 8px var(--accent-yellow);"></span> <span class="c-yellow">Automation</span> <span class="badge badge-planned">PLANNED</span></div>
+        <div class="card-title">Power Automate Flows</div>
+        <div class="card-desc">Agent triggers flows: generate report &rarr; email council member &rarr; log to SharePoint &rarr; schedule follow-up.</div>
+      </div>
+      <div class="card fragment" style="border-top: 2px solid var(--accent-yellow);">
+        <div class="card-label"><span class="dot" style="background:var(--accent-yellow);box-shadow:0 0 8px var(--accent-yellow);"></span> <span class="c-yellow">Apps</span> <span class="badge badge-planned">PLANNED</span></div>
+        <div class="card-title">Power Apps Dashboard</div>
+        <div class="card-desc">Canvas app with embedded Copilot agent. Map component showing violations by geography. Custom connector &rarr; APIM.</div>
+      </div>
+      <div class="card fragment" style="border-top: 2px solid var(--accent-purple);">
+        <div class="card-label"><span class="dot dot-purple"></span> <span class="c-purple">A2A</span> <span class="badge badge-future">FUTURE</span></div>
+        <div class="card-title">Specialist Agents</div>
+        <div class="card-desc">Gentrification Analyst, Tax Lien Tracker, Compliance Checker. Each has its own LLM and MCP tools. A2A protocol.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Expansion Playbook (vertical sub-slide) -->
+  <section>
+    <span class="tag c-orange">Expansion Path</span>
+    <h2>Playbook &mdash; Priority Order</h2>
+
+    <div style="display:grid; gap:6px; margin-top:16px;">
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-red); color:var(--bg);">1</div>
+        <div class="step-content">
+          <div class="step-title">Add APIM JWT Validation</div>
+          <div class="step-desc">Distinguish between Copilot Studio (Commercial/GCC), the SPA, and external clients. Per-client rate limits.</div>
+        </div>
+      </div>
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-red); color:var(--bg);">2</div>
+        <div class="step-content">
+          <div class="step-title">Register APIM as MCP Gateway</div>
+          <div class="step-desc">Route MCP traffic through APIM for consistent governance. APIM natively supports MCP (GA) and A2A (preview).</div>
+        </div>
+      </div>
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-pink); color:var(--bg);">3</div>
+        <div class="step-content">
+          <div class="step-title">M365 Agent Builder + SharePoint</div>
+          <div class="step-desc">Declarative agent for council members. Ground in SharePoint docs + 12 MCP tools.</div>
+        </div>
+      </div>
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-yellow); color:var(--bg);">4</div>
+        <div class="step-content">
+          <div class="step-title">Power Automate + Power Apps</div>
+          <div class="step-desc">Flows for report generation, email alerts. Canvas app with map component and embedded Copilot.</div>
+        </div>
+      </div>
+      <div class="step-box fragment">
+        <div class="step-num" style="background:var(--accent-purple); color:var(--bg);">5</div>
+        <div class="step-content">
+          <div class="step-title">A2A Specialist Agents</div>
+          <div class="step-desc">Autonomous agents for gentrification analysis, tax lien tracking, census correlation. Each gets its own Function App and agent card.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  SLIDE 12: AGENT PATTERNS COMPARISON                           -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section data-transition="slide">
+  <span class="tag c-blue">Agent Patterns</span>
+  <h2>Who Runs the Loop?</h2>
+
+  <table class="compact" style="margin-top:20px;">
+    <thead>
+      <tr><th>Pattern</th><th>Who Decides Tools</th><th>Who Runs the Loop</th><th>State</th></tr>
+    </thead>
+    <tbody>
+      <tr class="fragment">
+        <td class="resource"><span class="c-blue">Investigative Agent</span></td>
+        <td>Azure OpenAI (6 model choices)</td>
+        <td>Our code (<code>chat.ts</code>)</td>
+        <td>Stateless</td>
+      </tr>
+      <tr class="fragment">
+        <td class="resource"><span class="c-orange">SK Agent</span></td>
+        <td>Azure OpenAI GPT-4.1 via SK</td>
+        <td>Our C# code (<code>Program.cs</code>)</td>
+        <td>Stateless</td>
+      </tr>
+      <tr class="fragment">
+        <td class="resource"><span class="c-cyan">City Portal</span></td>
+        <td>Azure OpenAI GPT-4.1</td>
+        <td>Azure Assistants API</td>
+        <td>Stateful (threads)</td>
+      </tr>
+      <tr class="fragment">
+        <td class="resource"><span class="c-purple">Copilot Studio</span></td>
+        <td>Microsoft's orchestration</td>
+        <td>Microsoft</td>
+        <td>Managed</td>
+      </tr>
+      <tr class="fragment">
+        <td class="resource"><span class="c-pink">M365 Copilot</span></td>
+        <td>Microsoft's orchestration</td>
+        <td>Microsoft</td>
+        <td>Managed</td>
+      </tr>
+      <tr class="fragment">
+        <td class="resource"><span class="c-green">Claude Code</span></td>
+        <td>Anthropic's model</td>
+        <td>Claude</td>
+        <td>Session-based</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout fragment" style="border-left: 3px solid var(--accent-blue); margin-top:20px;">
+    <ul>
+      <li><strong>All 7 patterns</strong> hit the same 12 Functions via APIM, query the same 29M rows</li>
+      <li>The divergence is entirely in the <strong>intelligence layer</strong> above</li>
+      <li>Pro-code gives you <strong>full control</strong>. Platform-managed gives you <strong>zero code</strong>. Pick based on your needs.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!--  SLIDE 13: END                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<section data-transition="fade" class="centered">
+  <span class="tag c-blue" style="display:block; text-align:center;">Philly Profiteering &mdash; Multi-Client Agent Platform</span>
+  <h2 style="text-align:center; font-size:1.3em; margin-top:20px;">One Backend. Seven Ways In.</h2>
+
+  <div class="stats" style="margin-top:30px;">
+    <div class="stat">
+      <div class="num c-blue">7</div>
+      <div class="label">Client Patterns</div>
+    </div>
+    <div class="stat">
+      <div class="num c-green">12</div>
+      <div class="label">MCP Tools</div>
+    </div>
+    <div class="stat">
+      <div class="num c-orange">29M</div>
+      <div class="label">Rows</div>
+    </div>
+    <div class="stat">
+      <div class="num c-red">5</div>
+      <div class="label">Architecture Layers</div>
+    </div>
+    <div class="stat">
+      <div class="num c-green">$33</div>
+      <div class="label">/Month Idle</div>
+    </div>
+  </div>
+
+  <div style="margin-top:30px;">
+    <div class="flow" style="display:inline-block; text-align:center; font-size:0.5em;">
+      <span class="c-blue">Clients</span> &rarr;
+      <span class="c-lime">Container Apps</span> &rarr;
+      <span class="c-red">APIM</span> &rarr;
+      <span class="c-green">Functions</span> &rarr;
+      <span class="c-orange">SQL (29M rows)</span>
+    </div>
+  </div>
+
+  <p class="subtitle" style="text-align:center; max-width:100%; margin-top:20px;">
+    <code style="background:var(--surface3); padding:2px 8px; border-radius:4px; font-size:0.9em;">
+      kind-forest-06c4d3c0f.1.azurestaticapps.net
+    </code>
+  </p>
+</section>
+
+</div><!-- /slides -->
+</div><!-- /reveal -->
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: 'c/t',
+    transition: 'slide',
+    transitionSpeed: 'default',
+    backgroundTransition: 'fade',
+    center: false,
+    width: 1200,
+    height: 700,
+    margin: 0.06,
+    progress: true,
+    controls: true,
+    controlsLayout: 'bottom-right',
+    keyboard: true,
+    overview: true,
+    touch: true,
+    autoAnimateEasing: 'ease-out',
+    autoAnimateDuration: 0.8,
+  });
+</script>
+</body>
+</html>

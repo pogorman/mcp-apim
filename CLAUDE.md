@@ -131,7 +131,7 @@ mcp-apim/
 │   ├── apim-policy.json      # APIM policy XML
 │   └── func-app-body.json    # Function app ARM template
 ├── web/                      # Front-end multi-panel interface
-│   ├── index.html            # 8-panel SPA (Dashboard, Agent, City Portal, Copilot, SK Agent, Arch, Docs, About, Tools)
+│   ├── index.html            # 9-panel SPA (Dashboard, Agent, City Portal, Copilot, SK Agent, Slides, Arch, Docs, About, Tools)
 │   └── staticwebapp.config.json  # SWA auth config (Entra ID login required)
 ├── docs/                     # Project documentation
 │   ├── ARCHITECTURE.md       # Full technical reference
@@ -288,6 +288,7 @@ SPA with VS Code-style activity bar demonstrating multiple panels using the same
 - **Copilot Studio** — Microsoft Copilot Studio agent connected via MCP. Has its own panel with a floating chat widget. Demonstrates the low-code/no-code integration path.
 - **About** — Project overview and architecture documentation.
 - **SK Agent** — Semantic Kernel multi-agent panel. Chat widget connecting to the `philly-sk-agent` Container App. Demonstrates C#/.NET agent orchestration with 4 specialist agents.
+- **Slide Deck** — Reveal.js presentation embedded in an iframe. Architecture walkthrough with animated builds, section-by-section. Covers all 5 layers, round-trip flow, cost model, and expansion path.
 - **Documentation** — Built-in reader for all project markdown files and Jupyter notebooks. Files copied to `web/docs/` and `web/notebooks/` at deploy time.
 - **MCP Tool Tester** — Raw MCP protocol. Direct tool discovery and invocation via Streamable HTTP (`/mcp` endpoint).
 

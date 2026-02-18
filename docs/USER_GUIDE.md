@@ -1,6 +1,6 @@
 # Philadelphia Property Data — User Guide
 
-A web app for investigating property ownership, code violations, demolitions, and poverty profiteering patterns in Philadelphia. Seven panels (multiple AI-powered interfaces + documentation reader + tool tester), 12 tools, 29 million rows of public data.
+A web app for investigating property ownership, code violations, demolitions, and poverty profiteering patterns in Philadelphia. Eight panels (multiple AI-powered interfaces + slide deck + documentation reader + tool tester), 12 tools, 29 million rows of public data.
 
 **Live URL:** https://kind-forest-06c4d3c0f.1.azurestaticapps.net/
 
@@ -9,14 +9,15 @@ A web app for investigating property ownership, code violations, demolitions, an
 ## Table of Contents
 
 - [Open the App](#open-the-app)
-- [The Seven Panels](#the-seven-panels)
+- [The Eight Panels](#the-eight-panels)
   - [Investigative Agent](#1-investigative-agent--chat-icon)
   - [City Portal](#2-city-portal--building-icon)
   - [Copilot Studio](#3-copilot-studio--star-icon)
   - [About](#4-about--question-mark-icon)
   - [SK Agent](#5-sk-agent--brain-icon)
   - [Documentation](#6-documentation--book-icon)
-  - [MCP Tool Tester](#7-mcp-tool-tester--wrench-icon)
+  - [Slide Deck](#7-slide-deck--monitor-icon)
+  - [MCP Tool Tester](#8-mcp-tool-tester--wrench-icon)
 - [Things to Try](#things-to-try)
   - [Quick Wins](#quick-wins)
   - [Deep Investigations](#deep-investigations)
@@ -53,9 +54,9 @@ A web app for investigating property ownership, code violations, demolitions, an
 
 ---
 
-## The Seven Panels
+## The Eight Panels
 
-The left sidebar has seven icons. Click one to open that panel. You can have multiple panels open at once (they'll split the screen side by side). Your logged-in email and a "Sign out" button are visible in the header.
+The left sidebar has eight icons. Click one to open that panel. You can have multiple panels open at once (they'll split the screen side by side). Your logged-in email and a "Sign out" button are visible in the header.
 
 ### 1. Investigative Agent — Chat Icon
 
@@ -131,7 +132,21 @@ The left sidebar has seven icons. Click one to open that panel. You can have mul
 
 **What's available:** User Guide, FAQ, ELI5, Architecture, Commands, CLI Cheatsheet, Prompts, Session Log, README, plus 3 Jupyter notebooks (Setup, Analytics, LLC Analytics).
 
-### 7. MCP Tool Tester — Wrench Icon
+### 7. Slide Deck — Monitor Icon
+
+**What it is:** A Reveal.js presentation that walks through the entire platform architecture — all 5 layers, the request round trip, cost model, and expansion path. Built-in to the SPA so you can present without leaving the app.
+
+**How to use it:**
+1. Click the monitor icon (between Docs and Architecture in the sidebar)
+2. Use arrow keys or spacebar to advance through slides
+3. Down arrows on some slides reveal deeper sub-slides (drill-downs)
+4. Press **O** for overview mode (see all slides at once)
+5. Press **F** for fullscreen
+6. Press **Esc** to exit overview/fullscreen
+
+**What's in the deck:** 13 slides covering: title/stats, what's live today, 7 client patterns, container app multi-protocol host, security (APIM + VNet), 12 MCP tools, data & LLMs, request round trip, M365 Copilot MCP path, cost model, resource map, expansion path, agent pattern comparison, and closing summary.
+
+### 8. MCP Tool Tester — Wrench Icon
 
 **What it is:** A direct interface to the raw tools. No AI in the loop — you pick a tool, fill in parameters, and see the raw JSON data that comes back.
 

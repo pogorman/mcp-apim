@@ -13,6 +13,7 @@ Questions and answers that came up while building and managing this project.
 - [Network Security (VNet + Private Endpoints)](#network-security-vnet--private-endpoints)
 - [Infrastructure & Costs](#infrastructure--costs)
 - [Agent Patterns: Tools vs Platform Agents vs Frameworks](#agent-patterns-tools-vs-platform-agents-vs-frameworks)
+- [M365 Copilot Declarative Agent](#m365-copilot-declarative-agent)
 - [Development & Deployment](#development--deployment)
 
 ---
@@ -443,6 +444,185 @@ Our system demonstrates all four client patterns side-by-side in the SPA:
 - **MCP Tool Tester** (Raw MCP Protocol) — direct tool calls, no AI in the loop.
 
 All four use the same 12 tools hitting the same APIM → Functions → SQL backend. The shared tool definitions live in `tool-executor.ts`.
+
+---
+
+## M365 Copilot Declarative Agent
+
+### What happens when I type a prompt in M365 Copilot with the Philly Investigator agent selected?
+
+Here's the full round trip, step by step:
+
+```
+You type: "Show me all properties owned by GEENA LLC and their violations"
+
+1. M365 Copilot Orchestration (Microsoft's servers)
+   │  Your prompt + the agent's instructions (from declarativeAgent.json)
+   │  + the 12 tool schemas (from ai-plugin.json) are assembled into a
+   │  model call. Microsoft's orchestration model decides which tools to call.
+   │
+   ├─ Tool call #1: search_entities({ name: "GEENA LLC" })
+   │  │
+   │  │  2. RemoteMCPServer Runtime
+   │  │     M365 Copilot sees the runtime type is "RemoteMCPServer" with
+   │  │     our Container App URL. It sends a Streamable HTTP request
+   │  │     (POST) to our MCP endpoint.
+   │  │
+   │  │  3. Container App /mcp (philly-mcp-server)
+   │  │     The MCP server receives the tool call via MCP protocol,
+   │  │     maps "search_entities" to the matching APIM endpoint.
+   │  │
+   │  │  4. APIM (philly-profiteering-apim)
+   │  │     APIM receives the HTTPS request with our subscription key.
+   │  │     Its policy injects the Azure Functions host key and forwards
+   │  │     the request.
+   │  │
+   │  │  5. Azure Functions (philly-profiteering-func)
+   │  │     The searchEntities function receives the request, connects
+   │  │     to SQL via private endpoint (VNet), runs the query.
+   │  │
+   │  │  6. Azure SQL (phillystats)
+   │  │     Executes: SELECT from master_entity with LIKE '%GEENA LLC%',
+   │  │     joins master_entity_address for property counts.
+   │  │     Returns matching entities.
+   │  │
+   │  │  Results flow back: SQL → Functions → APIM → Container App → M365 Copilot
+   │  │
+   │  M365 Copilot now has the entity results. It sees GEENA LLC has
+   │  entityId "abc-123" and 47 properties. It decides to call more tools.
+   │
+   ├─ Tool call #2: get_entity_network({ entityId: "abc-123" })
+   │  │  Same path: M365 → Container App /mcp → APIM → Functions → SQL → back
+   │  │  Returns all 47 properties with addresses, parcels, violation counts.
+   │
+   ├─ Tool call #3: get_property_violations({ parcelNumber: "401234567" })
+   │  │  Same path again, for the property with the most violations.
+   │
+   │  (M365 Copilot may make additional tool calls depending on what it
+   │   finds — the orchestration model decides autonomously.)
+   │
+   7. Final Response Generation
+      M365 Copilot assembles all tool results and generates a natural
+      language response summarizing GEENA LLC's portfolio, violations,
+      and patterns. This appears in the M365 Copilot chat window.
+```
+
+Each tool call takes the same 6-hop round trip: **M365 Copilot → Container App → APIM → Functions → SQL → back**. A typical question triggers 2-5 tool calls, each taking 1-5 seconds depending on query complexity and whether SQL is waking from auto-pause.
+
+### Who decides which tools to call?
+
+**Microsoft's orchestration model decides — you can't control it.** When you select the Philly Investigator agent (via the @ picker), M365 Copilot receives:
+
+1. **Your prompt** — what you typed
+2. **Agent instructions** — from `declarativeAgent.json` (our investigative analyst persona, guidance on which tools to chain)
+3. **12 tool schemas** — from `ai-plugin.json` (name, description, parameters for each tool)
+
+The orchestration model reads the instructions and tool descriptions, then decides which tools to call and in what order. Our instructions suggest patterns (e.g., "when asked about a property owner, start with `search_entities` then `get_entity_network`"), but the model may follow them or improvise. We have no API to force a specific tool call sequence.
+
+This is the same model-driven approach used by all five client patterns in our system — the difference is just who runs the loop:
+
+| Pattern | Who decides which tools to call | Who runs the loop |
+|---------|-------------------------------|-------------------|
+| Investigative Agent | Azure OpenAI model (our code picks which model) | Our code (`chat.ts`) |
+| City Portal | Azure OpenAI GPT-4.1 | Azure Assistants API |
+| SK Agent | Azure OpenAI GPT-4.1 via Semantic Kernel | Our C# code (`Program.cs`) |
+| **M365 Copilot** | **Microsoft's orchestration model (not selectable)** | **Microsoft** |
+| Copilot Studio | Microsoft's generative orchestration | Microsoft |
+
+### How does M365 Copilot discover our tools?
+
+**Through the `ai-plugin.json` manifest — not at runtime.** Unlike Copilot Studio (which does MCP tool discovery at connection time by calling `tools/list`), M365 Copilot reads the tool definitions statically from the `functions` array in `ai-plugin.json`.
+
+This means:
+- If we add a new tool to the MCP server, M365 Copilot won't see it until we update `ai-plugin.json` and redeploy the app package
+- The `run_for_functions` array in the runtime block must list every function name — if a function is defined but not listed there, it won't be called
+- Tool schemas in `ai-plugin.json` must match what the MCP server expects, but they're not auto-synced
+
+Copilot Studio, by contrast, does dynamic discovery — point it at the MCP endpoint and it auto-discovers all tools. The M365 Copilot approach is more explicit but requires manual updates when tools change.
+
+### How does this compare to the other client patterns?
+
+All five patterns connect to the same backend. The differences are in how they reach it and who manages what:
+
+```
+Investigative Agent (Chat Completions):
+  Browser → Container App /chat → Azure OpenAI → APIM → Functions → SQL
+  Our code runs the loop. Stateless. 6 model choices.
+
+City Portal (Assistants API):
+  Browser → Container App /agent → Azure OpenAI Assistants → APIM → Functions → SQL
+  Azure runs the loop. Stateful threads. GPT-4.1 only.
+
+SK Agent (Semantic Kernel):
+  Browser → SK Container App /investigate → Azure OpenAI → APIM → Functions → SQL
+  Our C# code routes to specialist agents. GPT-4.1.
+
+M365 Copilot (Declarative Agent):
+  M365 Copilot → Container App /mcp → APIM → Functions → SQL
+  Microsoft runs the loop. Lives inside M365 alongside emails/files/calendar.
+
+Copilot Studio:
+  Copilot Studio widget → Container App /mcp → APIM → Functions → SQL
+  Microsoft runs the loop. Low-code/no-code configuration.
+```
+
+The M365 Copilot pattern is unique because it's the only one that runs *inside* M365 Copilot itself — alongside the user's enterprise data (emails, files, calendar, Teams messages). When Copilot answers a question, it can potentially combine our property data with information from the user's own Microsoft 365 environment.
+
+### What's the `RemoteMCPServer` runtime type?
+
+It's a runtime type in the `ai-plugin.json` schema (v2.4) that tells M365 Copilot to connect to an external MCP server via Streamable HTTP. The key configuration:
+
+```json
+{
+  "runtimes": [{
+    "type": "RemoteMCPServer",
+    "spec": {
+      "url": "https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io/mcp"
+    },
+    "auth": { "type": "None" },
+    "run_for_functions": ["search_entities", "get_entity_network", ...]
+  }]
+}
+```
+
+- **`type: "RemoteMCPServer"`** — tells M365 Copilot this is an MCP endpoint, not a REST API or OpenAPI spec
+- **`spec.url`** — the full URL to the MCP endpoint (same one Copilot Studio uses)
+- **`auth.type`** — authentication method. We use `"None"` since our MCP endpoint is public. Production would use `"OAuthPluginVault"` or similar
+- **`run_for_functions`** — required list of function names this runtime handles. Must have at least 1 item (we list all 12)
+
+This is what makes the integration so simple — M365 Copilot speaks MCP natively (as of public preview, announced Ignite Nov 2025). We didn't build any adapter or connector. We just pointed it at our existing MCP endpoint.
+
+### Was it really just 3 JSON files?
+
+Yes. The entire agent is:
+
+1. **`manifest.json`** (33 lines) — Teams app manifest identifying the agent, pointing to the declarative agent definition
+2. **`declarativeAgent.json`** (39 lines) — Instructions, 6 conversation starters, reference to the plugin
+3. **`ai-plugin.json`** (236 lines) — RemoteMCPServer runtime URL + 12 tool schemas
+
+Plus 2 placeholder icons (color.png 192x192, outline.png 32x32). Zip them up, run `teamsapp install --file-path philly-investigator.zip -i false`, and it's sideloaded into M365 Copilot. Total effort: write the JSON, fix validation errors, deploy. No backend code, no new Azure resources, no new infrastructure.
+
+The 236 lines in `ai-plugin.json` are mostly the 12 tool schemas (name, description, parameters). If you stripped that down to a single tool, it would be about 50 lines.
+
+### What validation errors did we hit?
+
+M365's package service is strict about field lengths and required fields:
+
+| Error | Root Cause | Fix |
+|-------|-----------|-----|
+| `name_for_human` exceeds 20 chars | "Philly Property Tools" = 21 chars | Shortened to "Philly Investigator" (19 chars) |
+| `description_for_human` exceeds 100 chars | Description was too detailed | Shortened to 84 chars |
+| `run_for_functions` has 0 items (min 1) | We initially omitted this array | Added all 12 function names |
+| `description.short` exceeds 80 chars | Manifest description was 82 chars | Shortened to 58 chars |
+| "Add-in package not understood" | PowerShell `Compress-Archive` zip format | Used Node.js raw ZIP instead |
+
+The PowerShell zip issue was the most frustrating — `Compress-Archive` produces zips that look valid but Teams portals and `teamsapp install` reject. Use Node.js, 7-Zip, or `.NET ZipFile.CreateFromDirectory` instead.
+
+### Does the agent have access to my emails and files?
+
+The declarative agent itself doesn't request access to Microsoft Graph data (emails, calendar, files). It only has the 12 property investigation tools. However, M365 Copilot's orchestration model *can* combine enterprise data with agent tools if both are available in the same session. The agent's instructions focus it on property data, but the orchestration model has the final say on what it uses.
+
+To explicitly restrict data access, you can add `capabilities` to `declarativeAgent.json` that limit which Microsoft Graph connectors the agent can use (or block all of them). Our current config doesn't set capabilities, so it inherits the default M365 Copilot behavior.
 
 ---
 

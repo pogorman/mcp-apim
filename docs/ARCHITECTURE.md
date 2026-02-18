@@ -953,7 +953,7 @@ APIM policy (injecting function key) is applied via `infra/set-policy.ps1`:
 
 ## Web Interface (Static Web App)
 
-A single-file SPA (`web/index.html`) with a VS Code-style activity bar demonstrating seven panels (multiple AI-powered client patterns + documentation reader + tool tester) that all consume the same APIM backend. Protected by Azure Static Web Apps built-in authentication (Microsoft Entra ID login required). User email and sign-out button visible in the header.
+A single-file SPA (`web/index.html`) with a VS Code-style activity bar demonstrating eight panels (multiple AI-powered client patterns + slide deck + documentation reader + tool tester) that all consume the same APIM backend. Protected by Azure Static Web Apps built-in authentication (Microsoft Entra ID login required). User email and sign-out button visible in the header.
 
 ### Pattern 1: Investigative Agent (Chat Completions + Tools)
 
@@ -1032,7 +1032,7 @@ Browser → Container App /investigate → SK Orchestration → Azure OpenAI GPT
 
 ### Layout
 
-- **Activity bar** (48px, left edge): Seven icon buttons — chat bubble (Investigative Agent), factory (City Portal), aviator goggles (Copilot Studio), question mark (About), brain (SK Agent), book (Documentation, pinned to bottom), wrench (MCP Tools, pinned to bottom)
+- **Activity bar** (48px, left edge): Eight icon buttons — chat bubble (Investigative Agent), factory (City Portal), aviator goggles (Copilot Studio), brain (SK Agent), wrench (MCP Tools), book (Documentation), monitor (Slide Deck), grid (Architecture), question mark (About)
 - **Authentication**: Azure SWA built-in auth (`/.auth/login/aad`). Config in `web/staticwebapp.config.json`. User email displayed in header via `/.auth/me`. Sign out via `/.auth/logout`.
 - Panels can be open simultaneously side-by-side (50/50 split)
 - Closing one panel gives the other full width
