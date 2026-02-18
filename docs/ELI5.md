@@ -15,7 +15,7 @@ A plain-English guide to the Philly Poverty Profiteering platform. Use this for 
 - [How It Works — No Jargon](#how-it-works--no-jargon)
 - [How It Works — Some Jargon](#how-it-works--some-jargon)
 - [How the Network Security Works](#how-the-network-security-works)
-- [The Eight Ways to Use It](#the-eight-ways-to-use-it)
+- [The Nine Ways to Use It](#the-nine-ways-to-use-it)
 - [Why It Matters (The Story)](#why-it-matters-the-story)
 - [How AI Models Think — Tokens, Context, and Temperature](#how-ai-models-think--tokens-context-and-temperature)
 - [Why Each Panel Gives Different Answers](#why-each-panel-gives-different-answers)
@@ -47,9 +47,9 @@ Open the app: **https://kind-forest-06c4d3c0f.1.azurestaticapps.net/**
 
 ### Step 1 — Welcome Screen (30 seconds)
 
-You'll see a dark screen with a map of Philadelphia in the background and eight buttons. Explain:
+You'll see a dark screen with a map of Philadelphia in the background and nine buttons. Explain:
 
-> "This is a web app. You sign in with your Microsoft account — it's protected by Azure authentication. It's got eight different interfaces that all talk to the same data. Let me show you the main one."
+> "This is a web app. You sign in with your Microsoft account — it's protected by Azure authentication. It's got nine different interfaces that all talk to the same data. Let me show you the main one."
 
 Click **Investigative Agent**.
 
@@ -75,13 +75,13 @@ If the response includes a map, point it out:
 
 > "See the map? Every property that came back from the database has GPS coordinates. 99.97% of the 584,000 properties in Philadelphia have coordinates in this dataset."
 
-### Step 4 — Show the City Portal (1 minute)
+### Step 4 — Show the Foundry Portal (1 minute)
 
 Click the **building icon** in the left sidebar.
 
-> "This is the same data, same tools, but presented as a government-style portal. It uses a different AI pattern — Microsoft's Assistants API instead of Chat Completions. The key difference: this one remembers your conversation. If I ask a follow-up, it has full context without me re-sending the history."
+> "This is the same data, same tools, but using Microsoft Foundry's Assistants API instead of Chat Completions. The key difference: this one remembers your conversation. Threads persist server-side — if I ask a follow-up, it has full context without me re-sending the history."
 
-Click the blue chat bubble in the bottom-right. Ask something.
+Click the chat bubble in the bottom-right. Ask something.
 
 ### Step 5 — Show Copilot Studio (30 seconds)
 
@@ -185,9 +185,9 @@ This costs ~$31/month (the "construction cost" of the tunnel), but it permanentl
 
 ---
 
-## The Eight Ways to Use It
+## The Nine Ways to Use It
 
-This is the demo's punchline: one backend, eight completely different client experiences.
+This is the demo's punchline: one backend, nine completely different client experiences.
 
 ### 1. Investigative Agent (Chat icon)
 
@@ -200,11 +200,11 @@ This is the demo's punchline: one backend, eight completely different client exp
 | **Maps** | Yes — inline maps appear when properties are returned |
 | **Best for** | Open-ended investigations, comparing models |
 
-### 2. City Portal (Building icon)
+### 2. Foundry Portal (Building icon)
 
 | | |
 |---|---|
-| **Pattern** | Assistants API (Foundry Agent) |
+| **Pattern** | Microsoft Foundry — Assistants API |
 | **What it means** | Azure manages the AI loop — we just create a "thread" and send messages. Azure decides which tools to call, executes them, and maintains conversation state |
 | **Model** | GPT-4.1 (fixed, configured on the assistant) |
 | **Memory** | Yes — threads persist server-side, follow-ups remember context |
@@ -233,7 +233,7 @@ This is the demo's punchline: one backend, eight completely different client exp
 | **Maps** | No |
 | **Best for** | Quick project overview during demos |
 
-### 5. SK Agent (Brain icon)
+### 5. Triage / Agent Framework (Brain icon)
 
 | | |
 |---|---|
@@ -319,7 +319,7 @@ AI models don't read words — they read **tokens**. A token is roughly 3/4 of a
 
 In our solution:
 - The **Investigative Agent** uses tokens efficiently because it's stateless — each question only sends the current conversation
-- The **City Portal** stores threads server-side, so Azure manages the token budget
+- The **Foundry Portal** stores threads server-side, so Azure manages the token budget
 - **Tool results** count as tokens too. When the AI calls `get_top_violators` and gets back 25 owners with 50 properties each, all that JSON data uses tokens. Larger results = more tokens = higher cost per question
 
 ### Context Window — The AI's Short-Term Memory
@@ -334,8 +334,8 @@ For GPT-4.1, the context window is ~128,000 tokens (~96,000 words). That sounds 
 
 **Why this matters for our solution:**
 - The **Investigative Agent** sends the full conversation history with each message. After 10-15 exchanges with big tool results, you can hit the context limit. That's why starting a fresh conversation sometimes gives better answers than a long thread.
-- The **City Portal** also has this limit, but Azure manages it — it may silently drop older messages to stay within bounds.
-- This is why the tool output truncation exists (tool results over 200KB get cut off in the City Portal) — without it, a single large result could eat the entire context window.
+- The **Foundry Portal** also has this limit, but Azure manages it — it may silently drop older messages to stay within bounds.
+- This is why the tool output truncation exists (tool results over 200KB get cut off in the Foundry Portal) — without it, a single large result could eat the entire context window.
 
 ### Temperature — The Creativity Dial
 
@@ -350,7 +350,7 @@ For GPT-4.1, the context window is ~128,000 tokens (~96,000 words). That sounds 
 
 In our solution:
 - The **Investigative Agent** uses whatever temperature the model defaults to (typically ~1.0)
-- The **City Portal** uses the assistant's default temperature (1.0)
+- The **Foundry Portal** uses the assistant's default temperature (1.0)
 - **Reasoning models** (o4-mini, o3-mini) ignore temperature — they always reason deterministically internally
 
 This is why you can ask the exact same question twice and get differently worded answers. The data is the same, but the model phrases its analysis differently each time.
@@ -359,9 +359,9 @@ This is why you can ask the exact same question twice and get differently worded
 
 ## Why Each Panel Gives Different Answers
 
-Ask the same question across all four panels and you'll get different responses. Here's why:
+Ask the same question across all five agent panels and you'll get different responses. Here's why:
 
-| Factor | Investigative Agent | City Portal | Copilot Studio |
+| Factor | Investigative Agent | Foundry Portal | Copilot Studio |
 |--------|-------------------|-------------|----------------|
 | **Who runs the AI loop** | Our code (`chat.ts`) | Azure (Assistants API) | Microsoft (Copilot Studio) |
 | **Model** | You choose (6 options) | GPT-4.1 (fixed) | Copilot Studio's model |
@@ -374,9 +374,9 @@ The biggest reason for different responses:
 
 1. **Different models think differently.** GPT-4.1 is methodical and thorough. GPT-5 reasons more deeply (but is less stable on the Assistants API). o4-mini is concise. Phi-4 is lightweight and sometimes misses nuance.
 
-2. **Different context management.** The Investigative Agent sends your full chat history every time — it has maximum context. The City Portal lets Azure manage context — Azure may summarize or trim older messages. Copilot Studio manages its own context window.
+2. **Different context management.** The Investigative Agent sends your full chat history every time — it has maximum context. The Foundry Portal lets Azure manage context — Azure may summarize or trim older messages. Copilot Studio manages its own context window.
 
-3. **Different tool output sizes.** The Investigative Agent gets full, untruncated results from every tool call. The City Portal truncates results over 200KB (an Assistants API limit). This means the City Portal might miss data that appeared late in a large result set.
+3. **Different tool output sizes.** The Investigative Agent gets full, untruncated results from every tool call. The Foundry Portal truncates results over 200KB (an Assistants API limit). This means the Foundry Portal might miss data that appeared late in a large result set.
 
 4. **Temperature randomness.** Even with the same model and same data, temperature means the exact wording varies each time. The facts should be consistent, but the narrative structure will differ.
 
@@ -460,4 +460,4 @@ For when someone in your audience asks "what does that mean?"
 
 ---
 
-*Last updated: Session 21 (2026-02-17). This file should be updated whenever features, panels, data, architecture, or costs change.*
+*Last updated: Session 25 (2026-02-17). This file should be updated whenever features, panels, data, architecture, or costs change.*

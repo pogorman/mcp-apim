@@ -637,8 +637,8 @@ The container runs a single Node.js process executing `dist/index.js` with `MCP_
 | `GET /healthz` | Health probe — Container Apps pings this to verify the container is alive | Azure (automatic) |
 | `POST/GET/DELETE /mcp` | MCP protocol (Streamable HTTP) — tool discovery and invocation | MCP clients (Foundry, Copilot Studio, etc.) |
 | `POST /chat` | Natural language chat — 6 selectable models with tool calling (Chat Completions) | Web SPA (Investigative Agent), curl, any HTTP client |
-| `POST /agent/thread` | Create a new Assistants API thread | Web SPA (City Portal) |
-| `POST /agent/message` | Send message to thread — GPT-4.1 Assistants API with tool calling | Web SPA (City Portal) |
+| `POST /agent/thread` | Create a new Assistants API thread | Web SPA (Foundry Portal) |
+| `POST /agent/message` | Send message to thread — GPT-4.1 Assistants API with tool calling | Web SPA (Foundry Portal) |
 | `GET /models` | List available model deployments | Web SPA (model selector dropdown) |
 
 ### Environment & Secrets
@@ -953,7 +953,7 @@ APIM policy (injecting function key) is applied via `infra/set-policy.ps1`:
 
 ## Web Interface (Static Web App)
 
-A single-file SPA (`web/index.html`) with a VS Code-style activity bar demonstrating eight panels (multiple AI-powered client patterns + slide deck + documentation reader + tool tester) that all consume the same APIM backend. Protected by Azure Static Web Apps built-in authentication (Microsoft Entra ID login required). User email and sign-out button visible in the header.
+A single-file SPA (`web/index.html`) with a VS Code-style activity bar demonstrating nine panels (multiple AI-powered client patterns + slide deck + documentation reader + tool tester) that all consume the same APIM backend. Protected by Azure Static Web Apps built-in authentication (Microsoft Entra ID login required). User email and sign-out button visible in the header.
 
 ### Pattern 1: Investigative Agent (Chat Completions + Tools)
 
@@ -968,10 +968,10 @@ A single-file SPA (`web/index.html`) with a VS Code-style activity bar demonstra
 Browser → Container App /chat → Azure OpenAI (tool calling) → APIM → Functions → SQL
 ```
 
-### Pattern 2: City Portal (Assistants API / Foundry Agent)
+### Pattern 2: Foundry Portal (Assistants API / Foundry Agent)
 
-- Philadelphia-branded government page with navy/yellow color scheme
-- Floating chat widget (FAB icon, bottom-right of the City Portal panel)
+- Dark-themed panel matching the Investigative Agent style
+- Floating chat widget (FAB icon, bottom-right of the Foundry Portal panel)
 - Azure manages the tool-calling loop using GPT-4.1 via the Assistants API
 - Threads persist server-side — follow-up questions remember context without resending history
 - Agent named `philly-investigator` (assistant ID: `asst_CiN7zyMnsQxEcgG5JdTRXOpZ`)
@@ -1013,7 +1013,7 @@ Copilot Studio → Container App /mcp (Streamable HTTP, no auth) → APIM (sub k
 Browser → Container App /mcp (Streamable HTTP, JSON-RPC 2.0) → APIM → Functions → SQL
 ```
 
-### Pattern 6: SK Agent (Semantic Kernel Multi-Agent)
+### Pattern 6: Triage / Agent Framework (Semantic Kernel Multi-Agent)
 
 - C#/.NET multi-agent system using Microsoft Semantic Kernel with Azure OpenAI GPT-4.1
 - Deployed as Container App `philly-sk-agent` (separate from the MCP server Container App)
@@ -1032,7 +1032,7 @@ Browser → Container App /investigate → SK Orchestration → Azure OpenAI GPT
 
 ### Layout
 
-- **Activity bar** (48px, left edge): Eight icon buttons — chat bubble (Investigative Agent), factory (City Portal), aviator goggles (Copilot Studio), brain (SK Agent), wrench (MCP Tools), book (Documentation), monitor (Slide Deck), grid (Architecture), question mark (About)
+- **Activity bar** (48px, left edge): Nine icon buttons — chat bubble (Investigative Agent), building (Foundry Portal), goggles (Copilot Studio), atom (Triage / Agent Framework), wrench (MCP Tools), book (Documentation), monitor (Slide Deck), grid (Architecture), question mark (About)
 - **Authentication**: Azure SWA built-in auth (`/.auth/login/aad`). Config in `web/staticwebapp.config.json`. User email displayed in header via `/.auth/me`. Sign out via `/.auth/logout`.
 - Panels can be open simultaneously side-by-side (50/50 split)
 - Closing one panel gives the other full width

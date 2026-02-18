@@ -1,6 +1,6 @@
 # Philadelphia Property Data — User Guide
 
-A web app for investigating property ownership, code violations, demolitions, and poverty profiteering patterns in Philadelphia. Eight panels (multiple AI-powered interfaces + slide deck + documentation reader + tool tester), 12 tools, 29 million rows of public data.
+A web app for investigating property ownership, code violations, demolitions, and poverty profiteering patterns in Philadelphia. Nine panels (multiple AI-powered interfaces + slide deck + documentation reader + tool tester), 12 tools, 29 million rows of public data.
 
 **Live URL:** https://kind-forest-06c4d3c0f.1.azurestaticapps.net/
 
@@ -9,15 +9,16 @@ A web app for investigating property ownership, code violations, demolitions, an
 ## Table of Contents
 
 - [Open the App](#open-the-app)
-- [The Eight Panels](#the-eight-panels)
+- [The Nine Panels](#the-nine-panels)
   - [Investigative Agent](#1-investigative-agent--chat-icon)
-  - [City Portal](#2-city-portal--building-icon)
+  - [Foundry Portal](#2-foundry-portal--building-icon)
   - [Copilot Studio](#3-copilot-studio--star-icon)
-  - [About](#4-about--question-mark-icon)
-  - [SK Agent](#5-sk-agent--brain-icon)
+  - [Triage (Agent Framework)](#4-triage-agent-framework--brain-icon)
+  - [MCP Tool Tester](#5-mcp-tool-tester--wrench-icon)
   - [Documentation](#6-documentation--book-icon)
   - [Slide Deck](#7-slide-deck--monitor-icon)
-  - [MCP Tool Tester](#8-mcp-tool-tester--wrench-icon)
+  - [Architecture](#8-architecture--grid-icon)
+  - [About](#9-about--question-mark-icon)
 - [Things to Try](#things-to-try)
   - [Quick Wins](#quick-wins)
   - [Deep Investigations](#deep-investigations)
@@ -46,7 +47,7 @@ A web app for investigating property ownership, code violations, demolitions, an
 
 1. Go to https://kind-forest-06c4d3c0f.1.azurestaticapps.net/
 2. Sign in with your Microsoft account (Entra ID authentication is required)
-3. You'll see a welcome screen with five buttons. Pick one.
+3. You'll see a welcome screen with a dashboard. Use the left sidebar to open panels.
 
 > **First time?** Start with the **Investigative Agent** — just type a question in plain English and hit Send.
 
@@ -54,9 +55,9 @@ A web app for investigating property ownership, code violations, demolitions, an
 
 ---
 
-## The Eight Panels
+## The Nine Panels
 
-The left sidebar has eight icons. Click one to open that panel. You can have multiple panels open at once (they'll split the screen side by side). Your logged-in email and a "Sign out" button are visible in the header.
+The left sidebar has nine icons. Click one to open that panel. You can have multiple panels open at once (they'll split the screen side by side). Your logged-in email and a "Sign out" button are visible in the header.
 
 ### 1. Investigative Agent — Chat Icon
 
@@ -75,16 +76,15 @@ The left sidebar has eight icons. Click one to open that panel. You can have mul
 
 **Clear button** in the top-right resets the conversation.
 
-### 2. City Portal — Building Icon
+### 2. Foundry Portal — Building Icon
 
-**What it is:** A Philadelphia city government-themed page with a chat assistant built on a different AI technology (Azure Foundry Agent with GPT-4.1). Same data, different engine.
+**What it is:** A chat assistant built on Microsoft Foundry's Assistants API with GPT-4.1. Same data, different engine. Azure manages the tool-calling loop and conversation threads persist server-side.
 
 **How to use it:**
 1. Click the building icon in the sidebar
-2. Read the portal page if you want — it has some stats about the data
-3. Click the **blue chat bubble** in the bottom-right corner
-4. Type your question and hit Enter
-5. The assistant remembers your entire conversation — even follow-ups
+2. Click the **chat bubble** in the bottom-right corner
+3. Type your question and hit Enter
+4. The assistant remembers your entire conversation — even follow-ups
 
 **Key difference from the Investigative Agent:** This one uses persistent conversation threads managed by Azure. Your conversation lives on the server, not in your browser. It always uses GPT-4.1.
 
@@ -101,13 +101,9 @@ The left sidebar has eight icons. Click one to open that panel. You can have mul
 
 **Note:** This agent sometimes shows a "JavaScriptError" — that's a Copilot Studio issue, not ours. If it happens, close the widget and reopen it (the iframe reloads fresh each time).
 
-### 4. About — Question Mark Icon
+### 4. Triage (Agent Framework) — Brain Icon
 
-**What it is:** An overview page explaining the project — what it does, the architecture, and links to documentation. No AI here, just context.
-
-### 5. SK Agent — Brain Icon
-
-**What it is:** A multi-agent AI system built with Microsoft Semantic Kernel (C#/.NET). A Triage agent reads your question and routes it to the right specialist: OwnerAnalyst (property ownership), ViolationAnalyst (code violations), or AreaAnalyst (neighborhood stats). Uses GPT-4.1.
+**What it is:** A multi-agent AI system built with Microsoft Semantic Kernel (C#/.NET 8). A Triage agent reads your question and routes it to the right specialist: OwnerAnalyst (property ownership), ViolationAnalyst (code violations), or AreaAnalyst (neighborhood stats). Uses GPT-4.1.
 
 **How to use it:**
 1. Click the brain icon in the sidebar
@@ -118,6 +114,21 @@ The left sidebar has eight icons. Click one to open that panel. You can have mul
 **Example:** Type "Compare vacancy and violation rates in 19134 vs 19140" and the Triage agent routes to the AreaAnalyst, which calls the data APIs and returns a comparison.
 
 **Key difference:** Unlike the Investigative Agent (which runs one model in a loop), this runs multiple specialist agents that hand off to each other. It's the enterprise C# pattern using Semantic Kernel.
+
+### 5. MCP Tool Tester — Wrench Icon
+
+**What it is:** A direct interface to the raw tools. No AI in the loop — you pick a tool, fill in parameters, and see the raw JSON data that comes back.
+
+**How to use it:**
+1. Click the wrench icon in the sidebar
+2. Click **Connect** (the endpoint URL is pre-filled)
+3. Wait for "Connected — 12 tools discovered"
+4. Click a tool name from the left list
+5. Fill in the required parameters (e.g., a parcel number or entity name)
+6. Click **Call Tool**
+7. See the raw JSON result with elapsed time
+
+**Good for:** Demos, debugging, seeing exactly what data the AI gets when it calls a tool.
 
 ### 6. Documentation — Book Icon
 
@@ -146,26 +157,19 @@ The left sidebar has eight icons. Click one to open that panel. You can have mul
 
 **What's in the deck:** 13 slides covering: title/stats, what's live today, 7 client patterns, container app multi-protocol host, security (APIM + VNet), 12 MCP tools, data & LLMs, request round trip, M365 Copilot MCP path, cost model, resource map, expansion path, agent pattern comparison, and closing summary.
 
-### 8. MCP Tool Tester — Wrench Icon
+### 8. Architecture — Grid Icon
 
-**What it is:** A direct interface to the raw tools. No AI in the loop — you pick a tool, fill in parameters, and see the raw JSON data that comes back.
+**What it is:** An interactive HTML architecture diagram showing all layers of the system. Embedded as an iframe.
 
-**How to use it:**
-1. Click the wrench icon (bottom of left sidebar)
-2. Click **Connect** (the endpoint URL is pre-filled)
-3. Wait for "Connected — 12 tools discovered"
-4. Click a tool name from the left list
-5. Fill in the required parameters (e.g., a parcel number or entity name)
-6. Click **Call Tool**
-7. See the raw JSON result with elapsed time
+### 9. About — Question Mark Icon
 
-**Good for:** Demos, debugging, seeing exactly what data the AI gets when it calls a tool.
+**What it is:** An overview page with cards for all integration patterns — Investigative Agent, Foundry Portal, Copilot Studio, Triage (Agent Framework), M365 Copilot Agent, Documentation, and MCP Tool Tester. No AI here, just context.
 
 ---
 
 ## Things to Try
 
-Copy-paste any of these into the Investigative Agent or City Portal chat.
+Copy-paste any of these into the Investigative Agent or Foundry Portal chat.
 
 ### Quick Wins
 
@@ -255,7 +259,7 @@ The model dropdown in the top-right (visible when the Investigative Agent is ope
 
 **Recommendation:** Stick with GPT-4.1 unless you want to experiment. It handles multi-tool investigations well and responds quickly.
 
-The model selector only affects the Investigative Agent. The City Portal always uses GPT-4.1. Copilot Studio uses whatever model Microsoft assigns.
+The model selector only affects the Investigative Agent. The Foundry Portal always uses GPT-4.1. Copilot Studio uses whatever model Microsoft assigns.
 
 ---
 
@@ -268,7 +272,7 @@ The model selector only affects the Investigative Agent. The City Portal always 
 - **Ask for SQL:** If the pre-built tools don't cover your question, ask the AI to write a custom SQL query.
 - **Watch the tool badges:** The blue badges under each response tell you which tools the AI used. This helps you understand what data it accessed.
 - **Conversation length:** The Investigative Agent keeps the last 40 messages. For very long investigations, click Clear and start fresh.
-- **City Portal threads persist:** Unlike the Investigative Agent, the City Portal's conversation lives on the server. You can ask long follow-up chains.
+- **Foundry Portal threads persist:** Unlike the Investigative Agent, the Foundry Portal's conversation lives on the server. You can ask long follow-up chains.
 
 ---
 
@@ -320,7 +324,7 @@ AI reads the results and writes you an answer in plain English
 All five panels use the same database and the same 12 tools. The difference is how the AI part works:
 
 - **Investigative Agent:** Our code runs the AI loop. You pick the model. Stateless.
-- **City Portal:** Azure runs the AI loop (Foundry Agent). GPT-4.1. Conversations persist.
+- **Foundry Portal:** Azure runs the AI loop (Foundry Agent). GPT-4.1. Conversations persist.
 - **Copilot Studio:** Microsoft runs everything. No custom code. Auto-discovers tools.
 - **Documentation:** No AI. Renders project docs and notebooks directly in the browser.
 - **Tool Tester:** No AI. You call tools directly and see raw data.
@@ -422,9 +426,9 @@ Response includes `reply` (the answer) and `toolCalls` (which tools were used).
 
 The database auto-pauses after 60 minutes of inactivity to save money. The first query wakes it up, which takes 30–60 seconds. After that, responses are fast. Run `infra/wake.sh` before demos to warm everything up.
 
-### What's the difference between the Investigative Agent and the City Portal?
+### What's the difference between the Investigative Agent and the Foundry Portal?
 
-Both answer the same questions using the same data. The Investigative Agent is custom code (stateless, you pick the model). The City Portal uses a Foundry Agent managed by Azure (stateful, always GPT-4.1, conversations persist on the server).
+Both answer the same questions using the same data. The Investigative Agent is custom code (stateless, you pick the model). The Foundry Portal uses a Foundry Agent managed by Azure (stateful, always GPT-4.1, conversations persist on the server).
 
 ### Why does Copilot Studio sometimes show "JavaScriptError"?
 

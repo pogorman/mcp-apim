@@ -437,6 +437,12 @@
       margin-left: 0.3rem;
     }
     .dash-map { height: 340px; border-radius: 8px; }
+    .map-legend {
+      background: rgba(30,33,48,0.9);
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
     .dash-chart { position: relative; height: 260px; }
     .dash-chart-tall { height: 340px; }
 
@@ -590,7 +596,7 @@
 
     .powered-by-aoai { background: rgba(108,138,255,0.1); color: var(--accent); }
     .powered-by-sk { background: rgba(139,92,246,0.1); color: #a78bfa; }
-    .powered-by-foundry { background: rgba(0,71,133,0.08); color: #004785; }
+    .powered-by-foundry { background: rgba(16,163,127,0.1); color: #10a37f; }
     .powered-by-copilot { background: rgba(123,47,247,0.08); color: #5b2bb5; }
 
     /* ── Agent Info Grid ────────────────────────────── */
@@ -766,26 +772,18 @@
     }
     .widget-suggestion {
       padding: 0.3rem 0.55rem;
-      background: #e8ecf0;
+      background: var(--surface);
+      border: 1px solid var(--border);
       border-radius: 14px;
       font-size: 0.7rem;
-      color: #004785;
+      color: var(--accent);
       cursor: pointer;
       transition: all 0.15s;
     }
     .widget-suggestion:hover {
-      background: #004785;
-      color: #fff;
+      background: var(--accent-dim);
+      border-color: var(--accent);
     }
-    /* City widget prompt menu (light themed) */
-    .chat-widget .prompt-menu {
-      background: #fff;
-      border-color: #d4d4d4;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-    }
-    .chat-widget .prompt-category { color: #666; }
-    .chat-widget .prompt-item { color: #1a1a2e; }
-    .chat-widget .prompt-item:hover { background: #e8ecf0; color: #004785; }
 
     .message {
       padding: 0.6rem 1rem;
@@ -1295,116 +1293,7 @@
       color: var(--error);
     }
 
-    /* ── City Portal Panel ───────────────────────────── */
-    .city-panel {
-      background: #f5f5f5;
-      color: #1a1a2e;
-      position: relative;
-    }
-
-    .city-header-bar {
-      background: #004785;
-      color: #fff;
-      padding: 1.25rem 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-shrink: 0;
-    }
-
-    .city-seal {
-      width: 48px;
-      height: 48px;
-      flex-shrink: 0;
-    }
-
-    .city-header-text h2 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      margin-bottom: 0.15rem;
-    }
-
-    .city-header-text p {
-      font-size: 0.78rem;
-      opacity: 0.85;
-      font-weight: 400;
-    }
-
-    .city-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1.5rem;
-    }
-
-    .city-content::-webkit-scrollbar { width: 5px; }
-    .city-content::-webkit-scrollbar-track { background: transparent; }
-    .city-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
-
-    .city-intro {
-      max-width: 700px;
-      margin: 0 auto 1.5rem;
-      font-size: 0.88rem;
-      line-height: 1.65;
-      color: #333;
-    }
-
-    .city-intro h3 {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #004785;
-      margin-bottom: 0.5rem;
-    }
-
-    .city-stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 1rem;
-      max-width: 700px;
-      margin: 0 auto 1.5rem;
-    }
-
-    .city-stat-card {
-      background: #fff;
-      border-radius: 10px;
-      padding: 1.25rem;
-      text-align: center;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      border: 1px solid #e2e2e2;
-    }
-
-    .city-stat-value {
-      font-size: 1.6rem;
-      font-weight: 800;
-      color: #004785;
-      margin-bottom: 0.2rem;
-    }
-
-    .city-stat-label {
-      font-size: 0.78rem;
-      color: #666;
-      font-weight: 500;
-    }
-
-    .city-about {
-      max-width: 700px;
-      margin: 0 auto;
-      background: #fff;
-      border-radius: 10px;
-      padding: 1.25rem;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      border: 1px solid #e2e2e2;
-      font-size: 0.82rem;
-      line-height: 1.6;
-      color: #444;
-    }
-
-    .city-about h4 {
-      font-size: 0.88rem;
-      font-weight: 700;
-      color: #004785;
-      margin-bottom: 0.4rem;
-    }
+    /* ── City Portal Panel (removed — now uses standard dark theme) ── */
 
     /* FAB (floating action button) */
     .chat-fab {
@@ -1414,11 +1303,11 @@
       width: 56px;
       height: 56px;
       border-radius: 50%;
-      background: #004785;
+      background: var(--accent);
       color: #fff;
       border: none;
       cursor: pointer;
-      box-shadow: 0 4px 14px rgba(0,71,133,0.35);
+      box-shadow: 0 4px 14px rgba(108,138,255,0.35);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1428,7 +1317,7 @@
 
     .chat-fab:hover {
       transform: scale(1.08);
-      box-shadow: 0 6px 20px rgba(0,71,133,0.45);
+      box-shadow: 0 6px 20px rgba(108,138,255,0.45);
     }
 
     .chat-fab svg { width: 24px; height: 24px; }
@@ -1440,14 +1329,14 @@
       right: 1.25rem;
       width: 400px;
       height: 500px;
-      background: #fff;
+      background: var(--bg);
       border-radius: 12px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.18);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
       display: none;
       flex-direction: column;
       overflow: hidden;
       z-index: 20;
-      border: 1px solid #d4d4d4;
+      border: 1px solid var(--border);
     }
 
     .chat-widget.open {
@@ -1455,8 +1344,9 @@
     }
 
     .widget-header {
-      background: #004785;
-      color: #fff;
+      background: var(--surface);
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
       padding: 0.75rem 1rem;
       display: flex;
       align-items: center;
@@ -1477,7 +1367,7 @@
     .widget-close {
       background: none;
       border: none;
-      color: #fff;
+      color: var(--text);
       cursor: pointer;
       font-size: 1.2rem;
       padding: 0.2rem;
@@ -1494,12 +1384,12 @@
       display: flex;
       flex-direction: column;
       gap: 0.5rem;
-      background: #fafafa;
+      background: var(--bg);
     }
 
     .widget-messages::-webkit-scrollbar { width: 4px; }
     .widget-messages::-webkit-scrollbar-track { background: transparent; }
-    .widget-messages::-webkit-scrollbar-thumb { background: #ccc; border-radius: 2px; }
+    .widget-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
     .widget-bubble {
       max-width: 85%;
@@ -1515,22 +1405,22 @@
     .widget-bubble p:last-child { margin-bottom: 0; }
 
     .widget-bubble.user {
-      background: #004785;
+      background: var(--accent);
       color: #fff;
       align-self: flex-end;
       border-bottom-right-radius: 4px;
     }
 
     .widget-bubble.assistant {
-      background: #e8ecf0;
-      color: #1a1a2e;
+      background: var(--surface);
+      color: var(--text);
       align-self: flex-start;
       border-bottom-left-radius: 4px;
     }
 
     .widget-bubble.system {
       background: transparent;
-      color: #888;
+      color: var(--muted);
       align-self: center;
       font-size: 0.75rem;
       text-align: center;
@@ -1549,11 +1439,11 @@
       align-items: center;
       gap: 0.2rem;
       padding: 0.1rem 0.4rem;
-      background: rgba(0,71,133,0.1);
+      background: var(--accent-dim);
       border-radius: 3px;
       font-size: 0.62rem;
       font-family: var(--font-mono);
-      color: #004785;
+      color: var(--accent);
     }
 
     .widget-tool-badge::before {
@@ -1561,7 +1451,7 @@
       width: 4px;
       height: 4px;
       border-radius: 50%;
-      background: #004785;
+      background: var(--accent);
     }
 
     .widget-thinking {
@@ -1594,33 +1484,34 @@
     }
 
     .widget-input-area {
-      border-top: 1px solid #e2e2e2;
+      border-top: 1px solid var(--border);
       padding: 0.5rem;
       flex-shrink: 0;
       display: flex;
       gap: 0.5rem;
-      background: #fff;
+      background: var(--surface);
     }
 
     .widget-input-area input {
       flex: 1;
       padding: 0.5rem 0.7rem;
-      border: 1px solid #d4d4d4;
+      border: 1px solid var(--border);
       border-radius: 20px;
       font-size: 0.82rem;
       font-family: inherit;
-      color: #1a1a2e;
+      color: var(--text);
+      background: var(--bg);
       outline: none;
     }
 
-    .widget-input-area input:focus { border-color: #004785; }
-    .widget-input-area input::placeholder { color: #999; }
+    .widget-input-area input:focus { border-color: var(--accent); }
+    .widget-input-area input::placeholder { color: var(--muted); }
 
     .widget-send {
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      background: #004785;
+      background: var(--accent);
       color: #fff;
       border: none;
       cursor: pointer;
@@ -1631,7 +1522,7 @@
       flex-shrink: 0;
     }
 
-    .widget-send:hover { background: #003566; }
+    .widget-send:hover { background: #5570e0; }
     .widget-send:disabled { opacity: 0.4; cursor: not-allowed; }
 
     .widget-send svg { width: 16px; height: 16px; }
@@ -1645,115 +1536,7 @@
       }
     }
 
-    /* ── Copilot Studio Panel ─────────────────────────── */
-    .copilot-panel {
-      background: #f0f0f8;
-      color: #1a1a2e;
-      position: relative;
-    }
-
-    .copilot-header-bar {
-      background: linear-gradient(135deg, #7b2ff7, #2b88d8);
-      color: #fff;
-      padding: 1.25rem 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-shrink: 0;
-    }
-
-    .copilot-header-bar svg {
-      width: 40px;
-      height: 40px;
-      flex-shrink: 0;
-    }
-
-    .copilot-header-text h2 {
-      font-size: 1.15rem;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      margin-bottom: 0.15rem;
-    }
-
-    .copilot-header-text p {
-      font-size: 0.78rem;
-      opacity: 0.85;
-      font-weight: 400;
-    }
-
-    .copilot-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1.5rem;
-    }
-
-    .copilot-content::-webkit-scrollbar { width: 5px; }
-    .copilot-content::-webkit-scrollbar-track { background: transparent; }
-    .copilot-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
-
-    .copilot-intro {
-      max-width: 700px;
-      margin: 0 auto 1.5rem;
-      font-size: 0.88rem;
-      line-height: 1.65;
-      color: #333;
-    }
-
-    .copilot-intro h3 {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: #5b2bb5;
-      margin-bottom: 0.5rem;
-    }
-
-    .copilot-features {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 1rem;
-      max-width: 700px;
-      margin: 0 auto 1.5rem;
-    }
-
-    .copilot-feature-card {
-      background: #fff;
-      border-radius: 10px;
-      padding: 1.25rem;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      border: 1px solid #e2e2e2;
-    }
-
-    .copilot-feature-card h4 {
-      font-size: 0.85rem;
-      font-weight: 700;
-      color: #5b2bb5;
-      margin-bottom: 0.35rem;
-    }
-
-    .copilot-feature-card p {
-      font-size: 0.78rem;
-      color: #555;
-      line-height: 1.5;
-    }
-
-    .copilot-about {
-      max-width: 700px;
-      margin: 0 auto;
-      background: #fff;
-      border-radius: 10px;
-      padding: 1.25rem;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      border: 1px solid #e2e2e2;
-      font-size: 0.82rem;
-      line-height: 1.6;
-      color: #444;
-    }
-
-    .copilot-about h4 {
-      font-size: 0.88rem;
-      font-weight: 700;
-      color: #5b2bb5;
-      margin-bottom: 0.4rem;
-    }
+    /* ── Copilot Studio Panel (removed — now uses standard dark theme) ── */
 
     /* Copilot FAB (floating action button — inside panel only) */
     .copilot-fab {
@@ -1763,11 +1546,11 @@
       width: 56px;
       height: 56px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #7b2ff7, #2b88d8);
+      background: #a78bfa;
       color: #fff;
       border: none;
       cursor: pointer;
-      box-shadow: 0 4px 16px rgba(123,47,247,0.4);
+      box-shadow: 0 4px 16px rgba(139,92,246,0.4);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -1776,7 +1559,7 @@
     }
     .copilot-fab:hover {
       transform: scale(1.08);
-      box-shadow: 0 6px 24px rgba(123,47,247,0.5);
+      box-shadow: 0 6px 24px rgba(139,92,246,0.5);
     }
     .copilot-fab svg { width: 24px; height: 24px; }
 
@@ -1786,14 +1569,14 @@
       right: 1.25rem;
       width: 420px;
       height: 500px;
-      background: #fff;
+      background: var(--bg);
       border-radius: 12px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
       z-index: 20;
       display: none;
       flex-direction: column;
       overflow: hidden;
-      border: 1px solid #d4d4d4;
+      border: 1px solid var(--border);
     }
     .copilot-widget.open {
       display: flex;
@@ -1804,8 +1587,9 @@
       align-items: center;
       justify-content: space-between;
       padding: 0.6rem 0.8rem;
-      background: linear-gradient(135deg, #7b2ff7, #2b88d8);
-      color: #fff;
+      background: var(--surface);
+      color: var(--text);
+      border-bottom: 1px solid var(--border);
       font-size: 0.82rem;
       font-weight: 600;
       flex-shrink: 0;
@@ -1813,7 +1597,7 @@
     .copilot-widget-header button {
       background: none;
       border: none;
-      color: #fff;
+      color: var(--text);
       cursor: pointer;
       font-size: 1.1rem;
       opacity: 0.8;
@@ -2411,9 +2195,9 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
-        <span class="tab-text">Agent</span>
+        <span class="tab-text">Investigative Agent</span>
       </button>
-      <button class="activity-tab" id="tabCity" onclick="togglePanel('city')" title="City Portal (Foundry Agent)">
+      <button class="activity-tab" id="tabCity" onclick="togglePanel('city')" title="Foundry Portal">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M2 22h20"/>
           <path d="M4 22V10l5-4 5 4v12"/>
@@ -2421,7 +2205,7 @@
           <line x1="17" y1="22" x2="17" y2="3"/>
           <path d="M17 6c2-2 4-1 4 1"/>
         </svg>
-        <span class="tab-text">City Portal</span>
+        <span class="tab-text">Foundry Portal</span>
       </button>
       <button class="activity-tab" id="tabCopilot" onclick="togglePanel('copilot')" title="Copilot Studio">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2430,9 +2214,9 @@
           <rect x="14" y="10" width="6" height="4" rx="2"/>
           <path d="M10 12h4"/>
         </svg>
-        <span class="tab-text">Copilot</span>
+        <span class="tab-text">Copilot Studio</span>
       </button>
-      <button class="activity-tab" id="tabSK" onclick="togglePanel('sk')" title="Semantic Kernel Agent">
+      <button class="activity-tab" id="tabSK" onclick="togglePanel('sk')" title="Triage (Agent Framework)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>
           <ellipse cx="12" cy="12" rx="10" ry="4"/>
@@ -2442,7 +2226,7 @@
           <circle cx="7" cy="8.1" r="1.5" fill="currentColor" stroke="none"/>
           <circle cx="7" cy="15.9" r="1.5" fill="currentColor" stroke="none"/>
         </svg>
-        <span class="tab-text">SK Agent</span>
+        <span class="tab-text">Triage (Agent Framework)</span>
       </button>
       <button class="activity-tab" id="tabTools" onclick="togglePanel('tools')" title="MCP Tool Tester">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2591,72 +2375,47 @@
         </div>
       </div>
 
-      <!-- Panel 3: City Portal -->
-      <div class="panel city-panel" id="panelCity">
-        <div class="city-header-bar">
-          <svg class="city-seal" viewBox="0 0 100 100" fill="none">
-            <circle cx="50" cy="50" r="46" stroke="#f2c94c" stroke-width="3"/>
-            <circle cx="50" cy="50" r="38" stroke="#f2c94c" stroke-width="1.5"/>
-            <rect x="30" y="35" width="10" height="30" rx="1" fill="#f2c94c" opacity="0.9"/>
-            <rect x="45" y="25" width="10" height="40" rx="1" fill="#f2c94c"/>
-            <rect x="60" y="30" width="10" height="35" rx="1" fill="#f2c94c" opacity="0.9"/>
-            <rect x="33" y="42" width="4" height="4" rx="0.5" fill="#004785"/>
-            <rect x="33" y="50" width="4" height="4" rx="0.5" fill="#004785"/>
-            <rect x="48" y="32" width="4" height="4" rx="0.5" fill="#004785"/>
-            <rect x="48" y="40" width="4" height="4" rx="0.5" fill="#004785"/>
-            <rect x="48" y="48" width="4" height="4" rx="0.5" fill="#004785"/>
-            <rect x="63" y="37" width="4" height="4" rx="0.5" fill="#004785"/>
-            <rect x="63" y="45" width="4" height="4" rx="0.5" fill="#004785"/>
-            <line x1="25" y1="65" x2="75" y2="65" stroke="#f2c94c" stroke-width="2"/>
-            <text x="50" y="80" text-anchor="middle" fill="#f2c94c" font-size="7" font-weight="700" font-family="serif">PHILADELPHIA</text>
-          </svg>
-          <div class="city-header-text">
-            <h2>City of Philadelphia</h2>
-            <p>Property Data Transparency Portal</p>
-          </div>
+      <!-- Panel 3: Foundry Portal -->
+      <div class="panel" id="panelCity" style="position:relative;">
+        <div class="panel-header">
+          <span class="panel-header-title">Foundry Portal</span>
+          <button class="btn-small" onclick="clearCityChat()">Clear</button>
         </div>
-        <div class="city-content">
-          <div class="city-intro">
-            <h3>Property Data at Your Fingertips</h3>
-            <p>
-              This portal provides transparent access to Philadelphia's property data, including ownership records,
-              code enforcement cases, demolition history, business licenses, and tax assessments. Our AI assistant
-              can help you navigate and understand this data &mdash; click the chat icon in the bottom right to get started.
-            </p>
-          </div>
-          <div class="city-stats-grid">
-            <div class="city-stat-card">
-              <div class="city-stat-value">584K</div>
-              <div class="city-stat-label">Properties</div>
-            </div>
-            <div class="city-stat-card">
-              <div class="city-stat-value">1.6M</div>
-              <div class="city-stat-label">Code Investigations</div>
-            </div>
-            <div class="city-stat-card">
-              <div class="city-stat-value">13.5K</div>
-              <div class="city-stat-label">Demolition Records</div>
-            </div>
-          </div>
-          <div class="city-about">
-            <h4>About This Data</h4>
-            <p>
-              Data sourced from Philadelphia's open data portals, covering 10 public datasets with approximately
-              29 million rows. This includes the OPA property registry, L&amp;I code enforcement cases, demolition
-              permits, business and commercial activity licenses, zoning appeals, and historical tax assessments
-              from 2015 to 2025.
-            </p>
-            <p style="margin-top:0.5rem;">
-              The AI assistant uses the same 12 investigative tools and data pipeline as the Investigative Agent,
-              powered by Microsoft Foundry (Assistants API) with persistent conversation threads.
-            </p>
-            <div class="powered-by powered-by-foundry" style="margin-top:0.75rem;">
+        <div class="chat-scroll" id="cityScroll">
+          <div class="chat-welcome" id="cityWelcome">
+            <div class="powered-by powered-by-foundry">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/>
                 <rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/>
               </svg>
               Powered by Microsoft Foundry
             </div>
+            <h3>Foundry Portal</h3>
+            <p>
+              Ask questions about Philadelphia property data using the
+              <strong>Microsoft Foundry Assistants API</strong>. Azure manages the tool-calling loop
+              and conversation threads persist server-side &mdash; follow-up questions remember context.
+              Same 12 tools, same 29M rows.
+            </p>
+            <div class="agent-info-grid" style="grid-template-columns: repeat(3, 1fr);">
+              <div class="agent-info-item">
+                <span class="agent-info-value" style="color:#10a37f;">&#8734;</span>
+                <span class="agent-info-label">Persistent Threads</span>
+              </div>
+              <div class="agent-info-item">
+                <span class="agent-info-value" style="color:#10a37f;">12</span>
+                <span class="agent-info-label">Tools</span>
+              </div>
+              <div class="agent-info-item">
+                <span class="agent-info-value" style="color:#10a37f;">GPT-4.1</span>
+                <span class="agent-info-label">Model</span>
+              </div>
+            </div>
+            <p class="agent-detail">
+              Click the chat icon below to start a conversation. Unlike the Investigative Agent,
+              Azure manages the reasoning loop &mdash; our code just passes messages.
+            </p>
+            <div class="suggestions" id="foundrySuggestions"></div>
           </div>
         </div>
 
@@ -2699,63 +2458,46 @@
       </div>
 
       <!-- Panel 4: Copilot Studio -->
-      <div class="panel copilot-panel" id="panelCopilot">
-        <div class="copilot-header-bar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="9"/>
-            <rect x="4" y="10" width="6" height="4" rx="2"/>
-            <rect x="14" y="10" width="6" height="4" rx="2"/>
-            <path d="M10 12h4"/>
-          </svg>
-          <div class="copilot-header-text">
-            <h2>Copilot Studio</h2>
-            <p>Low-Code AI Agent via MCP</p>
-          </div>
+      <div class="panel" id="panelCopilot" style="position:relative;">
+        <div class="panel-header">
+          <span class="panel-header-title">Copilot Studio</span>
         </div>
-        <div class="copilot-content">
-          <div class="copilot-intro">
-            <h3>Microsoft Copilot Studio Agent</h3>
-            <p>
-              This panel demonstrates a low-code/no-code approach to consuming the same 12 investigative tools.
-              A Microsoft Copilot Studio agent is connected directly to our MCP endpoint &mdash; it automatically
-              discovers all available tools and can answer questions about Philadelphia property data without any
-              custom code.
-            </p>
-            <p>Click the chat icon in the bottom right to launch the Copilot Studio agent.</p>
-          </div>
-          <div class="copilot-features">
-            <div class="copilot-feature-card">
-              <h4>Auto-Discovery</h4>
-              <p>Copilot Studio connects to the MCP endpoint and automatically discovers all 12 tools &mdash; no manual configuration needed.</p>
-            </div>
-            <div class="copilot-feature-card">
-              <h4>No Custom Code</h4>
-              <p>Unlike the Investigative Agent and City Portal, this agent requires zero custom code on the Copilot Studio side.</p>
-            </div>
-            <div class="copilot-feature-card">
-              <h4>Same Backend</h4>
-              <p>Uses the same APIM &rarr; Functions &rarr; SQL pipeline and 29M rows of Philadelphia property data.</p>
-            </div>
-          </div>
-          <div class="copilot-about">
-            <h4>How It Works</h4>
-            <p>
-              Copilot Studio connects to our MCP server endpoint at the Container App. When the agent receives a
-              question, it uses MCP tool discovery to find the right tools, calls them through our APIM gateway,
-              and synthesizes the results into a natural language response.
-            </p>
-            <p style="margin-top:0.5rem;">
-              This is one of five client patterns demonstrated in this application: Chat Completions + Tools
-              (Investigative Agent), Assistants API (City Portal), MCP via Low-Code (this panel),
-              Multi-Agent Orchestration (SK Agent), and Raw MCP Protocol (Tool Tester).
-            </p>
-            <div class="powered-by powered-by-copilot" style="margin-top:0.75rem;">
+        <div class="chat-scroll">
+          <div class="chat-welcome" id="copilotWelcome">
+            <div class="powered-by powered-by-copilot">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="9"/><rect x="4" y="10" width="6" height="4" rx="2"/>
                 <rect x="14" y="10" width="6" height="4" rx="2"/><path d="M10 12h4"/>
               </svg>
               Powered by Microsoft Copilot Studio
             </div>
+            <h3>Copilot Studio</h3>
+            <p>
+              A <strong>low-code / no-code</strong> approach to the same 12 investigative tools.
+              Microsoft Copilot Studio connects directly to our MCP endpoint and auto-discovers
+              every tool &mdash; no custom code required. Microsoft manages the agent runtime.
+            </p>
+            <div class="agent-info-grid" style="grid-template-columns: repeat(3, 1fr);">
+              <div class="agent-info-item">
+                <span class="agent-info-value" style="color:#a78bfa;">Auto</span>
+                <span class="agent-info-label">Tool Discovery</span>
+              </div>
+              <div class="agent-info-item">
+                <span class="agent-info-value" style="color:#a78bfa;">12</span>
+                <span class="agent-info-label">MCP Tools</span>
+              </div>
+              <div class="agent-info-item">
+                <span class="agent-info-value" style="color:#a78bfa;">0</span>
+                <span class="agent-info-label">Lines of Code</span>
+              </div>
+            </div>
+            <p class="agent-detail">
+              Copilot Studio connects to the MCP server at the Container App, discovers tools automatically,
+              and calls them through APIM. Same data pipeline, zero custom code.
+            </p>
+            <p class="agent-detail" style="margin-top:0.25rem;">
+              Click the chat icon below to launch the Copilot Studio agent.
+            </p>
           </div>
         </div>
 
@@ -2853,10 +2595,9 @@
                     <path d="M17 6c2-2 4-1 4 1"/>
                   </svg>
                 </div>
-                <h3>City Portal</h3>
+                <h3>Foundry Portal</h3>
                 <span class="about-card-pattern">Microsoft Foundry &mdash; Assistants API</span>
                 <p>
-                  A Philadelphia city government&ndash;branded page with a floating chat widget.
                   Azure manages the tool-calling loop and conversation threads persist server-side,
                   so follow-up questions remember context. Powered by GPT-4.1 via Microsoft Foundry.
                 </p>
@@ -2921,7 +2662,7 @@
                     <line x1="9" y1="6" x2="15" y2="6"/>
                   </svg>
                 </div>
-                <h3>Semantic Kernel Agent</h3>
+                <h3>Triage (Agent Framework)</h3>
                 <span class="about-card-pattern">Semantic Kernel &mdash; Microsoft Agent Framework</span>
                 <p>
                   A team of specialist agents built with Microsoft Semantic Kernel (C# / .NET 8).
@@ -2930,14 +2671,32 @@
                   so you can see which agents collaborated.
                 </p>
               </div>
+
+              <div class="about-card">
+                <div class="about-card-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/>
+                    <rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/>
+                  </svg>
+                </div>
+                <h3>M365 Copilot Agent</h3>
+                <span class="about-card-pattern">Declarative Agent &mdash; RemoteMCPServer</span>
+                <p>
+                  A declarative agent deployed to Microsoft 365 Copilot (Teams, Outlook, M365.com).
+                  Uses the <code>RemoteMCPServer</code> runtime to connect to the same MCP endpoint.
+                  Users ask questions in M365 Copilot and it invokes our 12 tools automatically &mdash;
+                  zero custom code, just a JSON manifest.
+                </p>
+              </div>
             </div>
 
             <div class="about-footer">
               <h3>The Big Picture</h3>
               <p>
-                This application demonstrates four fundamentally different ways to build AI agents on the same backend:
-                <strong>custom code</strong> (Investigative Agent), <strong>platform-managed</strong> (City Portal via Foundry),
-                <strong>low-code</strong> (Copilot Studio via MCP), and <strong>enterprise SDK</strong> (Semantic Kernel with multi-agent orchestration).
+                This application demonstrates five fundamentally different ways to build AI agents on the same backend:
+                <strong>custom code</strong> (Investigative Agent), <strong>platform-managed</strong> (Foundry Portal via Assistants API),
+                <strong>low-code</strong> (Copilot Studio via MCP), <strong>enterprise SDK</strong> (Triage via Semantic Kernel),
+                and <strong>declarative</strong> (M365 Copilot via RemoteMCPServer).
                 The underlying data, tools, and API are identical &mdash; only the integration pattern changes.
               </p>
             </div>
@@ -2948,7 +2707,7 @@
       <!-- Panel 7: Semantic Kernel Agent -->
       <div class="panel" id="panelSK">
         <div class="panel-header">
-          <span class="panel-header-title">Semantic Kernel Agent</span>
+          <span class="panel-header-title">Triage (Agent Framework)</span>
           <span style="font-size:0.65rem;color:var(--muted);margin-left:auto;">Multi-Agent &middot; C# &middot; HandoffOrchestration</span>
           <button class="btn-small" onclick="clearSKChat()" style="margin-left:0.5rem;">Clear</button>
         </div>
@@ -3701,6 +3460,27 @@
           '<div class="suggestions" id="agentSuggestions"></div>' +
         '</div>';
       renderSuggestions('agentSuggestions', 'useSuggestion');
+    }
+
+    function clearCityChat() {
+      state.city.threadId = null;
+      $('widgetMessages').innerHTML =
+        '<div class="widget-bubble system">Ask me anything about Philadelphia property data.</div>' +
+        '<div class="widget-suggestions" id="widgetSuggestions">' +
+          '<div class="widget-suggestion" onclick="useWidgetSuggestion(this)">Who are the top violators?</div>' +
+          '<div class="widget-suggestion" onclick="useWidgetSuggestion(this)">Tell me about GEENA LLC</div>' +
+          '<div class="widget-suggestion" onclick="useWidgetSuggestion(this)">Check cashing in 19134?</div>' +
+        '</div>';
+      if ($('cityWelcome')) $('cityWelcome').style.display = '';
+    }
+
+    function useFoundrySuggestion(el) {
+      var text = el.textContent;
+      if ($('cityWelcome')) $('cityWelcome').style.display = 'none';
+      // Open the widget and send
+      if (!state.city.chatOpen) toggleCityChat();
+      $('widgetInput').value = text;
+      sendWidgetMessage();
     }
 
     /* ================================================================
@@ -4646,12 +4426,21 @@
       }
 
       function getColor(rate) {
-        if (!rate || maxRate === 0) return 'rgba(108,138,255,0.1)';
+        if (!rate || maxRate === 0) return 'rgba(108,138,255,0.08)';
         var t = Math.min(rate / maxRate, 1);
-        // Blue (#3b5ce5) → Red (#ef4444)
-        var r = Math.round(59 + t * 180);
-        var g = Math.round(92 - t * 24);
-        var b = Math.round(229 - t * 161);
+        // Yellow (#fde68a) → Orange (#f97316) → Red (#dc2626)
+        var r, g, b;
+        if (t < 0.5) {
+          var s = t * 2;
+          r = Math.round(253 - s * 4);
+          g = Math.round(230 - s * 115);
+          b = Math.round(138 - s * 116);
+        } else {
+          var s = (t - 0.5) * 2;
+          r = Math.round(249 - s * 29);
+          g = Math.round(115 - s * 77);
+          b = Math.round(22);
+        }
         return 'rgb(' + r + ',' + g + ',' + b + ')';
       }
 
@@ -4686,6 +4475,20 @@
           }
         }
       }).addTo(dashMapInstance);
+
+      // Legend
+      var legend = L.control({ position: 'bottomright' });
+      legend.onAdd = function() {
+        var div = L.DomUtil.create('div', 'map-legend');
+        div.innerHTML =
+          '<div style="font-size:11px;font-weight:600;margin-bottom:4px;color:#ccc;">Violations / Property</div>' +
+          '<div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#aaa;">' +
+          '<span>Low</span>' +
+          '<div style="width:80px;height:10px;border-radius:3px;background:linear-gradient(to right,#fde68a,#f97316,#dc2626);"></div>' +
+          '<span>High</span></div>';
+        return div;
+      };
+      legend.addTo(dashMapInstance);
     }
 
     function initChartViolators() {
@@ -4878,6 +4681,7 @@
     // Populate initial suggestions from shared prompts
     renderSuggestions('agentSuggestions', 'useSuggestion');
     renderSuggestions('skSuggestions', 'useSKSuggestion');
+    renderSuggestions('foundrySuggestions', 'useFoundrySuggestion');
 
     // Init dashboard charts + choropleth after a tick (DOM needs to be visible)
     setTimeout(initDashboard, 100);

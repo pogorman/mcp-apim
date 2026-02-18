@@ -29,6 +29,7 @@ Chronological record of what was built, what broke, and how it was fixed. Keeps 
 - [Session 22 — Dashboard, Architecture Panel, Warm-Up Button](#session-22--dashboard-architecture-panel-warm-up-button-2026-02-17)
 - [Session 23 — M365 Copilot Declarative Agent](#session-23--m365-copilot-declarative-agent-2026-02-17)
 - [Session 24 — FAQ, Slide Deck, SPA Panel](#session-24--faq-slide-deck-spa-panel-2026-02-17)
+- [Session 25 — Nav Renames, Panel Restyling, Map Fix, M365 Showcase](#session-25--nav-renames-panel-restyling-map-fix-m365-showcase-2026-02-17)
 
 ---
 
@@ -1148,4 +1149,55 @@ Three things this session:
 - `docs/ELI5.md` — Updated counts (Seven→Eight), added Slides panel entry (#7), renumbered #8-9
 - `docs/ARCHITECTURE.md` — Updated panel count (seven→eight), updated activity bar description
 - `docs/USER_GUIDE.md` — Updated counts (Seven→Eight), added Slides panel section (#7), renumbered #8
+- `docs/SESSION_LOG.md` — This entry
+
+---
+
+## Session 25 — SPA Polish: Nav Renames, Panel Restyling, Map Fix, M365 Showcase
+
+**Date:** 2026-02-17
+**Focus:** UI consistency overhaul — renamed nav labels, restyled Foundry Portal and Copilot Studio panels to match the dark Agent/SK theme, fixed dashboard map colors, added M365 Copilot About card
+
+### What Changed
+
+#### 1. Nav Label Renames
+Updated all four activity bar tab labels for clarity and consistency:
+- Agent → **Investigative Agent**
+- City Portal → **Foundry Portal**
+- Copilot → **Copilot Studio**
+- SK Agent → **Triage (Agent Framework)**
+
+Updated corresponding title attributes and About panel card names.
+
+#### 2. Foundry Portal Panel Restyle
+Replaced the light Philadelphia city-branded layout (blue header bar with SVG seal, white stats grid) with a dark `chat-welcome` pattern matching the Investigative Agent and SK Agent panels:
+- Removed ~110 lines of `.city-panel` CSS
+- New dark panel with `powered-by-foundry` badge (green teal), description, 3-item info grid (Persistent Threads / 12 Tools / GPT-4.1), suggestions
+- Updated all widget styles (`.widget-*`) from hardcoded light colors to CSS variable references
+- Added `clearCityChat()` function and panel-header with Clear button
+- Fixed FAB positioning: moved outside `chat-scroll` to prevent scrolling with content
+
+#### 3. Copilot Studio Panel Restyle
+Same treatment as Foundry Portal — replaced light copilot-branded layout with dark theme:
+- Removed ~90 lines of `.copilot-panel` CSS
+- New dark panel with `powered-by-copilot` badge (purple), description, 3-item info grid (Auto-Discovery / 12 Tools / Zero Code)
+- Updated FAB from gradient to solid `#a78bfa`, widget styles to CSS variables
+- FAB + iframe overlay preserved and repositioned outside `chat-scroll`
+
+#### 4. Dashboard Map Colors + Legend
+- Replaced blue→red gradient (indistinguishable purples at midpoint) with yellow→orange→red sequential scale using two-phase linear interpolation
+- Added Leaflet legend control in bottom-right corner with gradient bar and Low/High labels
+- Used `.map-legend` class to avoid conflict with existing `.dash-legend` chart legend styles
+
+#### 5. M365 Copilot in About Panel
+- Added new About card: "M365 Copilot Agent" with grid icon, "Declarative Agent — RemoteMCPServer" pattern label, description of the M365 integration
+- Updated Big Picture text: "four fundamentally different ways" → "five" with M365 reference
+- Renamed About cards: City Portal→Foundry Portal, Semantic Kernel Agent→Triage (Agent Framework)
+
+### Files Created/Changed
+- `web/index.html` — All CSS, HTML, and JS changes (nav renames, panel restyles, map fix, M365 card)
+- `CLAUDE.md` — Updated panel names, counts, descriptions
+- `docs/ELI5.md` — Eight→Nine panels, renamed panels, updated last session
+- `docs/ARCHITECTURE.md` — Renamed panels, updated counts and descriptions
+- `docs/USER_GUIDE.md` — Renamed panels, reorganized TOC, rewrote panel sections
 - `docs/SESSION_LOG.md` — This entry

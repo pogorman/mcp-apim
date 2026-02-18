@@ -34,7 +34,7 @@ Claude Desktop / Claude Code (stdio)
 Web Chat SPA — Investigative Agent (Static Web App)
     └→ Container App /chat → Azure OpenAI (6 models, tool calling) → APIM → Functions → SQL
 
-Web Chat SPA — City Portal / Foundry Agent (Static Web App)
+Web Chat SPA — Foundry Portal (Static Web App)
     └→ Container App /agent → Azure OpenAI GPT-4.1 (Assistants API, persistent threads) → APIM → Functions → SQL
 
 Microsoft Copilot Studio (floating widget in SPA)
@@ -66,7 +66,7 @@ Chat endpoint (/chat — Investigative Agent):
         → APIM → Functions → SQL (per tool call)
         → Natural language response
 
-Agent endpoint (/agent — City Portal / Foundry Agent):
+Agent endpoint (/agent — Foundry Portal):
     Browser SPA → Container App /agent/thread + /agent/message
         → Azure OpenAI GPT-4.1 (Assistants API, persistent threads)
         → APIM → Functions → SQL (per tool call)
@@ -131,7 +131,7 @@ mcp-apim/
 │   ├── apim-policy.json      # APIM policy XML
 │   └── func-app-body.json    # Function app ARM template
 ├── web/                      # Front-end multi-panel interface
-│   ├── index.html            # 9-panel SPA (Dashboard, Agent, City Portal, Copilot, SK Agent, Slides, Arch, Docs, About, Tools)
+│   ├── index.html            # 9-panel SPA (Investigative Agent, Foundry Portal, Copilot Studio, Triage, Tools, Docs, Slides, Architecture, About)
 │   └── staticwebapp.config.json  # SWA auth config (Entra ID login required)
 ├── docs/                     # Project documentation
 │   ├── ARCHITECTURE.md       # Full technical reference
@@ -284,13 +284,14 @@ All resources are on consumption/serverless tiers — **~$33/month** (mostly pri
 SPA with VS Code-style activity bar demonstrating multiple panels using the same APIM backend. Protected by Azure SWA built-in authentication (Microsoft Entra ID login required — config in `web/staticwebapp.config.json`). User email and sign-out button in header.
 
 - **Investigative Agent** — Chat Completions + Tools. Natural language chat with model selector (6 models). Our code runs the agentic loop (`/chat` endpoint).
-- **City Portal** — Assistants API (Foundry Agent). Philadelphia-branded page with floating chat widget. Azure manages the tool-calling loop with GPT-4.1 and threads persist server-side (`/agent` endpoints).
-- **Copilot Studio** — Microsoft Copilot Studio agent connected via MCP. Has its own panel with a floating chat widget. Demonstrates the low-code/no-code integration path.
-- **About** — Project overview and architecture documentation.
-- **SK Agent** — Semantic Kernel multi-agent panel. Chat widget connecting to the `philly-sk-agent` Container App. Demonstrates C#/.NET agent orchestration with 4 specialist agents.
-- **Slide Deck** — Reveal.js presentation embedded in an iframe. Architecture walkthrough with animated builds, section-by-section. Covers all 5 layers, round-trip flow, cost model, and expansion path.
-- **Documentation** — Built-in reader for all project markdown files and Jupyter notebooks. Files copied to `web/docs/` and `web/notebooks/` at deploy time.
+- **Foundry Portal** — Assistants API (Microsoft Foundry). Azure manages the tool-calling loop with GPT-4.1 and threads persist server-side (`/agent` endpoints). Floating chat widget.
+- **Copilot Studio** — Microsoft Copilot Studio agent connected via MCP. Low-code/no-code — auto-discovers all 12 tools. Floating chat widget with iframe.
+- **Triage (Agent Framework)** — Semantic Kernel multi-agent panel. Chat widget connecting to the `philly-sk-agent` Container App. Triage agent routes to 3 specialists (C#/.NET 8).
 - **MCP Tool Tester** — Raw MCP protocol. Direct tool discovery and invocation via Streamable HTTP (`/mcp` endpoint).
+- **Documentation** — Built-in reader for all project markdown files and Jupyter notebooks. Files copied to `web/docs/` and `web/notebooks/` at deploy time.
+- **Slide Deck** — Reveal.js presentation embedded in an iframe. Architecture walkthrough with animated builds, section-by-section.
+- **Architecture** — Interactive architecture diagram (HTML).
+- **About** — Project overview with cards for all 7 integration patterns including M365 Copilot declarative agent.
 
 Panels can be open side-by-side or individually. Chat responses in the Investigative Agent include inline maps powered by Leaflet.js when properties have coordinates (99.97% do).
 
