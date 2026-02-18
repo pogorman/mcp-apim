@@ -1,5 +1,5 @@
 -- Philly Poverty Profiteering - Azure SQL Schema
--- 10 tables derived from Philadelphia public data
+-- 11 tables derived from Philadelphia public data
 
 -- ============================================================
 -- CORE ENTITY RESOLUTION TABLES
@@ -313,6 +313,44 @@ CREATE TABLE demolitions (
 );
 
 -- ============================================================
+-- TRANSFER TABLES
+-- ============================================================
+
+CREATE TABLE rtt_summary (
+    objectid                INT NOT NULL PRIMARY KEY,
+    cartodb_id              INT NULL,
+    document_id             VARCHAR(30) NULL,
+    document_type           VARCHAR(50) NULL,
+    display_date            DATETIME2 NULL,
+    street_address          NVARCHAR(200) NULL,
+    zip_code                VARCHAR(20) NULL,
+    ward                    VARCHAR(10) NULL,
+    grantors                NVARCHAR(500) NULL,
+    grantees                NVARCHAR(500) NULL,
+    cash_consideration      DECIMAL(18,2) NULL,
+    other_consideration     DECIMAL(18,2) NULL,
+    total_consideration     DECIMAL(18,2) NULL,
+    assessed_value          DECIMAL(18,2) NULL,
+    common_level_ratio      DECIMAL(10,6) NULL,
+    fair_market_value       DECIMAL(18,2) NULL,
+    state_tax_amount        DECIMAL(18,2) NULL,
+    state_tax_percent       DECIMAL(10,6) NULL,
+    local_tax_amount        DECIMAL(18,2) NULL,
+    local_tax_percent       DECIMAL(10,6) NULL,
+    receipt_num             VARCHAR(30) NULL,
+    receipt_date            VARCHAR(50) NULL,
+    recording_date          VARCHAR(50) NULL,
+    document_date           VARCHAR(50) NULL,
+    condo_name              NVARCHAR(200) NULL,
+    unit_num                VARCHAR(20) NULL,
+    opa_account_num         VARCHAR(20) NULL,
+    legal_remarks           NVARCHAR(2000) NULL,
+    discrepancy             NVARCHAR(200) NULL,
+    property_count          INT NULL,
+    record_id               VARCHAR(30) NULL
+);
+
+-- ============================================================
 -- INDEXES for poverty profiteering queries
 -- ============================================================
 
@@ -360,6 +398,15 @@ CREATE NONCLUSTERED INDEX IX_app_owner ON appeals (opa_owner);
 CREATE NONCLUSTERED INDEX IX_demo_opa ON demolitions (opa_account_num) WHERE opa_account_num IS NOT NULL;
 CREATE NONCLUSTERED INDEX IX_demo_owner ON demolitions (opa_owner);
 CREATE NONCLUSTERED INDEX IX_demo_type ON demolitions (applicanttype);
+
+-- Transfer tax (RTT) lookups
+CREATE NONCLUSTERED INDEX IX_rtt_opa ON rtt_summary (opa_account_num) WHERE opa_account_num IS NOT NULL;
+CREATE NONCLUSTERED INDEX IX_rtt_doctype ON rtt_summary (document_type);
+CREATE NONCLUSTERED INDEX IX_rtt_display_date ON rtt_summary (display_date);
+CREATE NONCLUSTERED INDEX IX_rtt_consideration ON rtt_summary (total_consideration) WHERE total_consideration IS NOT NULL;
+CREATE NONCLUSTERED INDEX IX_rtt_zip ON rtt_summary (zip_code);
+CREATE NONCLUSTERED INDEX IX_rtt_grantors ON rtt_summary (grantors);
+CREATE NONCLUSTERED INDEX IX_rtt_grantees ON rtt_summary (grantees);
 
 -- ============================================================
 -- VIEWS for common poverty profiteering queries

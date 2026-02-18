@@ -6,8 +6,8 @@
 - [Architecture](#architecture)
 - [Project Structure](#project-structure)
 - [Azure Resources](#azure-resources)
-- [Database (10 Tables, ~29M Rows)](#database-10-tables-29m-rows)
-- [MCP Tools (12)](#mcp-tools-12)
+- [Database (11 Tables, ~34M Rows)](#database-11-tables-34m-rows)
+- [MCP Tools (14)](#mcp-tools-14)
 - [Building & Running](#building--running)
 - [Key Design Decisions](#key-design-decisions)
 - [Azure Costs](#azure-costs)
@@ -23,7 +23,7 @@
 
 ## What This Is
 
-An MCP (Model Context Protocol) server that lets AI agents investigate poverty profiteering patterns in Philadelphia using 10 public datasets (~29M rows, ~4.4GB). The agent queries property ownership networks, code violations, demolitions, business licenses, and assessment data to identify exploitative LLCs and property owners.
+An MCP (Model Context Protocol) server that lets AI agents investigate poverty profiteering patterns in Philadelphia using 11 public datasets (~34M rows, ~5.5GB). The agent queries property ownership networks, code violations, demolitions, business licenses, assessment data, and real estate transfer records to identify exploitative LLCs and property owners.
 
 ## Architecture
 
@@ -80,14 +80,14 @@ mcp-apim/
 ├── mcp-server/              # MCP Server (dual transport: stdio + HTTP) + Chat API
 │   ├── src/
 │   │   ├── index.ts          # Entry point (stdio or Streamable HTTP via MCP_TRANSPORT env)
-│   │   ├── tools.ts          # 12 tool definitions for Claude
+│   │   ├── tools.ts          # 14 tool definitions for Claude
 │   │   ├── tool-executor.ts  # Shared tool defs + executor (used by chat + agent)
 │   │   ├── chat.ts           # /chat endpoint: Azure OpenAI with tool calling
 │   │   ├── foundry-agent.ts  # Assistants API: ensureAgent, createThread, sendMessage
 │   │   └── apim-client.ts    # HTTP client for APIM
 │   ├── Dockerfile            # Multi-stage Node 20 Alpine build
 │   └── .dockerignore
-├── functions/                # Azure Functions app (12 endpoints)
+├── functions/                # Azure Functions app (14 endpoints)
 │   └── src/
 │       ├── functions/        # One file per endpoint
 │       │   ├── searchEntities.ts
@@ -114,11 +114,13 @@ mcp-apim/
 ├── m365-agent/               # M365 Copilot declarative agent
 │   ├── manifest.json          # Teams app manifest (v1.25)
 │   ├── declarativeAgent.json  # Agent definition (v1.6) — instructions + conversation starters
-│   ├── ai-plugin.json         # Plugin (v2.4) — RemoteMCPServer runtime + 12 tool schemas
+│   ├── ai-plugin.json         # Plugin (v2.4) — RemoteMCPServer runtime + 14 tool schemas
 │   ├── color.png              # 192x192 app icon
 │   └── outline.png            # 32x32 outline icon
 ├── sql/
-│   └── schema.sql            # 10 tables, 3 views, 20+ indexes
+│   ├── schema.sql            # 11 tables, 3 views, 27+ indexes
+│   ├── bulk_import.js        # Fast CSV→SQL loader (TDS bulk copy, ~25K rows/sec)
+│   └── download-carto.js     # Downloads live data from Philadelphia Carto API
 ├── infra/
 │   ├── main.bicep            # Bicep orchestrator — deploys all modules
 │   ├── main.bicepparam       # Parameters (secrets via CLI at deploy time)
@@ -169,7 +171,7 @@ mcp-apim/
 | Private DNS Zones | `privatelink.database/blob/table/queue` | DNS resolution for private endpoints |
 | Static Web App | `philly-profiteering-spa` | Free |
 
-## Database (10 Tables, ~29M Rows)
+## Database (11 Tables, ~34M Rows)
 
 | Table | Rows | Purpose |
 |-------|------|---------|
@@ -183,10 +185,11 @@ mcp-apim/
 | `case_investigations` | 1.6M | Code enforcement violations |
 | `appeals` | 316K | L&I appeals |
 | `demolitions` | 13.5K | Demolition records |
+| `rtt_summary` | 5.05M | Real estate transfer tax records (deeds, sheriff sales, mortgages) |
 
 **Views:** `vw_entity_properties`, `vw_property_violation_summary`, `vw_owner_portfolio`
 
-## MCP Tools (12)
+## MCP Tools (14)
 
 | Tool | Method | Description |
 |------|--------|-------------|
@@ -198,6 +201,8 @@ mcp-apim/
 | `get_property_licenses` | GET | Business + commercial licenses |
 | `get_property_appeals` | GET | L&I appeals |
 | `get_property_demolitions` | GET | Demolition records |
+| `get_property_transfers` | GET | Real estate transfer history for a property |
+| `search_transfers` | POST | Search transfers by grantor/grantee/type/amount |
 | `search_businesses` | POST | Search licenses by keyword/type/zip |
 | `get_top_violators` | GET | Ranked owners by violation count |
 | `get_area_stats` | GET | Zip code aggregate statistics |
@@ -256,6 +261,20 @@ npm install --omit=dev
 func azure functionapp publish philly-profiteering-func --javascript
 ```
 
+### Refresh Data from Carto API
+
+The Philadelphia Carto API (`phl.carto.com`) serves live, daily-updated public data. To download fresh data:
+
+```bash
+node sql/download-carto.js              # Download all configured tables (currently rtt_summary)
+node sql/download-carto.js rtt_summary  # Download a specific table
+```
+
+Then load into Azure SQL:
+```bash
+cd functions && node ../sql/bulk_import.js
+```
+
 The workspace hoists all packages to root `node_modules/`, leaving `functions/node_modules/` with only symlinks. Deployment zips need real packages.
 
 ## Key Design Decisions
@@ -285,7 +304,7 @@ SPA with VS Code-style activity bar demonstrating multiple panels using the same
 
 - **Investigative Agent** — Chat Completions + Tools. Natural language chat with model selector (6 models). Our code runs the agentic loop (`/chat` endpoint).
 - **Foundry Portal** — Assistants API (Microsoft Foundry). Azure manages the tool-calling loop with GPT-4.1 and threads persist server-side (`/agent` endpoints). Floating chat widget.
-- **Copilot Studio** — Microsoft Copilot Studio agent connected via MCP. Low-code/no-code — auto-discovers all 12 tools. Floating chat widget with iframe.
+- **Copilot Studio** — Microsoft Copilot Studio agent connected via MCP. Low-code/no-code — auto-discovers all 14 tools. Floating chat widget with iframe.
 - **Triage (Agent Framework)** — Semantic Kernel multi-agent panel. Chat widget connecting to the `philly-sk-agent` Container App. Triage agent routes to 3 specialists (C#/.NET 8).
 - **MCP Tool Tester** — Raw MCP protocol. Direct tool discovery and invocation via Streamable HTTP (`/mcp` endpoint).
 - **Documentation** — Built-in reader for all project markdown files and Jupyter notebooks. Files copied to `web/docs/` and `web/notebooks/` at deploy time.
@@ -364,7 +383,7 @@ Post-deploy manual steps: SQL schema + data load, SQL MI user creation, containe
 
 MCP is GA in Copilot Studio (May 2025). Now that the MCP server has Streamable HTTP transport and is deployed on Container Apps, it can be connected directly:
 
-1. **MCP integration:** Point Copilot Studio at `https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io/mcp` — it auto-discovers all 12 tools
+1. **MCP integration:** Point Copilot Studio at `https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io/mcp` — it auto-discovers all 14 tools
 2. **Direct APIM (alternative):** Create a custom connector pointing at APIM endpoints — no MCP needed
 
 **References:**
@@ -375,11 +394,11 @@ MCP is GA in Copilot Studio (May 2025). Now that the MCP server has Streamable H
 
 The `m365-agent/` directory contains a declarative agent for Microsoft 365 Copilot (Teams, Outlook, Edge). Zero custom code, zero new infrastructure — just 3 JSON manifest files + 2 icons that point M365 Copilot at our existing MCP endpoint via the `RemoteMCPServer` runtime type. This is the simplest integration path in the project.
 
-**How it works:** `ai-plugin.json` declares a `RemoteMCPServer` runtime with the Container App's `/mcp` URL. M365 Copilot connects via Streamable HTTP and discovers all 12 tools automatically — the same endpoint Copilot Studio and Azure AI Foundry already use.
+**How it works:** `ai-plugin.json` declares a `RemoteMCPServer` runtime with the Container App's `/mcp` URL. M365 Copilot connects via Streamable HTTP and discovers all 14 tools automatically — the same endpoint Copilot Studio and Azure AI Foundry already use.
 
 **This is NOT Copilot Studio.** Copilot Studio is a separate low-code agent builder. This is a declarative agent that lives _inside_ M365 Copilot (the one built into Teams/Outlook/Edge), alongside your enterprise data (emails, files, calendar). Both connect to the same MCP endpoint, but they're different products.
 
-**Files:** `manifest.json` (Teams app v1.25), `declarativeAgent.json` (agent v1.6 — instructions + 6 conversation starters), `ai-plugin.json` (plugin v2.4 — RemoteMCPServer runtime + 12 tool schemas)
+**Files:** `manifest.json` (Teams app v1.25), `declarativeAgent.json` (agent v1.6 — instructions + 6 conversation starters), `ai-plugin.json` (plugin v2.4 — RemoteMCPServer runtime + 14 tool schemas)
 
 **CLI used:** `teamsapp` (M365 Agents Toolkit CLI, `@microsoft/m365agentstoolkit-cli@1.1.4`, installed globally via npm)
 

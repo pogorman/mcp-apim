@@ -104,6 +104,35 @@ export function registerTools(server: McpServer): void {
   );
 
   server.tool(
+    "get_property_transfers",
+    "Get real estate transfer tax records for a property. Shows the complete chain of ownership: who sold to whom, sale prices, document types (DEED, SHERIFF DEED, ASSIGNMENT OF MORTGAGE, etc.), and dates. Critical for detecting $1 transfers (LLC shuffling), sheriff sale purchases, and property flipping.",
+    {
+      parcelNumber: z.string().describe("The OPA parcel number"),
+    },
+    async ({ parcelNumber }) => {
+      const result = await api.getPropertyTransfers(parcelNumber);
+      return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "search_transfers",
+    "Search real estate transfer records by grantor/grantee name, document type, zip code, or consideration amount. Use to find $1 transfers (set maxConsideration to 1), sheriff sales (documentType 'SHERIFF'), or all transfers involving a specific entity. Covers 5M+ transfer records.",
+    {
+      grantorGrantee: z.string().optional().describe("Name to search in both grantor and grantee fields (e.g., 'GEENA LLC', 'ROSS')"),
+      documentType: z.string().optional().describe("Document type filter (e.g., 'DEED', 'SHERIFF', 'MORTGAGE')"),
+      zip: z.string().optional().describe("Zip code filter (e.g., '19134')"),
+      minConsideration: z.number().optional().describe("Minimum total consideration/sale price"),
+      maxConsideration: z.number().optional().describe("Maximum total consideration/sale price (use 1 to find $1 transfers)"),
+      limit: z.number().optional().describe("Max results (default 50, max 200)"),
+    },
+    async ({ grantorGrantee, documentType, zip, minConsideration, maxConsideration, limit }) => {
+      const result = await api.searchTransfers({ grantorGrantee, documentType, zip, minConsideration, maxConsideration, limit });
+      return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+    }
+  );
+
+  server.tool(
     "search_businesses",
     "Search business and commercial activity licenses by keyword, type, or zip code. Use to find check cashing, pawn shops, title loans, dollar stores, and other businesses relevant to poverty profiteering.",
     {
@@ -146,7 +175,7 @@ export function registerTools(server: McpServer): void {
 
   server.tool(
     "run_query",
-    "Execute a custom read-only SQL query against the Philadelphia property database. Must be a SELECT with TOP(n) or OFFSET/FETCH. Available tables: master_entity, master_address, master_entity_address, opa_properties, assessments, business_licenses, commercial_activity_licenses, case_investigations, appeals, demolitions. Views: vw_entity_properties, vw_property_violation_summary, vw_owner_portfolio.",
+    "Execute a custom read-only SQL query against the Philadelphia property database. Must be a SELECT with TOP(n) or OFFSET/FETCH. Available tables: master_entity, master_address, master_entity_address, opa_properties, assessments, business_licenses, commercial_activity_licenses, case_investigations, appeals, demolitions, rtt_summary. Views: vw_entity_properties, vw_property_violation_summary, vw_owner_portfolio.",
     {
       sql: z.string().describe("SQL SELECT query. Must include TOP(n) or OFFSET/FETCH. Max 1000 rows."),
       params: z.record(z.string(), z.unknown()).optional().describe("Optional named parameters for the query"),

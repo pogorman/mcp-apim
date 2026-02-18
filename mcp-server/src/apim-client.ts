@@ -78,6 +78,24 @@ export async function getPropertyDemolitions(parcelNumber: string): Promise<unkn
   return request(`/properties/${parcelNumber}/demolitions`);
 }
 
+export async function getPropertyTransfers(parcelNumber: string): Promise<unknown> {
+  return request(`/properties/${parcelNumber}/transfers`);
+}
+
+export async function searchTransfers(params: {
+  grantorGrantee?: string;
+  documentType?: string;
+  zip?: string;
+  minConsideration?: number;
+  maxConsideration?: number;
+  limit?: number;
+}): Promise<unknown> {
+  return request("/search-transfers", {
+    method: "POST",
+    body: JSON.stringify(params),
+  });
+}
+
 export async function searchBusinesses(params: {
   keyword?: string;
   licensetype?: string;

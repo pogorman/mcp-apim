@@ -27,15 +27,15 @@ A plain-English guide to the Philly Poverty Profiteering platform. Use this for 
 
 ## The One-Liner
 
-> We took 29 million rows of Philadelphia public records and made them queryable by AI — ask a question in English, get an investigative answer with maps.
+> We took 34 million rows of Philadelphia public records and made them queryable by AI — ask a question in English, get an investigative answer with maps.
 
 ---
 
 ## The Elevator Pitch (30 seconds)
 
-Philadelphia publishes data about every property in the city: who owns it, what violations it has, whether it's been demolished, what businesses operate there, and what it's assessed at. The problem is that this data is spread across 10 separate datasets with nearly 29 million rows. Nobody can realistically search through that.
+Philadelphia publishes data about every property in the city: who owns it, what violations it has, whether it's been demolished, what businesses operate there, and what it's assessed at. The problem is that this data is spread across 11 separate datasets with nearly 34 million rows. Nobody can realistically search through that.
 
-We loaded all of it into one database, built 12 search tools on top of it, and connected those tools to AI models (GPT-4.1, GPT-5, and others). Now you can ask plain-English questions like "Who are the worst landlords in Philadelphia?" or "Tell me about this LLC — how many properties do they own and how many have violations?" and the AI figures out which tools to use, runs the queries, and writes you a report. It even shows the properties on a map.
+We loaded all of it into one database, built 14 search tools on top of it, and connected those tools to AI models (GPT-4.1, GPT-5, and others). Now you can ask plain-English questions like "Who are the worst landlords in Philadelphia?" or "Tell me about this LLC — how many properties do they own and how many have violations?" and the AI figures out which tools to use, runs the queries, and writes you a report. It even shows the properties on a map.
 
 The whole thing costs about $33/month when nobody's using it (most of that is network security). Everything is serverless — it sleeps when idle and wakes up on demand.
 
@@ -59,11 +59,11 @@ Type: **"Who are the top 5 worst property owners in Philadelphia by code violati
 
 While it's thinking, explain:
 
-> "I just asked a plain-English question. Behind the scenes, the AI is deciding which database queries to run. It has 12 tools it can use — things like 'search for a person or LLC', 'get property details', 'check violations', 'look up demolitions'. It picks the right ones automatically."
+> "I just asked a plain-English question. Behind the scenes, the AI is deciding which database queries to run. It has 14 tools it can use — things like 'search for a person or LLC', 'get property details', 'check violations', 'look up demolitions'. It picks the right ones automatically."
 
 When the answer comes back, point out:
 
-> "It found the data, ran the query, and wrote me a summary. These aren't canned responses — it's actually querying 29 million rows of real Philadelphia public records in real time."
+> "It found the data, ran the query, and wrote me a summary. These aren't canned responses — it's actually querying 34 million rows of real Philadelphia public records in real time."
 
 ### Step 3 — Follow Up (1 minute)
 
@@ -87,19 +87,19 @@ Click the chat bubble in the bottom-right. Ask something.
 
 Click the **star icon** in the left sidebar.
 
-> "This is Microsoft Copilot Studio — a low-code/no-code AI agent builder. We pointed it at our MCP endpoint and it auto-discovered all 12 tools. No custom code. If you have Copilot Studio in your organization, you can connect to this same backend in minutes."
+> "This is Microsoft Copilot Studio — a low-code/no-code AI agent builder. We pointed it at our MCP endpoint and it auto-discovered all 14 tools. No custom code. If you have Copilot Studio in your organization, you can connect to this same backend in minutes."
 
 Click the purple chat icon and ask something.
 
 ### Wrap Up
 
-> "Nine completely different interfaces — a custom chat agent, a government-branded portal, a Copilot Studio agent, a Semantic Kernel multi-agent, an M365 Copilot declarative agent, a Reveal.js slide deck, a project overview, a documentation reader, and a raw tool tester — all using the same 12 tools and the same 29 million rows of data. The whole thing runs serverless and costs about $33 a month when nobody's using it — most of that is network security keeping the data path private."
+> "Nine completely different interfaces — a custom chat agent, a government-branded portal, a Copilot Studio agent, a Semantic Kernel multi-agent, an M365 Copilot declarative agent, a Reveal.js slide deck, a project overview, a documentation reader, and a raw tool tester — all using the same 14 tools and the same 34 million rows of data. The whole thing runs serverless and costs about $33 a month when nobody's using it — most of that is network security keeping the data path private."
 
 ---
 
 ## What's Inside the Data
 
-29 million rows from 10 Philadelphia public datasets:
+34 million rows from 11 Philadelphia public datasets:
 
 | What | How Many | Why It Matters |
 |------|----------|----------------|
@@ -112,6 +112,9 @@ Click the purple chat icon and ask something.
 | **Commercial activity licenses** | 508,000 | Commercial operations with revenue codes |
 | **Appeals** | 316,000 | Owners appealing violations, zoning, and building code decisions |
 | **Demolitions** | 13,500 | Buildings torn down — and whether the city or the owner paid for it |
+| **Real estate transfers** | 5.05 million | Every property deed, mortgage, and sheriff sale |
+
+The transfer data reveals property flipping patterns, $1 LLC-to-LLC shuffles, and sheriff sale purchases — key indicators of poverty profiteering.
 
 **Source:** Philadelphia open data portals, via [davew-msft/PhillyStats](https://github.com/davew-msft/PhillyStats).
 
@@ -122,8 +125,8 @@ Click the purple chat icon and ask something.
 Think of it like this:
 
 1. **The data** lives in a database in the cloud. It sleeps when no one's using it.
-2. **12 "tools"** sit on top of the database. Each tool does one thing: search for a person, look up a property, check violations, etc.
-3. **An AI model** (like GPT-5) knows about all 12 tools. When you ask a question in English, the AI reads your question, decides which tools to call, calls them (sometimes chaining 3-5 tools together), reads the results, and writes you an answer in plain English.
+2. **14 "tools"** sit on top of the database. Each tool does one thing: search for a person, look up a property, check violations, etc.
+3. **An AI model** (like GPT-5) knows about all 14 tools. When you ask a question in English, the AI reads your question, decides which tools to call, calls them (sometimes chaining 3-5 tools together), reads the results, and writes you an answer in plain English.
 4. **A website** shows you the answer, with maps when there are addresses involved.
 
 That's it. You talk to the AI. The AI talks to the tools. The tools talk to the database. The database has the data.
@@ -149,14 +152,14 @@ MCP Server (TypeScript, Container App, scales 0-3)
     ├── Azure OpenAI (GPT-4.1, GPT-5, etc. for AI reasoning)
     └── APIM (API Management, routes to backend)
             ↓
-        Azure Functions (12 HTTP endpoints, Node.js 20)
+        Azure Functions (14 HTTP endpoints, Node.js 20)
             ↓ via VNet + Private Endpoints (private network, no public internet)
-        Azure SQL Database (Serverless, 10 tables, ~29M rows)
+        Azure SQL Database (Serverless, 11 tables, ~34M rows)
         Azure Storage (Function App code + internal state)
 ```
 
 **Key technologies:**
-- **MCP** (Model Context Protocol) — a standard from Anthropic for connecting AI agents to tools. Any MCP-compatible client can connect and auto-discover all 12 tools.
+- **MCP** (Model Context Protocol) — a standard from Anthropic for connecting AI agents to tools. Any MCP-compatible client can connect and auto-discover all 14 tools.
 - **Azure OpenAI** — runs the AI models. We have 6 deployed: GPT-4.1, GPT-5, GPT-5 Mini, o4-mini, o3-mini, Phi-4.
 - **API Management** — a gateway that handles auth and routing. The AI never touches the database directly.
 - **VNet + Private Endpoints** — the Function App talks to SQL and Storage over a private network. Public access is disabled on both. See [How the Network Security Works](#how-the-network-security-works).
@@ -216,7 +219,7 @@ This is the demo's punchline: one backend, nine completely different client expe
 | | |
 |---|---|
 | **Pattern** | MCP auto-discovery |
-| **What it means** | Microsoft's low-code agent platform. We pointed it at our MCP endpoint and it found all 12 tools automatically. No custom code on the Copilot Studio side. |
+| **What it means** | Microsoft's low-code agent platform. We pointed it at our MCP endpoint and it found all 14 tools automatically. No custom code on the Copilot Studio side. |
 | **Model** | Whatever Copilot Studio uses internally |
 | **Memory** | Yes (managed by Copilot Studio) |
 | **Maps** | No |
@@ -249,7 +252,7 @@ This is the demo's punchline: one backend, nine completely different client expe
 | | |
 |---|---|
 | **Pattern** | M365 Copilot declarative agent with RemoteMCPServer |
-| **What it means** | 3 JSON files + 2 icons. That's the entire agent. We wrote a manifest that says "connect to this MCP URL" and sideloaded it into Teams with one CLI command. M365 Copilot discovers all 12 tools automatically. No custom code, no new infrastructure — reuses the exact same MCP endpoint as Copilot Studio. |
+| **What it means** | 3 JSON files + 2 icons. That's the entire agent. We wrote a manifest that says "connect to this MCP URL" and sideloaded it into Teams with one CLI command. M365 Copilot discovers all 14 tools automatically. No custom code, no new infrastructure — reuses the exact same MCP endpoint as Copilot Studio. |
 | **Model** | Microsoft's M365 Copilot orchestration model (you don't choose) |
 | **Memory** | Conversation-scoped (within a Copilot chat session) |
 | **Maps** | No (text responses only) |
@@ -328,7 +331,7 @@ The **context window** is how much the AI can "see" at once. Think of it as the 
 
 For GPT-4.1, the context window is ~128,000 tokens (~96,000 words). That sounds huge, but it fills up fast when you include:
 - The system prompt (instructions telling the AI what it is)
-- 12 tool definitions (descriptions of every tool it can use)
+- 14 tool definitions (descriptions of every tool it can use)
 - Your conversation history
 - Tool results (database query results can be massive)
 
@@ -391,7 +394,7 @@ No. Open the URL in any browser and sign in with your Microsoft account. No plug
 The database goes to sleep after an hour of no activity (it saves money). The first question wakes it up, which takes 30-60 seconds. After that, it's fast. Run the wake-up script (`infra/wake.sh`) before demos.
 
 **Q: Is the data real?**
-Yes. It's from Philadelphia's official open data portals. 10 datasets, ~29 million rows.
+Yes. It's from Philadelphia's official open data portals. 11 datasets, ~34 million rows.
 
 **Q: How current is the data?**
 The data was loaded from a snapshot. It's not live-updating from the city's portals (that would be a future enhancement).
@@ -403,7 +406,7 @@ No. The SQL endpoint only allows read-only queries. There are no write operation
 About $33/month when nobody's using it (most of that is network security — private endpoints that keep the data path secure). When someone IS using it, you pay a few cents per query on top of that. See the [cost section](#cost--how-is-this-not-expensive) below.
 
 **Q: Can other AI tools connect to this?**
-Yes. Claude Code, Claude Desktop, Azure AI Foundry, Copilot Studio, or any MCP-compatible client can connect and auto-discover all 12 tools. The MCP endpoint is publicly available.
+Yes. Claude Code, Claude Desktop, Azure AI Foundry, Copilot Studio, or any MCP-compatible client can connect and auto-discover all 14 tools. The MCP endpoint is publicly available.
 
 **Q: What models can I use?**
 Six models are deployed: GPT-4.1 (default), GPT-5, GPT-5 Mini, o4-mini, o3-mini, and Phi-4 (Microsoft's small language model). Switch between them using the dropdown in the Investigative Agent panel.
@@ -439,7 +442,7 @@ For when someone in your audience asks "what does that mean?"
 | **APIM** | API Management — a gateway that sits in front of our tools. Like a receptionist who checks your ID before letting you into the building. |
 | **Serverless** | Code that runs only when called, then goes away. No server to manage. You're billed by the second, not by the month. |
 | **LLM** | Large Language Model — the AI brain (GPT-4.1, GPT-5, etc.) that reads your question and figures out what to do. |
-| **Tool calling** | When the AI decides it needs data, it "calls a tool" — which really means it sends a request to one of our 12 database endpoints. |
+| **Tool calling** | When the AI decides it needs data, it "calls a tool" — which really means it sends a request to one of our 14 database endpoints. |
 | **Container App** | A way to run our server code in the cloud. It can scale from zero (sleeping, $0) to multiple copies when busy. |
 | **Assistants API** | Microsoft's managed version of tool calling. Instead of us running the AI loop, Azure does it. Conversations are stored server-side. |
 | **Copilot Studio** | Microsoft's low-code platform for building AI agents. You can connect it to our tools without writing any code. |
@@ -460,4 +463,4 @@ For when someone in your audience asks "what does that mean?"
 
 ---
 
-*Last updated: Session 25 (2026-02-17). This file should be updated whenever features, panels, data, architecture, or costs change.*
+*Last updated: Session 26 (2026-02-17). This file should be updated whenever features, panels, data, architecture, or costs change.*

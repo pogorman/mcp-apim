@@ -20,6 +20,30 @@ public class AreaPlugin(HttpClient http, string baseUrl, string subscriptionKey)
         return await resp.Content.ReadAsStringAsync();
     }
 
+    [KernelFunction, Description("Search real estate transfer records by grantor/grantee name, document type, zip code, or consideration amount. Find $1 transfers (maxConsideration=1), sheriff sales (documentType='SHERIFF'), or all transfers for an entity.")]
+    public async Task<string> SearchTransfers(
+        [Description("Name to search in grantor and grantee fields (e.g., 'GEENA LLC')")] string? grantorGrantee = null,
+        [Description("Document type filter (e.g., 'DEED', 'SHERIFF', 'MORTGAGE')")] string? documentType = null,
+        [Description("Zip code filter (e.g., '19134')")] string? zip = null,
+        [Description("Minimum total consideration/sale price")] double? minConsideration = null,
+        [Description("Maximum total consideration (use 1 to find $1 transfers)")] double? maxConsideration = null,
+        [Description("Max results (default 50, max 200)")] int limit = 50)
+    {
+        var req = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/search-transfers");
+        AddAuth(req);
+        var body = new Dictionary<string, object?>();
+        if (grantorGrantee != null) body["grantorGrantee"] = grantorGrantee;
+        if (documentType != null) body["documentType"] = documentType;
+        if (zip != null) body["zip"] = zip;
+        if (minConsideration != null) body["minConsideration"] = minConsideration;
+        if (maxConsideration != null) body["maxConsideration"] = maxConsideration;
+        body["limit"] = limit;
+        req.Content = JsonContent.Create(body);
+        var resp = await http.SendAsync(req);
+        resp.EnsureSuccessStatusCode();
+        return await resp.Content.ReadAsStringAsync();
+    }
+
     [KernelFunction, Description("Search business and commercial activity licenses by keyword, type, or zip code. Use to find check cashing, pawn shops, title loans, dollar stores, and other businesses.")]
     public async Task<string> SearchBusinesses(
         [Description("Business name keyword (e.g., 'check cashing', 'pawn', 'dollar')")] string? keyword = null,

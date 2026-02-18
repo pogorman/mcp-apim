@@ -19,7 +19,7 @@
 
 ## Executive Summary
 
-This system enables AI agents to investigate poverty profiteering patterns in Philadelphia by querying 10 public datasets (~29 million rows, ~4.4GB) through a standardized API. It connects property ownership networks, code violations, demolitions, business licenses, and tax assessments to surface exploitative LLCs and property owners.
+This system enables AI agents to investigate poverty profiteering patterns in Philadelphia by querying 11 public datasets (~34 million rows, ~4.4GB) through a standardized API. It connects property ownership networks, code violations, demolitions, business licenses, and tax assessments to surface exploitative LLCs and property owners.
 
 The architecture follows a four-tier pattern: an **MCP Server** translates AI tool calls into HTTPS requests to **Azure API Management**, which authenticates and routes them to **Azure Functions**, which query an **Azure SQL Database**. All compute tiers are serverless/consumption-based, costing ~$1-2/month when idle.
 
@@ -42,7 +42,7 @@ The MCP server supports dual transport: **stdio** (local, for Claude Code/Deskto
 ┌─────────────────────────────────────┐          │                │
 │        MCP Server (local)           │          │                │
 │  TypeScript, stdio transport        │          │                │
-│  12 tools → HTTP calls              │          │                │
+│  14 tools → HTTP calls              │          │                │
 │  Adds Ocp-Apim-Subscription-Key    │          │                │
 └──────────────┬──────────────────────┘          │                │
                │                                 │                │
@@ -68,7 +68,7 @@ The MCP server supports dual transport: **stdio** (local, for Claude Code/Deskto
 │  philly-profiteering-apim              │  │ foundry-og-agents (eastus)     │
 │  Validates subscription key,           │  │ 6 model deployments:           │
 │  injects x-functions-key               │  │ GPT-4.1, GPT-5, GPT-5 Mini,   │
-│  12 operations (9 GET, 3 POST)         │  │ o4-mini, o3-mini, Phi-4        │
+│  14 operations (10 GET, 4 POST)         │  │ o4-mini, o3-mini, Phi-4        │
 └───────────────────┬────────────────────┘  └────────────────────────────────┘
                     │ HTTPS + x-functions-key
                     ▼
@@ -76,7 +76,7 @@ The MCP server supports dual transport: **stdio** (local, for Claude Code/Deskto
 │           Azure Functions v4 (Flex Consumption FC1)                         │
 │  philly-profiteering-func.azurewebsites.net                                │
 │  Node.js 20, TypeScript compiled to JS                                     │
-│  12 HTTP-triggered functions                                               │
+│  14 HTTP-triggered functions                                               │
 │  System-assigned managed identity for SQL auth                             │
 │  VNet-integrated (snet-functions, 10.0.1.0/24)                             │
 └───────────────────────────────┬─────────────────────────────────────────────┘
@@ -87,8 +87,8 @@ The MCP server supports dual transport: **stdio** (local, for Claude Code/Deskto
 │           Azure SQL Database (General Purpose Serverless)                    │
 │  philly-stats-sql-01.database.windows.net / phillystats                    │
 │  Gen5 2 vCores, 0.5 min capacity, 60-min auto-pause                       │
-│  10 tables, 3 views, 28+ indexes                                          │
-│  ~29M rows across entity resolution, property, license,                    │
+│  11 tables, 3 views, 28+ indexes                                          │
+│  ~34M rows across entity resolution, property, license,                    │
 │  enforcement domains                                                        │
 │  Public network access: DISABLED (private endpoint only)                   │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -134,6 +134,7 @@ All data comes from Philadelphia's open data portals. The original datasets were
 | Case Investigations | Dept. of Licenses & Inspections | 1.6M | Code enforcement investigations: violations, inspections, pass/fail outcomes |
 | Appeals | Board of L&I Review | 316K | L&I appeals: zoning, use, building code appeals with decisions |
 | Demolitions | Dept. of Licenses & Inspections | 13.5K | Demolition permits: city-initiated (taxpayer-funded) vs owner-initiated |
+| RTT Summary | Dept. of Revenue | 5.05M | Real estate transfer tax records (deeds, sheriff sales, mortgages) |
 
 ---
 
@@ -453,6 +454,30 @@ Demolition records for a property.
   - `demolitions[]` — `objectid`, `caseorpermitnumber`, `applicantname`, `applicanttype`, `city_demo`, `typeofwork`, `typeofworkdescription`, `status`, `contractorname`, `start_date`, `completed_date`, `address`, `opa_owner`
   - `count`
 
+### Transfer Endpoints
+
+#### GET /properties/{parcelNumber}/transfers
+Real estate transfer history for a property.
+
+- **Path:** `parcelNumber` — OPA parcel number
+- **Response:**
+  - `parcel_number`
+  - `transfers[]` — transfer tax records (deeds, mortgages, sheriff sales)
+  - `count`
+
+#### POST /search-transfers
+Search transfers by grantor/grantee name, document type, or amount.
+
+- **Request body:**
+  - `keyword` (string, optional) — grantor or grantee name search
+  - `documentType` (string, optional) — DEED, MORTGAGE, SHERIFF, etc.
+  - `minAmount` (number, optional) — minimum transfer amount
+  - `maxAmount` (number, optional) — maximum transfer amount
+  - `limit` (number, optional, default 50, max 200) — max results
+- **Response:**
+  - `results[]` — matching transfer records
+  - `count`
+
 ### Search & Analytics Endpoints
 
 #### POST /search-businesses
@@ -507,7 +532,7 @@ Execute a custom read-only SQL query.
   - Only SELECT statements allowed
   - Blocked keywords: INSERT, UPDATE, DELETE, DROP, ALTER, CREATE, TRUNCATE, EXEC, EXECUTE, XP_, SP_
   - Must include TOP(n) or OFFSET/FETCH (max 1000 rows)
-- **Available tables:** master_entity, master_address, master_entity_address, opa_properties, assessments, business_licenses, commercial_activity_licenses, case_investigations, appeals, demolitions
+- **Available tables:** master_entity, master_address, master_entity_address, opa_properties, assessments, business_licenses, commercial_activity_licenses, case_investigations, appeals, demolitions, rtt_summary
 - **Available views:** vw_entity_properties, vw_property_violation_summary, vw_owner_portfolio
 
 ---
@@ -522,7 +547,7 @@ The MCP server is a local TypeScript process that bridges AI agents to the APIM-
   - Health probe: `GET /healthz`
   - MCP endpoint: `POST /mcp` (requests), `GET /mcp` (SSE stream), `DELETE /mcp` (session cleanup)
 
-### Tools (12)
+### Tools (14)
 
 Each tool maps 1:1 to an Azure Function endpoint:
 
@@ -538,6 +563,8 @@ Each tool maps 1:1 to an Azure Function endpoint:
 - **get_top_violators** — Top violators ranking → GET /stats/top-violators
 - **get_area_stats** — Zip code statistics → GET /stats/zip/{zip}
 - **run_query** — Custom SQL query → POST /query
+- **get_property_transfers** — Real estate transfer history → GET /properties/{parcel}/transfers
+- **search_transfers** — Search transfers by grantor/grantee/type/amount → POST /search-transfers
 
 ### Configuration
 
@@ -678,7 +705,7 @@ User: "Tell me about GEENA LLC"
 │  1. Build message array:                                 │
 │     [system prompt] + [conversation history] + [user msg]│
 │                                                          │
-│  2. Send to GPT-4.1 with 12 tool definitions             │
+│  2. Send to GPT-4.1 with 14 tool definitions             │
 │     GPT-4.1 sees: "I have these tools available..."      │
 │                                                          │
 │  3. GPT-4.1 responds with either:                        │
@@ -739,7 +766,7 @@ GPT-4.1 makes this decision autonomously based on the system prompt and the user
 - The first tool call reveals something interesting that warrants deeper investigation
 
 **LLM uses `run_query` (custom SQL) when:**
-- The question can't be answered by any of the 11 specific tools: "How many properties were built before 1900 and have more than 5 violations?"
+- The question can't be answered by any of the 13 specific tools: "How many properties were built before 1900 and have more than 5 violations?"
 - The user asks for a specific aggregation or join that no tool covers
 - The LLM constructs a SQL query itself, including TOP(n), proper table names, and WHERE clauses
 
@@ -751,7 +778,7 @@ The system prompt tells GPT-4.1:
 - It should call multiple tools when needed to build a complete picture
 - The scale of data available (584K properties, 2.8M entities, 1.6M violations, etc.)
 
-Each of the 12 tools has a `description` and `parameters` schema. GPT-4.1 reads these descriptions to decide which tool to call and what arguments to pass. For example, seeing the description "Search for entities (people, LLCs, corporations) by name" tells it to use `search_entities` when the user mentions a company or person name.
+Each of the 14 tools has a `description` and `parameters` schema. GPT-4.1 reads these descriptions to decide which tool to call and what arguments to pass. For example, seeing the description "Search for entities (people, LLCs, corporations) by name" tells it to use `search_entities` when the user mentions a company or person name.
 
 ### Example: Multi-Step Investigation
 
@@ -984,7 +1011,7 @@ Browser → Container App /agent/thread + /agent/message → Azure OpenAI Assist
 
 - Microsoft Copilot Studio agent connected directly to the Container App's `/mcp` endpoint
 - Embedded as an iframe widget — floating purple icon (bottom-right) scoped to the Copilot Studio panel
-- Demonstrates the low-code/no-code path: Copilot Studio auto-discovers all 12 tools via MCP protocol
+- Demonstrates the low-code/no-code path: Copilot Studio auto-discovers all 14 tools via MCP protocol
 - No custom code needed on the Copilot Studio side — just point it at the MCP endpoint
 - **Authentication**: The Container App's `/mcp` endpoint is currently unauthenticated. Copilot Studio connects over HTTPS without an API key. The endpoint is read-only (all tool calls go through APIM which has its own subscription key auth), so the exposure is limited to data queries. See the [Authentication Flow](#authentication-flow) section for production hardening options.
 
@@ -1004,7 +1031,7 @@ Copilot Studio → Container App /mcp (Streamable HTTP, no auth) → APIM (sub k
 ### Pattern 5: MCP Tool Tester (Raw Protocol)
 
 - Connects directly to the MCP server Container App via Streamable HTTP
-- Discovers all 12 tools via MCP `initialize` → `tools/list` protocol
+- Discovers all 14 tools via MCP `initialize` → `tools/list` protocol
 - Allows calling individual tools with specific parameters (parcel numbers, entity IDs, SQL queries)
 - Displays raw JSON results with elapsed time
 - No AI in the loop — user manually selects tools and fills parameters
@@ -1045,7 +1072,7 @@ Browser → Container App /investigate → SK Orchestration → Azure OpenAI GPT
 
 The `/chat` endpoint on the Container App:
 1. Receives a natural language message + conversation history + model selection
-2. Sends it to Azure OpenAI (selected model) with 12 tool definitions
+2. Sends it to Azure OpenAI (selected model) with 14 tool definitions
 3. The model decides which tools to call (may call multiple in sequence)
 4. Each tool call is executed against APIM → Functions → SQL
 5. Results are fed back to the model for synthesis

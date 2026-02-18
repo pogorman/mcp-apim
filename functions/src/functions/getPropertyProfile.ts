@@ -31,7 +31,8 @@ async function handler(req: HttpRequest, _context: InvocationContext): Promise<H
        (SELECT COUNT(*) FROM case_investigations WHERE opa_account_num = @pn AND investigationstatus = 'FAILED') AS failed_count,
        (SELECT COUNT(*) FROM demolitions WHERE opa_account_num = @pn) AS demolition_count,
        (SELECT COUNT(*) FROM appeals WHERE opa_account_num = @pn) AS appeal_count,
-       (SELECT COUNT(*) FROM business_licenses WHERE opa_account_num = @pn) AS license_count`,
+       (SELECT COUNT(*) FROM business_licenses WHERE opa_account_num = @pn) AS license_count,
+       (SELECT COUNT(*) FROM rtt_summary WHERE opa_account_num = @pn) AS transfer_count`,
     { pn: parcelNumber }
   );
 

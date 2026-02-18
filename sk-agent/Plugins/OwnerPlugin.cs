@@ -33,6 +33,17 @@ public class OwnerPlugin(HttpClient http, string baseUrl, string subscriptionKey
         return await resp.Content.ReadAsStringAsync();
     }
 
+    [KernelFunction, Description("Get real estate transfer tax records for a property. Shows chain of ownership: sale prices, document types (DEED, SHERIFF DEED, MORTGAGE), grantors, grantees, and dates.")]
+    public async Task<string> GetPropertyTransfers(
+        [Description("The OPA parcel number")] string parcelNumber)
+    {
+        var req = new HttpRequestMessage(HttpMethod.Get, $"{baseUrl}/properties/{parcelNumber}/transfers");
+        AddAuth(req);
+        var resp = await http.SendAsync(req);
+        resp.EnsureSuccessStatusCode();
+        return await resp.Content.ReadAsStringAsync();
+    }
+
     [KernelFunction, Description("Get complete details for a property by parcel number: ownership, building info, market value, assessment, active licenses, and violation/demolition/appeal counts.")]
     public async Task<string> GetPropertyProfile(
         [Description("The OPA parcel number (e.g., '405100505')")] string parcelNumber)

@@ -30,6 +30,7 @@ Chronological record of what was built, what broke, and how it was fixed. Keeps 
 - [Session 23 — M365 Copilot Declarative Agent](#session-23--m365-copilot-declarative-agent-2026-02-17)
 - [Session 24 — FAQ, Slide Deck, SPA Panel](#session-24--faq-slide-deck-spa-panel-2026-02-17)
 - [Session 25 — Nav Renames, Panel Restyling, Map Fix, M365 Showcase](#session-25--nav-renames-panel-restyling-map-fix-m365-showcase-2026-02-17)
+- [Session 26 — V2: Real Estate Transfer Data (The Game Changer)](#session-26--v2-real-estate-transfer-data-the-game-changer-2026-02-17)
 
 ---
 
@@ -1200,4 +1201,87 @@ Same treatment as Foundry Portal — replaced light copilot-branded layout with 
 - `docs/ELI5.md` — Eight→Nine panels, renamed panels, updated last session
 - `docs/ARCHITECTURE.md` — Renamed panels, updated counts and descriptions
 - `docs/USER_GUIDE.md` — Renamed panels, reorganized TOC, rewrote panel sections
+- `docs/SESSION_LOG.md` — This entry
+
+---
+
+## Session 26 — V2: Real Estate Transfer Data (The Game Changer) (2026-02-17)
+
+**Date:** 2026-02-17
+**Focus:** Add Philadelphia's Real Estate Transfer Tax dataset (5.05M rows) — the single biggest capability upgrade since launch. Enables $1 transfer detection, sheriff sale tracking, and property flip analysis.
+
+### Background
+
+Analyzed the Jupyter notebooks' references to the Philadelphia Atlas and Carto API, compared with our existing database. Found three datasets we never loaded:
+- **rtt_summary** (5.05M rows) — Real estate transfer records (THE game changer)
+- violations (1.95M rows) — Individual violation codes
+- permits (907K rows) — Building permits
+
+Also found our existing data is stale: case_investigations has 428K more rows on Carto, assessments is missing 2025+2026 data. The Carto API (`phl.carto.com`) is public, no auth, updated daily.
+
+### What Was Built
+
+#### 1. Carto Download Pipeline (`sql/download-carto.js`)
+Node.js script that downloads data from the Philadelphia public Carto API in 50K-row batches, following the same pagination pattern as the PhillyStat notebooks. Saves to CSV for bulk import. Includes retry logic, rate limiting (200ms between requests), and proper CSV escaping for fields containing commas/quotes/newlines.
+
+#### 2. Database Schema
+New `rtt_summary` table with 31 columns (trimmed from 50 — skipped geometry, adjusted duplicates, parsed address components). 7 indexes for: OPA lookups, grantor/grantee search, document type, date ordering, consideration amount, and zip code.
+
+#### 3. Two New Azure Functions
+- `getPropertyTransfers` — GET `/properties/{parcelNumber}/transfers` — Returns all transfers for a property ordered by date
+- `searchTransfers` — POST `/search-transfers` — Search by grantor/grantee name, document type, zip, min/max consideration. Key: `maxConsideration: 1` enables $1 transfer detection
+
+#### 4. Enhanced Existing Endpoints
+- `getPropertyProfile` — Now includes `transfer_count` in counts
+- `getAreaStats` — Now includes transfer stats: total transfers, sheriff sales, $1 transfers, avg sale price
+
+#### 5. MCP Server Updates
+- 2 new MCP tools: `get_property_transfers`, `search_transfers`
+- 2 new entries in tool-executor TOOLS array + executeTool switch
+- Updated SYSTEM_PROMPT: ~34M rows, mentions transfer data
+- Updated `run_query` table list to include `rtt_summary`
+
+#### 6. Agent Updates
+- M365 agent: 2 new tools in ai-plugin.json, updated instructions with transfer investigation workflow, 2 new conversation starters
+- SK agent: `GetPropertyTransfers` added to OwnerPlugin, `SearchTransfers` added to AreaPlugin
+
+#### 7. Documentation
+- `docs/V2.md` — **NEW** — Complete V2 capabilities document (the "game changer plan")
+- `CLAUDE.md` — Updated all counts (11 tables, ~34M rows, 14 tools, 14 endpoints)
+- `docs/ELI5.md` — Added transfer data explanation, updated counts
+- `docs/ARCHITECTURE.md` — Added table, endpoints, tools
+- `docs/USER_GUIDE.md` — Added transfer query examples
+- `docs/SESSION_LOG.md` — This entry
+
+### V1 → V2 Summary
+
+| Metric | V1 | V2 |
+|--------|-----|-----|
+| Tables | 10 | 11 |
+| Total rows | ~29M | ~34M |
+| MCP tools | 12 | 14 |
+| API endpoints | 12 | 14 |
+| Transfer records | 0 | 5.05M |
+| Profiteering factors possible | 16/19 | 19/19 |
+
+### Files Created/Changed
+- `sql/download-carto.js` — **NEW** — Carto API batch downloader
+- `sql/schema.sql` — Added rtt_summary table + 7 indexes
+- `sql/bulk_import.js` — Added rtt_summary table config
+- `functions/src/functions/getPropertyTransfers.ts` — **NEW** — Transfer history endpoint
+- `functions/src/functions/searchTransfers.ts` — **NEW** — Transfer search endpoint
+- `functions/src/functions/getPropertyProfile.ts` — Added transfer_count
+- `functions/src/functions/getAreaStats.ts` — Added transfer stats
+- `mcp-server/src/apim-client.ts` — 2 new API client functions
+- `mcp-server/src/tools.ts` — 2 new MCP tools + updated run_query
+- `mcp-server/src/tool-executor.ts` — 2 new tools + updated SYSTEM_PROMPT
+- `m365-agent/ai-plugin.json` — 2 new tool definitions
+- `m365-agent/declarativeAgent.json` — Updated instructions + conversation starters
+- `sk-agent/Plugins/OwnerPlugin.cs` — Added GetPropertyTransfers
+- `sk-agent/Plugins/AreaPlugin.cs` — Added SearchTransfers
+- `CLAUDE.md` — Updated counts and added data refresh section
+- `docs/V2.md` — **NEW** — V2 capabilities document
+- `docs/ELI5.md` — Added transfer data, updated counts
+- `docs/ARCHITECTURE.md` — Added table, endpoints, tools
+- `docs/USER_GUIDE.md` — Added transfer query examples
 - `docs/SESSION_LOG.md` — This entry

@@ -56,6 +56,18 @@ async function handler(req: HttpRequest, _context: InvocationContext): Promise<H
     { zip: `${zipCode}%` }
   );
 
+  // Transfer stats
+  const [transferStats] = await query(
+    `SELECT
+       COUNT(*) AS total_transfers,
+       SUM(CASE WHEN document_type LIKE '%SHERIFF%' THEN 1 ELSE 0 END) AS sheriff_sales,
+       SUM(CASE WHEN total_consideration <= 1 AND document_type LIKE 'DEED%' THEN 1 ELSE 0 END) AS dollar_transfers,
+       AVG(CASE WHEN total_consideration > 0 THEN total_consideration END) AS avg_sale_price
+     FROM rtt_summary
+     WHERE zip_code LIKE @zip`,
+    { zip: `${zipCode}%` }
+  );
+
   // Top owners in this zip
   const topOwners = await query(
     `SELECT TOP 10
@@ -76,6 +88,7 @@ async function handler(req: HttpRequest, _context: InvocationContext): Promise<H
       violation_stats: violationStats,
       demolition_stats: demoStats,
       license_stats: licenseStats,
+      transfer_stats: transferStats,
       top_owners: topOwners,
     },
   };

@@ -1,6 +1,6 @@
 # Philadelphia Property Data — User Guide
 
-A web app for investigating property ownership, code violations, demolitions, and poverty profiteering patterns in Philadelphia. Nine panels (multiple AI-powered interfaces + slide deck + documentation reader + tool tester), 12 tools, 29 million rows of public data.
+A web app for investigating property ownership, code violations, demolitions, and poverty profiteering patterns in Philadelphia. Nine panels (multiple AI-powered interfaces + slide deck + documentation reader + tool tester), 14 tools, 34 million rows of public data.
 
 **Live URL:** https://kind-forest-06c4d3c0f.1.azurestaticapps.net/
 
@@ -24,6 +24,7 @@ A web app for investigating property ownership, code violations, demolitions, an
   - [Deep Investigations](#deep-investigations)
   - [Business & Licensing](#business--licensing)
   - [Area Analysis](#area-analysis)
+  - [Property Transfers](#property-transfers)
   - [Custom SQL](#custom-sql)
 - [Maps](#maps)
 - [Choosing a Model](#choosing-a-model)
@@ -122,7 +123,7 @@ The left sidebar has nine icons. Click one to open that panel. You can have mult
 **How to use it:**
 1. Click the wrench icon in the sidebar
 2. Click **Connect** (the endpoint URL is pre-filled)
-3. Wait for "Connected — 12 tools discovered"
+3. Wait for "Connected — 14 tools discovered"
 4. Click a tool name from the left list
 5. Fill in the required parameters (e.g., a parcel number or entity name)
 6. Click **Call Tool**
@@ -155,7 +156,7 @@ The left sidebar has nine icons. Click one to open that panel. You can have mult
 5. Press **F** for fullscreen
 6. Press **Esc** to exit overview/fullscreen
 
-**What's in the deck:** 13 slides covering: title/stats, what's live today, 7 client patterns, container app multi-protocol host, security (APIM + VNet), 12 MCP tools, data & LLMs, request round trip, M365 Copilot MCP path, cost model, resource map, expansion path, agent pattern comparison, and closing summary.
+**What's in the deck:** 13 slides covering: title/stats, what's live today, 7 client patterns, container app multi-protocol host, security (APIM + VNet), 14 MCP tools, data & LLMs, request round trip, M365 Copilot MCP path, cost model, resource map, expansion path, agent pattern comparison, and closing summary.
 
 ### 8. Architecture — Grid Icon
 
@@ -197,6 +198,13 @@ Copy-paste any of these into the Investigative Agent or Foundry Portal chat.
 - "What are the stats for zip code 19134?"
 - "Compare violation rates between zip codes 19134 and 19140"
 - "Which zip codes have the highest vacancy and violation rates?"
+
+### Property Transfers
+
+- "Show me all $1 property transfers in 19134"
+- "Find all sheriff sale purchases by GEENA LLC"
+- "What is the transfer history for property 405100505?"
+- "Which LLCs are doing the most $1 transfers?"
 
 ### Custom SQL
 
@@ -290,7 +298,7 @@ Everything in this system scales to zero when idle to save money. The first requ
 
 ## The Data
 
-10 public Philadelphia datasets, approximately 29 million rows total:
+11 public Philadelphia datasets, approximately 34 million rows total:
 
 | Dataset | Rows | What It Contains |
 |---------|------|------------------|
@@ -316,12 +324,12 @@ You ask a question
     ↓
 AI reads your question and decides which tools to use
     ↓
-Tools query a database with 29 million rows of Philadelphia property data
+Tools query a database with 34 million rows of Philadelphia property data
     ↓
 AI reads the results and writes you an answer in plain English
 ```
 
-All five panels use the same database and the same 12 tools. The difference is how the AI part works:
+All five panels use the same database and the same 14 tools. The difference is how the AI part works:
 
 - **Investigative Agent:** Our code runs the AI loop. You pick the model. Stateless.
 - **Foundry Portal:** Azure runs the AI loop (Foundry Agent). GPT-4.1. Conversations persist.
@@ -343,12 +351,12 @@ Azure API Management (Consumption tier)
 Azure Functions (Flex Consumption, Node.js 20, VNet-integrated)
     ↓ Azure AD token via Private Endpoint (VNet, no public internet)
 Azure SQL Database (Serverless Gen5, public access disabled)
-    (10 tables, 3 views, 28+ indexes, ~29M rows)
+    (11 tables, 3 views, 28+ indexes, ~34M rows)
 ```
 
 The Function App communicates with SQL and Storage entirely over a private network (VNet + Private Endpoints). Public access is disabled on both — all data stays within Azure's private backbone.
 
-The 12 tools available to the AI:
+The 14 tools available to the AI:
 
 | Tool | What It Does |
 |------|-------------|
@@ -376,7 +384,7 @@ The same backend can be used from other tools besides the web app.
 1. Clone the repo: `git clone https://github.com/pogorman/mcp-apim.git`
 2. `cd mcp-apim && npm install && npm run build -w mcp-server`
 3. Copy `.mcp.json.example` to `.mcp.json` and add the APIM subscription key
-4. Open in Claude Code — the 12 `philly-stats` tools appear automatically
+4. Open in Claude Code — the 14 `philly-stats` tools appear automatically
 
 ### Claude Desktop
 
@@ -404,7 +412,7 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 3. **Server URL:** `https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io/mcp`
 4. **Authentication:** No connection (none)
 5. **API Key:** Leave blank
-6. Copilot Studio auto-discovers all 12 tools
+6. Copilot Studio auto-discovers all 14 tools
 
 ### Direct API
 

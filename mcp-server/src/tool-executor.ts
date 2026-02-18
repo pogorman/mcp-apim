@@ -6,11 +6,11 @@
 import type { ChatCompletionTool } from "openai/resources/chat/completions";
 import * as api from "./apim-client.js";
 
-export const SYSTEM_PROMPT = `You are an investigative analyst specializing in Philadelphia property data. You have access to tools that query a database of ~29 million rows covering property ownership networks, code violations, demolitions, business licenses, and tax assessments.
+export const SYSTEM_PROMPT = `You are an investigative analyst specializing in Philadelphia property data. You have access to tools that query a database of ~34 million rows covering property ownership networks, code violations, demolitions, business licenses, tax assessments, and real estate transfer records.
 
-Use these tools to identify patterns of neglect, exploitative landlords, and poverty profiteering. When answering, cite specific data (parcel numbers, violation counts, addresses). Be thorough — call multiple tools when needed to build a complete picture.
+Use these tools to identify patterns of neglect, exploitative landlords, and poverty profiteering. When answering, cite specific data (parcel numbers, violation counts, addresses). Be thorough — call multiple tools when needed to build a complete picture. Use transfer data to detect $1 transfers (LLC shuffling), sheriff sale purchases, and property flipping.
 
-Available data: 584K properties, 2.8M entities, 1.6M code violations, 422K business licenses, 316K appeals, 13.5K demolitions, 6.4M assessment records.`;
+Available data: 584K properties, 2.8M entities, 1.6M code violations, 422K business licenses, 316K appeals, 13.5K demolitions, 6.4M assessment records, 5M+ real estate transfer records.`;
 
 export const TOOLS: ChatCompletionTool[] = [
   {
@@ -131,6 +131,38 @@ export const TOOLS: ChatCompletionTool[] = [
   {
     type: "function",
     function: {
+      name: "get_property_transfers",
+      description: "Get real estate transfer tax records for a property. Shows chain of ownership: sale prices, document types (DEED, SHERIFF DEED, MORTGAGE), grantors, grantees, and dates.",
+      parameters: {
+        type: "object",
+        properties: {
+          parcelNumber: { type: "string", description: "The OPA parcel number" },
+        },
+        required: ["parcelNumber"],
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
+      name: "search_transfers",
+      description: "Search real estate transfer records by grantor/grantee name, document type, zip code, or consideration amount. Find $1 transfers (maxConsideration=1), sheriff sales (documentType='SHERIFF'), or all transfers for an entity.",
+      parameters: {
+        type: "object",
+        properties: {
+          grantorGrantee: { type: "string", description: "Name to search in grantor and grantee fields (e.g., 'GEENA LLC')" },
+          documentType: { type: "string", description: "Document type filter (e.g., 'DEED', 'SHERIFF', 'MORTGAGE')" },
+          zip: { type: "string", description: "Zip code filter (e.g., '19134')" },
+          minConsideration: { type: "number", description: "Minimum total consideration/sale price" },
+          maxConsideration: { type: "number", description: "Maximum total consideration (use 1 to find $1 transfers)" },
+          limit: { type: "number", description: "Max results (default 50, max 200)" },
+        },
+      },
+    },
+  },
+  {
+    type: "function",
+    function: {
       name: "search_businesses",
       description: "Search business and commercial activity licenses by keyword, type, or zip code. Use to find check cashing, pawn shops, title loans, dollar stores, and other businesses.",
       parameters: {
@@ -217,6 +249,15 @@ export async function executeTool(name: string, args: Record<string, unknown>): 
         break;
       case "get_property_demolitions":
         result = await api.getPropertyDemolitions(args.parcelNumber as string);
+        break;
+      case "get_property_transfers":
+        result = await api.getPropertyTransfers(args.parcelNumber as string);
+        break;
+      case "search_transfers":
+        result = await api.searchTransfers(args as {
+          grantorGrantee?: string; documentType?: string; zip?: string;
+          minConsideration?: number; maxConsideration?: number; limit?: number;
+        });
         break;
       case "search_businesses":
         result = await api.searchBusinesses(args as { keyword?: string; licensetype?: string; zip?: string; limit?: number });
