@@ -1285,3 +1285,65 @@ New `rtt_summary` table with 31 columns (trimmed from 50 — skipped geometry, a
 - `docs/ARCHITECTURE.md` — Added table, endpoints, tools
 - `docs/USER_GUIDE.md` — Added transfer query examples
 - `docs/SESSION_LOG.md` — This entry
+
+### Deployment (Session 26b — Continued)
+
+Full end-to-end deployment with 7 issues discovered and fixed along the way.
+
+#### Carto Download
+- Downloaded 5,047,081 rows from `phl.carto.com` in 101 batches of 50K rows
+- Completed in 275 seconds (4.5 minutes) → 1.18GB CSV file
+- Data is **live, daily-updated** — transfer records go up to January 2026
+
+#### Schema Fixes During Bulk Import
+Two bulk import failures before success (three total attempts):
+
+1. **DATETIME2 overflow** — Carto date strings don't always parse as SQL DATETIME2. Fix: `ALTER COLUMN display_date VARCHAR(50)` (had to drop/recreate IX_rtt_display_date index first)
+2. **DECIMAL arithmetic overflow** — Carto sends float values that overflow DECIMAL(18,2). Fix: altered 10 DECIMAL columns to FLOAT (cash_consideration, other_consideration, total_consideration, assessed_value, common_level_ratio, fair_market_value, state_tax_amount, state_tax_percent, local_tax_amount, local_tax_percent). Had to drop/recreate IX_rtt_consideration index.
+3. **Third attempt succeeded** — 5,047,081 rows, 0 skipped, ~60 minutes
+
+#### Function Deployment — Zip Format Bug
+First deploy appeared successful but `az functionapp function list` returned empty — zero functions registered. Root cause: `Compress-Archive` creates zip entries with Windows backslashes (`src\functions\getAreaStats.js`), but Azure Functions on Linux requires forward slashes. Fix: wrote PowerShell script using `System.IO.Compression.ZipFile` with `.Replace('\', '/')` on all entry paths. Second deploy registered all 14 functions.
+
+#### APIM Operations Missing
+Both new endpoints (`searchTransfers`, `getPropertyTransfers`) returned 404 via APIM. Root cause: APIM operations were never registered — only the original 12 operations existed. Fix: added both operations via `az apim api operation create`. **Gotcha:** Git Bash on Windows mangles forward-slash URL templates (e.g., `/search-transfers` → `C:/Program Files/Git/search-transfers`). Fix: prefix commands with `MSYS_NO_PATHCONV=1`.
+
+#### Container App Deployment
+- MCP Server container app: ACR build + update (first attempt hit `ConnectionResetError(10054)`, retry succeeded)
+- SK Agent container app: ACR build + update (succeeded first try)
+- SWA: used deployment token workaround for `swa deploy` crypto bug
+
+#### SQL Security
+- Temporarily enabled public access + firewall rule for bulk import (private endpoints block local CLI access)
+- Removed firewall rule and disabled public access after import completed
+
+### Documentation Blitz
+
+User requested "amazing balls notes" on this session. Updated nearly every documentation file:
+
+- **docs/PROMPTS.md** — Added 20+ NEW! transfer data prompts across 5 categories ($1 transfers, sheriff sales, ownership chains, property flipping, combined investigations)
+- **docs/V2.md** — Added "The Data Journey: V1 to V2" section (V1 static CSVs → discovery of Carto API → V2 pipeline)
+- **docs/ELI5.md** — Added V1→V2 evolution story, Carto API explanation
+- **docs/ARCHITECTURE.md** — Added data import pipeline diagram (V1 CSV vs V2 Carto API)
+- **docs/USER_GUIDE.md** — Added rtt_summary table, transfer tools
+- **CLAUDE.md** — Updated counts (11 tables, 28+ indexes, ~34M rows), added data source sections
+- **web/index.html** — Added "🆕 Transfers (V2)" prompt category to SHARED_PROMPTS
+- **m365-agent/declarativeAgent.json** — Added "Follow the money" conversation starter
+- **docs/architecture-combined-v2.html** + **docs/slides.html** — Updated all counts
+
+### Verification Results
+
+All 14 endpoints working end-to-end (MCP Server → APIM → Functions → SQL):
+
+| Endpoint | Test Result |
+|----------|------------|
+| `search_transfers` (POST) | $1 transfers in 19134: live data through Jan 2026 |
+| `get_property_transfers` (GET) | 8 transfers for parcel 452013100 — family estate → LLC flip chain |
+| `get_property_profile` (GET) | Now shows `transfer_count: 8` |
+| `get_area_stats` (GET) | Zip 19134: 176K transfers, 6,541 sheriff sales, 12,908 $1 transfers |
+
+### Key Numbers (Zip 19134 Alone)
+- 176,128 total real estate transfers
+- 6,541 sheriff sales
+- 12,908 $1 transfers (LLC shuffling indicator)
+- $92,209 average sale price
