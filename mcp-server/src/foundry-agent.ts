@@ -38,12 +38,21 @@ export async function ensureAgent(): Promise<string> {
 
   const client = getClient();
 
+  const toolDefs = TOOLS.filter((t): t is typeof t & { type: "function"; function: object } => t.type === "function")
+    .map(t => ({ type: "function" as const, function: t.function }));
+
   // Search for existing assistant by name
   const list = await client.beta.assistants.list({ limit: 100 });
   for (const assistant of list.data) {
     if (assistant.name === AGENT_NAME) {
+      // Always sync tools + instructions in case they changed
+      await client.beta.assistants.update(assistant.id, {
+        instructions: SYSTEM_PROMPT,
+        tools: toolDefs,
+        description: "Investigates poverty profiteering patterns in Philadelphia using 34M rows of public data.",
+      });
       agentId = assistant.id;
-      console.log(`[agent] Found existing assistant: ${agentId}`);
+      console.log(`[agent] Found and updated existing assistant: ${agentId} (${toolDefs.length} tools)`);
       return agentId;
     }
   }
@@ -51,18 +60,14 @@ export async function ensureAgent(): Promise<string> {
   // Create new assistant with our tools
   const assistant = await client.beta.assistants.create({
     name: AGENT_NAME,
-    description: "Investigates poverty profiteering patterns in Philadelphia using 29M rows of public data.",
+    description: "Investigates poverty profiteering patterns in Philadelphia using 34M rows of public data.",
     model: AGENT_MODEL,
     instructions: SYSTEM_PROMPT,
-    tools: TOOLS.filter((t): t is typeof t & { type: "function"; function: object } => t.type === "function")
-      .map(t => ({
-        type: "function" as const,
-        function: t.function,
-      })),
+    tools: toolDefs,
   });
 
   agentId = assistant.id;
-  console.log(`[agent] Created new assistant: ${agentId}`);
+  console.log(`[agent] Created new assistant: ${agentId} (${toolDefs.length} tools)`);
   return agentId;
 }
 
