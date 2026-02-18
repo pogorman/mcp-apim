@@ -4373,7 +4373,7 @@
 
       L.geoJSON(DASH_GEOJSON, {
         style: function(feature) {
-          var zip = feature.properties.CODE;
+          var zip = feature.properties.zip;
           var rate = rates[zip] || 0;
           return {
             fillColor: getColor(rate),
@@ -4384,7 +4384,7 @@
           };
         },
         onEachFeature: function(feature, layer) {
-          var zip = feature.properties.CODE;
+          var zip = feature.properties.zip;
           var s = null;
           for (var j = 0; j < DASH_ZIPSTATS.length; j++) {
             if (DASH_ZIPSTATS[j].zip_code === zip) { s = DASH_ZIPSTATS[j]; break; }
