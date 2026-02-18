@@ -209,7 +209,7 @@ export const TOOLS: ChatCompletionTool[] = [
     type: "function",
     function: {
       name: "run_query",
-      description: "Execute a custom read-only SQL query against the Philadelphia property database. Must be a SELECT with TOP(n) or OFFSET/FETCH.",
+      description: "Execute a custom read-only SQL query. Tables: master_entity, master_address, master_entity_address, opa_properties, assessments, business_licenses, commercial_activity_licenses, case_investigations, appeals, demolitions, rtt_summary. IMPORTANT: For transfer/sale data use search_transfers or get_property_transfers tools instead — they are faster and easier. Only use run_query for queries those tools cannot answer.",
       parameters: {
         type: "object",
         properties: {
