@@ -7,6 +7,8 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%94%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="dash-data.js"></script>
   <style>
     :root {
       --bg: #0f1117;
@@ -265,41 +267,104 @@
       border-left: 1px solid var(--border);
     }
 
-    /* ── Welcome Screen ──────────────────────────────── */
+    /* ── Dashboard / Welcome Screen ─────────────────── */
     .welcome-screen {
       flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(rgba(15,17,23,0.82), rgba(15,17,23,0.88)), url('/images/philly-bg.jpg') center/cover no-repeat;
+      overflow-y: auto;
+      background: var(--bg);
     }
-
     .welcome-screen.hidden { display: none; }
 
-    .welcome-inner {
-      max-width: 480px;
+    .dash {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 1.25rem 1.5rem 2rem;
+    }
+    .dash-header {
       text-align: center;
-      padding: 2rem;
-      color: var(--muted);
-    }
-
-    .welcome-inner h2 {
-      font-size: 1.15rem;
-      color: var(--text);
-      margin-bottom: 0.6rem;
-      font-weight: 600;
-    }
-
-    .welcome-inner p {
-      font-size: 0.82rem;
-      line-height: 1.55;
       margin-bottom: 1.25rem;
     }
+    .dash-header h2 {
+      font-size: 1.15rem;
+      color: var(--text);
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+    .dash-header p {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+    .dash-stats {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .dash-stat {
+      text-align: center;
+      padding: 0.6rem 0.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .dash-stat-value {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .dash-stat-label {
+      font-size: 0.6rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      margin-top: 0.1rem;
+    }
+    .dash-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+    .dash-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem;
+      min-height: 0;
+    }
+    .dash-card-full { grid-column: 1 / -1; }
+    .dash-card h3 {
+      font-size: 0.78rem;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    .dash-card h3 span {
+      font-weight: 400;
+      color: var(--muted);
+      font-size: 0.65rem;
+      margin-left: 0.3rem;
+    }
+    .dash-map { height: 340px; border-radius: 8px; }
+    .dash-chart { position: relative; height: 260px; }
+    .dash-chart-tall { height: 340px; }
 
-    .welcome-actions {
+    .dash-legend {
       display: flex;
       gap: 0.75rem;
-      justify-content: center;
+      margin-top: 0.4rem;
+      font-size: 0.62rem;
+      color: var(--muted);
+    }
+    .dash-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .dash-legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
     }
 
     .welcome-btn {
@@ -1759,7 +1824,7 @@
 
     /* ── Light mode overrides ── */
     [data-theme="light"] .welcome-screen {
-      background: linear-gradient(rgba(245,246,250,0.82), rgba(245,246,250,0.88)), url('/images/philly-bg.jpg') center/cover no-repeat;
+      background: var(--bg);
     }
     [data-theme="light"] .chat-scroll {
       background: linear-gradient(rgba(245,246,250,0.88), rgba(245,246,250,0.92)), url('/images/philly-bg.jpg') center/cover no-repeat fixed;
@@ -2186,6 +2251,9 @@
       .sk-arch-arrows .sk-arch-arrow:nth-child(2),
       .sk-arch-arrows .sk-arch-arrow:nth-child(3) { display: none; }
       .agent-info-grid { grid-template-columns: repeat(2, 1fr); }
+      .dash-grid { grid-template-columns: 1fr; }
+      .dash-stats { grid-template-columns: repeat(3, 1fr); }
+      .dash-map { height: 250px; }
     }
   </style>
 </head>
@@ -2296,75 +2364,40 @@
     <div class="panel-area">
       <!-- Welcome screen (shown when no panels are open) -->
       <div class="welcome-screen" id="welcomeScreen">
-        <div class="welcome-inner">
-          <div class="welcome-map" id="welcomeMap"></div>
-          <h2>Philadelphia Property Data</h2>
-          <p>
-            Investigate property ownership, code violations, demolitions, business licenses,
-            and poverty profiteering patterns across Philadelphia using 29 million rows of public data.
-          </p>
-          <div class="welcome-actions">
-            <button class="welcome-btn" onclick="togglePanel('agent')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-              </svg>
-              Open Agent
-            </button>
-            <button class="welcome-btn" onclick="togglePanel('city')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
-                <path d="M2 22h20"/>
-                <path d="M4 22V10l5-4 5 4v12"/>
-                <rect x="7" y="15" width="4" height="7"/>
-                <line x1="17" y1="22" x2="17" y2="3"/>
-                <path d="M17 6c2-2 4-1 4 1"/>
-              </svg>
-              City Portal
-            </button>
-            <button class="welcome-btn" onclick="togglePanel('copilot')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
-                <circle cx="12" cy="12" r="9"/>
-                <rect x="4" y="10" width="6" height="4" rx="2"/>
-                <rect x="14" y="10" width="6" height="4" rx="2"/>
-                <path d="M10 12h4"/>
-              </svg>
-              Copilot Studio
-            </button>
-            <button class="welcome-btn" onclick="togglePanel('sk')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
-                <!-- nucleus -->
-                <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>
-                <!-- three elliptical orbits -->
-                <ellipse cx="12" cy="12" rx="10" ry="4"/>
-                <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/>
-                <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)"/>
-                <!-- electrons -->
-                <circle cx="22" cy="12" r="1.5" fill="currentColor" stroke="none"/>
-                <circle cx="7" cy="8.1" r="1.5" fill="currentColor" stroke="none"/>
-                <circle cx="7" cy="15.9" r="1.5" fill="currentColor" stroke="none"/>
-              </svg>
-              SK Agent
-            </button>
-            <button class="welcome-btn" onclick="togglePanel('tools')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
-                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
-              </svg>
-              Tools
-            </button>
-            <button class="welcome-btn" onclick="togglePanel('docs')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-              </svg>
-              Docs
-            </button>
-            <button class="welcome-btn" onclick="togglePanel('about')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                <line x1="12" y1="17" x2="12.01" y2="17"/>
-              </svg>
-              About
-            </button>
+        <div class="dash">
+          <div class="dash-header">
+            <h2>Philadelphia Poverty Profiteering Dashboard</h2>
+            <p>Static visualizations from 10 public datasets (~29M rows). Use the left nav to open AI agents for live investigation.</p>
+          </div>
+          <div class="dash-stats">
+            <div class="dash-stat"><div class="dash-stat-value">584K</div><div class="dash-stat-label">Properties</div></div>
+            <div class="dash-stat"><div class="dash-stat-value">1.6M</div><div class="dash-stat-label">Violations</div></div>
+            <div class="dash-stat"><div class="dash-stat-value">13.5K</div><div class="dash-stat-label">Demolitions</div></div>
+            <div class="dash-stat"><div class="dash-stat-value">2.8M</div><div class="dash-stat-label">Entities</div></div>
+            <div class="dash-stat"><div class="dash-stat-value">10</div><div class="dash-stat-label">Datasets</div></div>
+          </div>
+          <div class="dash-grid">
+            <div class="dash-card">
+              <h3>Violation Density by Zip Code <span>Darker = more violations per property</span></h3>
+              <div id="dashMap" class="dash-map"></div>
+            </div>
+            <div class="dash-card">
+              <h3>Top 15 Violators <span>Violations vs. properties owned</span></h3>
+              <div class="dash-chart dash-chart-tall"><canvas id="chartViolators"></canvas></div>
+              <div class="dash-legend">
+                <div class="dash-legend-item"><div class="dash-legend-dot" style="background:#f87171;"></div> Violations</div>
+                <div class="dash-legend-item"><div class="dash-legend-dot" style="background:#6c8aff;"></div> Properties</div>
+                <div class="dash-legend-item"><div class="dash-legend-dot" style="background:var(--hover-overlay);border:1px solid var(--border);"></div> Government entity</div>
+              </div>
+            </div>
+            <div class="dash-card">
+              <h3>Demolitions Over Time <span>2007 &ndash; 2024</span></h3>
+              <div class="dash-chart"><canvas id="chartDemolitions"></canvas></div>
+            </div>
+            <div class="dash-card">
+              <h3>Vacancy Rate by Zip <span>Top 15 zips by vacant land %</span></h3>
+              <div class="dash-chart"><canvas id="chartVacancy"></canvas></div>
+            </div>
           </div>
         </div>
       </div>
@@ -3097,6 +3130,12 @@
         localStorage.setItem('philly-theme', 'light');
       }
       updateThemeIcon();
+      // Swap dashboard map tiles if map exists
+      if (dashMapInstance) {
+        dashMapInstance.eachLayer(function(layer) {
+          if (layer.setUrl) layer.setUrl(getCurrentTileUrl());
+        });
+      }
     }
 
     function updateThemeIcon() {
@@ -3215,11 +3254,11 @@
         $('copilotWidget').classList.remove('open');
       }
 
-      // Re-init welcome map when it becomes visible
+      // Re-init dashboard when it becomes visible
       if (!anyOpen) {
         setTimeout(function() {
-          if (welcomeMapInstance) welcomeMapInstance.invalidateSize();
-          else initWelcomeMap();
+          if (dashMapInstance) dashMapInstance.invalidateSize();
+          else initDashboard();
         }, 50);
       }
     }
@@ -4271,7 +4310,8 @@
        ================================================================ */
     const PHILLY_CENTER = [39.9526, -75.1652]; // City Hall
     const PHILLY_ZOOM = 12;
-    let welcomeMapInstance = null;
+    let dashMapInstance = null;
+    var dashCharts = [];
     let chatMapCounter = 0;
 
     // Dark-friendly tile layer
@@ -4283,29 +4323,183 @@
       return document.documentElement.getAttribute('data-theme') === 'light' ? TILE_URL_LIGHT : TILE_URL;
     }
 
-    function initWelcomeMap() {
-      var el = $('welcomeMap');
-      if (!el || welcomeMapInstance) return;
-      welcomeMapInstance = L.map(el, {
+    function initDashboard() {
+      initDashMap();
+      initChartViolators();
+      initChartDemolitions();
+      initChartVacancy();
+    }
+
+    function getDashColors() {
+      var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      return {
+        tick: isLight ? '#5a5f73' : '#8a8fa8',
+        grid: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)',
+        govBar: isLight ? 'rgba(0,0,0,0.10)' : 'rgba(255,255,255,0.12)',
+      };
+    }
+
+    function initDashMap() {
+      var el = $('dashMap');
+      if (!el || dashMapInstance) return;
+      dashMapInstance = L.map(el, {
         center: PHILLY_CENTER,
-        zoom: PHILLY_ZOOM,
-        zoomControl: false,
+        zoom: 11,
+        zoomControl: true,
         attributionControl: false,
-        dragging: false,
-        scrollWheelZoom: false,
-        doubleClickZoom: false,
-        touchZoom: false,
       });
-      L.tileLayer(getCurrentTileUrl(), { attribution: TILE_ATTR }).addTo(welcomeMapInstance);
-      // Subtle city label
-      L.marker(PHILLY_CENTER, {
-        icon: L.divIcon({
-          className: '',
-          html: '<div style="color:#6c8aff;font-size:11px;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,0.8);white-space:nowrap;">Philadelphia</div>',
-          iconSize: [0, 0],
-          iconAnchor: [-8, 8],
-        }),
-      }).addTo(welcomeMapInstance);
+      L.tileLayer(getCurrentTileUrl(), { attribution: TILE_ATTR }).addTo(dashMapInstance);
+
+      // Build violation rate lookup
+      var rates = {};
+      var maxRate = 0;
+      for (var i = 0; i < DASH_ZIPSTATS.length; i++) {
+        var z = DASH_ZIPSTATS[i];
+        if (z.properties < 100) continue;
+        var rate = z.violations / z.properties;
+        rates[z.zip_code] = rate;
+        if (rate > maxRate) maxRate = rate;
+      }
+
+      function getColor(rate) {
+        if (!rate || maxRate === 0) return 'rgba(108,138,255,0.1)';
+        var t = Math.min(rate / maxRate, 1);
+        // Blue (#3b5ce5) → Red (#ef4444)
+        var r = Math.round(59 + t * 180);
+        var g = Math.round(92 - t * 24);
+        var b = Math.round(229 - t * 161);
+        return 'rgb(' + r + ',' + g + ',' + b + ')';
+      }
+
+      L.geoJSON(DASH_GEOJSON, {
+        style: function(feature) {
+          var zip = feature.properties.CODE;
+          var rate = rates[zip] || 0;
+          return {
+            fillColor: getColor(rate),
+            weight: 1.5,
+            opacity: 0.8,
+            color: 'rgba(255,255,255,0.25)',
+            fillOpacity: 0.7,
+          };
+        },
+        onEachFeature: function(feature, layer) {
+          var zip = feature.properties.CODE;
+          var s = null;
+          for (var j = 0; j < DASH_ZIPSTATS.length; j++) {
+            if (DASH_ZIPSTATS[j].zip_code === zip) { s = DASH_ZIPSTATS[j]; break; }
+          }
+          if (s) {
+            var pct = s.properties > 0 ? (s.violations / s.properties * 100).toFixed(1) : '0.0';
+            layer.bindPopup(
+              '<div style="font-size:13px;line-height:1.5">' +
+              '<strong style="font-size:14px;">' + zip + '</strong><br>' +
+              '<span style="color:#666">Properties:</span> ' + s.properties.toLocaleString() + '<br>' +
+              '<span style="color:#666">Violations:</span> ' + s.violations.toLocaleString() + '<br>' +
+              '<span style="color:#666">Vacant:</span> ' + s.vacant.toLocaleString() + '<br>' +
+              '<span style="color:#666">Violation rate:</span> ' + pct + '%</div>'
+            );
+          }
+        }
+      }).addTo(dashMapInstance);
+    }
+
+    function initChartViolators() {
+      var ctx = $('chartViolators');
+      if (!ctx) return;
+      var c = getDashColors();
+      var top15 = DASH_VIOLATORS.slice(0, 15);
+      var labels = top15.map(function(v) {
+        var n = v.name;
+        return n.length > 22 ? n.substring(0, 22) + '\u2026' : n;
+      });
+      var barColors = top15.map(function(v) { return v.gov ? c.govBar : '#f87171'; });
+
+      dashCharts.push(new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            { label: 'Violations', data: top15.map(function(v) { return v.violations; }), backgroundColor: barColors, borderRadius: 3 },
+            { label: 'Properties', data: top15.map(function(v) { return v.properties; }), backgroundColor: '#6c8aff', borderRadius: 3 }
+          ]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: c.tick, font: { size: 10 } }, grid: { color: c.grid } },
+            y: { ticks: { color: c.tick, font: { size: 10 } }, grid: { display: false } }
+          }
+        }
+      }));
+    }
+
+    function initChartDemolitions() {
+      var ctx = $('chartDemolitions');
+      if (!ctx) return;
+      var c = getDashColors();
+
+      dashCharts.push(new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: DASH_DEMOLITIONS.map(function(d) { return d.yr; }),
+          datasets: [{
+            label: 'Demolitions',
+            data: DASH_DEMOLITIONS.map(function(d) { return d.cnt; }),
+            backgroundColor: '#f59e0b',
+            borderRadius: 3,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: c.tick, font: { size: 10 } }, grid: { color: c.grid } },
+            y: { ticks: { color: c.tick, font: { size: 10 } }, grid: { color: c.grid } }
+          }
+        }
+      }));
+    }
+
+    function initChartVacancy() {
+      var ctx = $('chartVacancy');
+      if (!ctx) return;
+      var c = getDashColors();
+
+      var sorted = DASH_ZIPSTATS
+        .filter(function(z) { return z.properties > 100; })
+        .map(function(z) { return { zip: z.zip_code, rate: +(z.vacant / z.properties * 100).toFixed(1) }; })
+        .sort(function(a, b) { return b.rate - a.rate; })
+        .slice(0, 15);
+
+      dashCharts.push(new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: sorted.map(function(z) { return z.zip; }),
+          datasets: [{
+            label: 'Vacancy Rate',
+            data: sorted.map(function(z) { return z.rate; }),
+            backgroundColor: '#10b981',
+            borderRadius: 3,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: c.tick, font: { size: 10 } }, grid: { color: c.grid } },
+            y: {
+              ticks: { color: c.tick, font: { size: 10 }, callback: function(v) { return v + '%'; } },
+              grid: { color: c.grid }
+            }
+          }
+        }
+      }));
     }
 
     function createChatMap(locations, container) {
@@ -4401,8 +4595,8 @@
     renderSuggestions('agentSuggestions', 'useSuggestion');
     renderSuggestions('skSuggestions', 'useSKSuggestion');
 
-    // Init welcome map after a tick (DOM needs to be visible)
-    setTimeout(initWelcomeMap, 100);
+    // Init dashboard charts + choropleth after a tick (DOM needs to be visible)
+    setTimeout(initDashboard, 100);
   </script>
 
 </body>
