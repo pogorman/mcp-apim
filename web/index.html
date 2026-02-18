@@ -25,6 +25,26 @@
       --user-bg: #1e2a4a;
       --agent-bg: #1a1d27;
       --font-mono: 'SF Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+      --hover-overlay: var(--hover-overlay);
+    }
+
+    [data-theme="light"] {
+      --bg: #f5f6fa;
+      --surface: #ffffff;
+      --surface-raised: #eef0f5;
+      --bar: #f0f1f6;
+      --border: #d4d7e0;
+      --text: #1a1d27;
+      --muted: #5a5f73;
+      --accent: #4a6cf7;
+      --accent-dim: #dce3ff;
+      --accent-hover: #3b5ce5;
+      --success: #16a34a;
+      --error: #dc2626;
+      --warning: #ca8a04;
+      --user-bg: #dce3ff;
+      --agent-bg: #f5f6fa;
+      --hover-overlay: rgba(0,0,0,0.04);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -97,6 +117,21 @@
       flex-shrink: 0;
     }
 
+    .theme-toggle {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0.25rem 0.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .theme-toggle:hover { color: var(--text); border-color: var(--muted); }
+    .theme-toggle svg { width: 16px; height: 16px; }
+
     /* ── Main Layout ─────────────────────────────────── */
     .app-body {
       flex: 1;
@@ -139,7 +174,7 @@
       flex-shrink: 0;
       border-radius: 6px;
     }
-    .nav-toggle:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .nav-toggle:hover { color: var(--text); background: var(--hover-overlay); }
     .nav-toggle svg { width: 18px; height: 18px; transition: transform 0.2s ease; }
     .activity-bar.expanded .nav-toggle svg { transform: rotate(180deg); }
     .activity-bar.expanded .nav-toggle { justify-content: flex-end; padding-right: 14px; }
@@ -168,7 +203,7 @@
 
     .activity-tab:hover {
       color: var(--text);
-      background: rgba(255,255,255,0.04);
+      background: var(--hover-overlay);
     }
 
     .activity-tab.active {
@@ -383,6 +418,218 @@
       border-color: var(--accent);
       background: var(--accent-dim);
     }
+
+    /* ── "Powered by" Badges ────────────────────────── */
+    .powered-by {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.68rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+    .powered-by svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    .powered-by-aoai { background: rgba(108,138,255,0.1); color: var(--accent); }
+    .powered-by-sk { background: rgba(139,92,246,0.1); color: #a78bfa; }
+    .powered-by-foundry { background: rgba(0,71,133,0.08); color: #004785; }
+    .powered-by-copilot { background: rgba(123,47,247,0.08); color: #5b2bb5; }
+
+    /* ── Agent Info Grid ────────────────────────────── */
+    .agent-info-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+      max-width: 420px;
+      margin: 0.75rem auto;
+    }
+    .agent-info-item {
+      text-align: center;
+      padding: 0.5rem 0.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .agent-info-value {
+      display: block;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .agent-info-label {
+      display: block;
+      font-size: 0.62rem;
+      color: var(--muted);
+      margin-top: 0.1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    .agent-detail {
+      font-size: 0.75rem;
+      color: var(--muted);
+      max-width: 450px;
+      margin: 0.5rem auto 0.75rem;
+      line-height: 1.5;
+    }
+
+    /* ── SK Architecture Diagram ────────────────────── */
+    .sk-arch {
+      max-width: 520px;
+      margin: 1rem auto;
+      text-align: center;
+    }
+    .sk-arch-node {
+      padding: 0.5rem 0.8rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+    }
+    .sk-arch-triage {
+      display: inline-block;
+      border-color: rgba(139,92,246,0.5);
+      background: rgba(139,92,246,0.08);
+    }
+    .sk-arch-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      color: #a78bfa;
+    }
+    .sk-arch-tools {
+      font-size: 0.62rem;
+      color: var(--accent);
+      margin-top: 0.1rem;
+    }
+    .sk-arch-desc {
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-top: 0.15rem;
+    }
+    .sk-arch-arrows {
+      display: flex;
+      justify-content: center;
+      gap: 3.5rem;
+      margin: 0.4rem 0;
+    }
+    .sk-arch-arrow {
+      width: 2px;
+      height: 18px;
+      background: var(--border);
+      position: relative;
+    }
+    .sk-arch-arrow::after {
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      left: -3px;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid var(--border);
+    }
+    .sk-arch-specialists {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.4rem;
+    }
+    .sk-arch-specialist {
+      border-color: rgba(139,92,246,0.25);
+    }
+    .sk-subtitle {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.55;
+      max-width: 500px;
+      margin: 0 auto 0.75rem;
+    }
+
+    /* ── Prompt Menu (floating) ─────────────────────── */
+    .chat-input-area { position: relative; }
+    .btn-prompts {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0.45rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+    .btn-prompts:hover { color: var(--accent); border-color: var(--accent); }
+    .btn-prompts svg { width: 18px; height: 18px; }
+
+    .prompt-menu {
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      right: 0;
+      margin-bottom: 0.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      max-height: 320px;
+      overflow-y: auto;
+      z-index: 30;
+      padding: 0.5rem;
+    }
+    [data-theme="light"] .prompt-menu {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+    .prompt-category {
+      font-size: 0.62rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted);
+      font-weight: 600;
+      padding: 0.4rem 0.5rem 0.15rem;
+    }
+    .prompt-item {
+      padding: 0.45rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      color: var(--text);
+      transition: all 0.1s;
+    }
+    .prompt-item:hover {
+      background: var(--accent-dim);
+      color: var(--accent);
+    }
+
+    /* ── City Portal widget suggestions ─────────────── */
+    .widget-suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      padding: 0.4rem 0.75rem;
+    }
+    .widget-suggestion {
+      padding: 0.3rem 0.55rem;
+      background: #e8ecf0;
+      border-radius: 14px;
+      font-size: 0.7rem;
+      color: #004785;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .widget-suggestion:hover {
+      background: #004785;
+      color: #fff;
+    }
+    /* City widget prompt menu (light themed) */
+    .chat-widget .prompt-menu {
+      background: #fff;
+      border-color: #d4d4d4;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+    }
+    .chat-widget .prompt-category { color: #666; }
+    .chat-widget .prompt-item { color: #1a1a2e; }
+    .chat-widget .prompt-item:hover { background: #e8ecf0; color: #004785; }
 
     .message {
       padding: 0.6rem 1rem;
@@ -1510,6 +1757,26 @@
     .city-panel .leaflet-popup-tip { background: #fff !important; }
     .city-panel .leaflet-popup-content strong { color: #004785; }
 
+    /* ── Light mode overrides ── */
+    [data-theme="light"] .welcome-screen {
+      background: linear-gradient(rgba(245,246,250,0.82), rgba(245,246,250,0.88)), url('/images/philly-bg.jpg') center/cover no-repeat;
+    }
+    [data-theme="light"] .chat-scroll {
+      background: linear-gradient(rgba(245,246,250,0.88), rgba(245,246,250,0.92)), url('/images/philly-bg.jpg') center/cover no-repeat fixed;
+    }
+    [data-theme="light"] .leaflet-popup-content-wrapper {
+      box-shadow: 0 3px 14px rgba(0,0,0,0.12) !important;
+    }
+    [data-theme="light"] .md-table tr:nth-child(even) td {
+      background: rgba(0,0,0,0.02);
+    }
+    [data-theme="light"] .nb-output {
+      background: rgba(0,0,0,0.03);
+    }
+    [data-theme="light"] header {
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
     /* ── User Info ─────────────────────────────────────── */
     .user-info {
       display: flex;
@@ -1914,6 +2181,11 @@
 
       .user-email { max-width: 100px; }
       .doc-list { width: 160px; }
+      .sk-arch-specialists { grid-template-columns: 1fr; }
+      .sk-arch-arrows { gap: 0; justify-content: center; }
+      .sk-arch-arrows .sk-arch-arrow:nth-child(2),
+      .sk-arch-arrows .sk-arch-arrow:nth-child(3) { display: none; }
+      .agent-info-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
 </head>
@@ -1921,6 +2193,17 @@
   <header>
     <h1>Philly Poverty Profiteering<span>Investigative Agent</span></h1>
     <div class="header-right">
+      <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark mode">
+        <svg id="sunIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg id="moonIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
       <select class="model-select" id="modelSelect" onchange="onModelChange()" title="Select AI model">
         <option value="gpt-4.1">GPT-4.1</option>
         <option value="gpt-5">GPT-5</option>
@@ -2094,26 +2377,56 @@
         </div>
         <div class="chat-scroll" id="chatScroll">
           <div class="chat-welcome" id="chatWelcome">
-            <h3>Ask a Question</h3>
-            <p>
-              Query property ownership, code violations, demolitions, business licenses,
-              and poverty profiteering patterns. The agent uses 12 tools over 29M rows.
-            </p>
-            <div class="suggestions">
-              <div class="suggestion" onclick="useSuggestion(this)">Who are the top 10 worst property owners by code violations?</div>
-              <div class="suggestion" onclick="useSuggestion(this)">What check cashing businesses operate in zip code 19134?</div>
-              <div class="suggestion" onclick="useSuggestion(this)">Tell me about GEENA LLC - how many properties and violations?</div>
-              <div class="suggestion" onclick="useSuggestion(this)">Compare vacancy and violation rates between zip codes 19134 and 19140</div>
-              <div class="suggestion" onclick="useSuggestion(this)">Find LLCs that own more than 50 properties with demolition records</div>
+            <div class="powered-by powered-by-aoai">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+              Powered by Azure OpenAI
             </div>
+            <h3>Investigative Agent</h3>
+            <p>
+              Ask questions in plain English about Philadelphia property data. This agent uses
+              <strong>Azure OpenAI Chat Completions</strong> with tool calling &mdash; our code
+              runs the agentic loop (up to 10 rounds), deciding which of 12 tools to call and
+              chaining results together to build a complete answer.
+            </p>
+            <div class="agent-info-grid">
+              <div class="agent-info-item">
+                <span class="agent-info-value">6</span>
+                <span class="agent-info-label">AI Models</span>
+              </div>
+              <div class="agent-info-item">
+                <span class="agent-info-value">12</span>
+                <span class="agent-info-label">Tools</span>
+              </div>
+              <div class="agent-info-item">
+                <span class="agent-info-value">29M</span>
+                <span class="agent-info-label">Rows</span>
+              </div>
+              <div class="agent-info-item">
+                <span class="agent-info-value">10</span>
+                <span class="agent-info-label">Max Rounds</span>
+              </div>
+            </div>
+            <p class="agent-detail">
+              Pick a model from the dropdown above. GPT-4.1 is the default.
+              Results include inline maps when properties have coordinates (99.97% do).
+            </p>
+            <div class="suggestions" id="agentSuggestions"></div>
           </div>
         </div>
         <div class="chat-input-area">
+          <div class="prompt-menu" id="agentPromptMenu" style="display:none;"></div>
           <div class="chat-input-row">
             <div class="chat-input-wrap">
               <textarea id="chatInput" rows="1" placeholder="Ask about Philadelphia property data..."
                 onkeydown="handleChatKey(event)" oninput="autoResize(this)"></textarea>
             </div>
+            <button class="btn-prompts" onclick="togglePromptMenu('agent')" title="Sample prompts">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+            </button>
             <button class="btn-send" id="chatSendBtn" onclick="sendChatMessage()">Send</button>
           </div>
           <div class="chat-input-hint">Enter to send, Shift+Enter for new line</div>
@@ -2177,8 +2490,15 @@
             </p>
             <p style="margin-top:0.5rem;">
               The AI assistant uses the same 12 investigative tools and data pipeline as the Investigative Agent,
-              powered by a Foundry Agent (Azure OpenAI Assistants API) with persistent conversation threads.
+              powered by Microsoft Foundry (Assistants API) with persistent conversation threads.
             </p>
+            <div class="powered-by powered-by-foundry" style="margin-top:0.75rem;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/>
+                <rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/>
+              </svg>
+              Powered by Microsoft Foundry
+            </div>
           </div>
         </div>
 
@@ -2194,14 +2514,20 @@
           <div class="widget-header">
             <div>
               <div class="widget-header-title">Property Data Assistant</div>
-              <div class="widget-header-sub">Powered by Foundry Agent</div>
+              <div class="widget-header-sub">Powered by Microsoft Foundry</div>
             </div>
             <button class="widget-close" onclick="toggleCityChat()">&times;</button>
           </div>
           <div class="widget-messages" id="widgetMessages">
             <div class="widget-bubble system">Ask me anything about Philadelphia property data.</div>
+            <div class="widget-suggestions" id="widgetSuggestions">
+              <div class="widget-suggestion" onclick="useWidgetSuggestion(this)">Who are the top violators?</div>
+              <div class="widget-suggestion" onclick="useWidgetSuggestion(this)">Tell me about GEENA LLC</div>
+              <div class="widget-suggestion" onclick="useWidgetSuggestion(this)">Check cashing in 19134?</div>
+            </div>
           </div>
-          <div class="widget-input-area">
+          <div class="widget-input-area" style="position:relative;">
+            <div class="prompt-menu" id="cityPromptMenu" style="display:none;"></div>
             <input type="text" id="widgetInput" placeholder="Type a message..."
               onkeydown="if(event.key==='Enter'){event.preventDefault();sendWidgetMessage();}" />
             <button class="widget-send" id="widgetSendBtn" onclick="sendWidgetMessage()">
@@ -2261,10 +2587,17 @@
               and synthesizes the results into a natural language response.
             </p>
             <p style="margin-top:0.5rem;">
-              This is one of four client patterns demonstrated in this application: Chat Completions + Tools
-              (Investigative Agent), Assistants API (City Portal), MCP via Low-Code (this panel), and Raw MCP
-              Protocol (Tool Tester).
+              This is one of five client patterns demonstrated in this application: Chat Completions + Tools
+              (Investigative Agent), Assistants API (City Portal), MCP via Low-Code (this panel),
+              Multi-Agent Orchestration (SK Agent), and Raw MCP Protocol (Tool Tester).
             </p>
+            <div class="powered-by powered-by-copilot" style="margin-top:0.75rem;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"/><rect x="4" y="10" width="6" height="4" rx="2"/>
+                <rect x="14" y="10" width="6" height="4" rx="2"/><path d="M10 12h4"/>
+              </svg>
+              Powered by Microsoft Copilot Studio
+            </div>
           </div>
         </div>
 
@@ -2347,11 +2680,11 @@
                   </svg>
                 </div>
                 <h3>City Portal</h3>
-                <span class="about-card-pattern">Azure AI Foundry &mdash; Assistants API</span>
+                <span class="about-card-pattern">Microsoft Foundry &mdash; Assistants API</span>
                 <p>
                   A Philadelphia city government&ndash;branded page with a floating chat widget.
                   Azure manages the tool-calling loop and conversation threads persist server-side,
-                  so follow-up questions remember context. Powered by GPT-4.1 via Azure AI Foundry.
+                  so follow-up questions remember context. Powered by GPT-4.1 via Microsoft Foundry.
                 </p>
               </div>
 
@@ -2415,12 +2748,12 @@
                   </svg>
                 </div>
                 <h3>Semantic Kernel Agent</h3>
-                <span class="about-card-pattern">Multi-Agent Orchestration &mdash; C# / .NET</span>
+                <span class="about-card-pattern">Semantic Kernel &mdash; Microsoft Agent Framework</span>
                 <p>
-                  A team of specialist agents built with Microsoft Semantic Kernel. A Triage agent
-                  routes your question to the right specialist &mdash; OwnerAnalyst, ViolationAnalyst,
-                  or AreaAnalyst &mdash; each with focused tools. Shows agent handoff badges so you can
-                  see which agents collaborated. The only C# component in the stack.
+                  A team of specialist agents built with Microsoft Semantic Kernel (C# / .NET 8).
+                  A Triage agent routes your question to the right specialist &mdash; OwnerAnalyst (3 tools),
+                  ViolationAnalyst (4 tools), or AreaAnalyst (5 tools). Shows agent handoff badges
+                  so you can see which agents collaborated.
                 </p>
               </div>
             </div>
@@ -2447,27 +2780,64 @@
         </div>
         <div class="chat-scroll" id="skChatScroll">
           <div class="chat-welcome" id="skChatWelcome">
-            <h3>Semantic Kernel Multi-Agent</h3>
-            <p>
-              Ask a question and watch a team of specialist agents collaborate. A <strong>Triage</strong> agent
-              routes your request to the right specialist &mdash; <strong>OwnerAnalyst</strong>,
-              <strong>ViolationAnalyst</strong>, or <strong>AreaAnalyst</strong> &mdash; each with its own focused tool set.
-              Built with Microsoft Semantic Kernel (C#) and HandoffOrchestration.
-            </p>
-            <div class="suggestions">
-              <div class="suggestion" onclick="useSKSuggestion(this)">Who are the top 10 LLC violators in Philadelphia?</div>
-              <div class="suggestion" onclick="useSKSuggestion(this)">Investigate GEENA LLC — properties, violations, and demolitions</div>
-              <div class="suggestion" onclick="useSKSuggestion(this)">Compare vacancy and violation rates in 19134 vs 19140</div>
-              <div class="suggestion" onclick="useSKSuggestion(this)">Find check cashing businesses in zip code 19134</div>
+            <div class="powered-by powered-by-sk">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>
+                <ellipse cx="12" cy="12" rx="10" ry="4"/>
+                <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/>
+                <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)"/>
+              </svg>
+              Powered by Semantic Kernel &middot; Microsoft Agent Framework
             </div>
+            <h3>Multi-Agent Orchestration</h3>
+            <p class="sk-subtitle">
+              A team of specialist agents built with Microsoft Semantic Kernel (C# / .NET 8)
+              and Azure OpenAI GPT-4.1. Your question goes to the <strong>Triage</strong> agent,
+              which routes it to the right specialist &mdash; then synthesizes the final answer.
+            </p>
+            <div class="sk-arch">
+              <div class="sk-arch-node sk-arch-triage">
+                <div class="sk-arch-name">Triage</div>
+                <div class="sk-arch-desc">Routes your question to the right specialist</div>
+              </div>
+              <div class="sk-arch-arrows">
+                <div class="sk-arch-arrow"></div>
+                <div class="sk-arch-arrow"></div>
+                <div class="sk-arch-arrow"></div>
+              </div>
+              <div class="sk-arch-specialists">
+                <div class="sk-arch-node sk-arch-specialist">
+                  <div class="sk-arch-name">OwnerAnalyst</div>
+                  <div class="sk-arch-tools">3 tools</div>
+                  <div class="sk-arch-desc">Entity search, property networks, profiles</div>
+                </div>
+                <div class="sk-arch-node sk-arch-specialist">
+                  <div class="sk-arch-name">ViolationAnalyst</div>
+                  <div class="sk-arch-tools">4 tools</div>
+                  <div class="sk-arch-desc">Violations, top violators, demolitions, appeals</div>
+                </div>
+                <div class="sk-arch-node sk-arch-specialist">
+                  <div class="sk-arch-name">AreaAnalyst</div>
+                  <div class="sk-arch-tools">5 tools</div>
+                  <div class="sk-arch-desc">Zip stats, businesses, assessments, custom SQL</div>
+                </div>
+              </div>
+            </div>
+            <div class="suggestions" id="skSuggestions"></div>
           </div>
         </div>
         <div class="chat-input-area">
+          <div class="prompt-menu" id="skPromptMenu" style="display:none;"></div>
           <div class="chat-input-row">
             <div class="chat-input-wrap">
               <textarea id="skChatInput" rows="1" placeholder="Ask the multi-agent team..."
                 onkeydown="handleSKChatKey(event)" oninput="autoResize(this)"></textarea>
             </div>
+            <button class="btn-prompts" onclick="togglePromptMenu('sk')" title="Sample prompts">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+            </button>
             <button class="btn-send" id="skChatSendBtn" onclick="sendSKMessage()">Send</button>
           </div>
           <div class="chat-input-hint">Enter to send, Shift+Enter for new line</div>
@@ -2506,6 +2876,39 @@
        CONSTANTS & STATE
        ================================================================ */
     const API_BASE = 'https://philly-mcp-server.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io';
+
+    /* ── Shared prompt library ── */
+    const SHARED_PROMPTS = {
+      'Ownership': [
+        'Who are the top 10 worst property owners by code violations?',
+        'Tell me about GEENA LLC - how many properties and violations?',
+        'Find LLCs that own more than 50 properties with demolition records',
+      ],
+      'Areas & Businesses': [
+        'What check cashing businesses operate in zip code 19134?',
+        'Compare vacancy and violation rates between zip codes 19134 and 19140',
+        'Which zip codes have the highest demolition rates?',
+      ],
+      'Investigation': [
+        'Find all pawn shops and their property violation records',
+        'Show me the top 20 entities with the most addresses across Philadelphia',
+        'What properties at 1234 N Broad St and who owns them?',
+      ]
+    };
+
+    function renderSuggestions(containerId, handler) {
+      var el = $(containerId);
+      if (!el) return;
+      var html = '';
+      var count = 0;
+      for (var cat in SHARED_PROMPTS) {
+        var prompts = SHARED_PROMPTS[cat];
+        for (var i = 0; i < prompts.length && count < 5; i++, count++) {
+          html += '<div class="suggestion" onclick="' + handler + '(this)">' + escapeHtml(prompts[i]) + '</div>';
+        }
+      }
+      el.innerHTML = html;
+    }
 
     const state = {
       panels: { agent: false, tools: false, city: false, copilot: false, docs: false, about: false, sk: false },
@@ -2680,6 +3083,84 @@
     function toggleNav() {
       var bar = $('activityBar');
       bar.classList.toggle('expanded');
+    }
+
+    /* ── Theme toggle ── */
+    function toggleTheme() {
+      var html = document.documentElement;
+      var isLight = html.getAttribute('data-theme') === 'light';
+      if (isLight) {
+        html.removeAttribute('data-theme');
+        localStorage.setItem('philly-theme', 'dark');
+      } else {
+        html.setAttribute('data-theme', 'light');
+        localStorage.setItem('philly-theme', 'light');
+      }
+      updateThemeIcon();
+    }
+
+    function updateThemeIcon() {
+      var isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      $('sunIcon').style.display = isLight ? 'none' : '';
+      $('moonIcon').style.display = isLight ? '' : 'none';
+    }
+
+    /* ── Prompt menu ── */
+    var activePromptMenu = null;
+
+    function togglePromptMenu(panelType) {
+      var menuId = panelType + 'PromptMenu';
+      var menu = $(menuId);
+      if (!menu) return;
+      if (menu.style.display !== 'none') {
+        menu.style.display = 'none';
+        activePromptMenu = null;
+        return;
+      }
+      var html = '';
+      for (var category in SHARED_PROMPTS) {
+        html += '<div class="prompt-category">' + escapeHtml(category) + '</div>';
+        var prompts = SHARED_PROMPTS[category];
+        for (var i = 0; i < prompts.length; i++) {
+          html += '<div class="prompt-item" onclick="useSharedPrompt(\'' + panelType + '\', this)">' + escapeHtml(prompts[i]) + '</div>';
+        }
+      }
+      menu.innerHTML = html;
+      menu.style.display = '';
+      activePromptMenu = menuId;
+    }
+
+    function useSharedPrompt(panelType, el) {
+      var text = el.textContent;
+      if (panelType === 'agent') {
+        $('chatInput').value = text;
+        sendChatMessage();
+      } else if (panelType === 'sk') {
+        $('skChatInput').value = text;
+        sendSKMessage();
+      } else if (panelType === 'city') {
+        $('widgetInput').value = text;
+        sendWidgetMessage();
+      }
+      var menu = $(panelType + 'PromptMenu');
+      if (menu) menu.style.display = 'none';
+      activePromptMenu = null;
+    }
+
+    document.addEventListener('click', function(e) {
+      if (activePromptMenu && !e.target.closest('.prompt-menu') && !e.target.closest('.btn-prompts')) {
+        $(activePromptMenu).style.display = 'none';
+        activePromptMenu = null;
+      }
+    });
+
+    /* ── Widget suggestions ── */
+    function useWidgetSuggestion(el) {
+      var text = el.textContent;
+      $('widgetInput').value = text;
+      var suggestions = $('widgetSuggestions');
+      if (suggestions) suggestions.remove();
+      sendWidgetMessage();
     }
 
     function togglePanel(name) {
@@ -2878,17 +3359,25 @@
       state.chat.history = [];
       $('chatScroll').innerHTML =
         '<div class="chat-welcome" id="chatWelcome">' +
-          '<h3>Ask a Question</h3>' +
-          '<p>Query property ownership, code violations, demolitions, business licenses, ' +
-          'and poverty profiteering patterns. The agent uses 12 tools over 29M rows.</p>' +
-          '<div class="suggestions">' +
-            '<div class="suggestion" onclick="useSuggestion(this)">Who are the top 10 worst property owners by code violations?</div>' +
-            '<div class="suggestion" onclick="useSuggestion(this)">What check cashing businesses operate in zip code 19134?</div>' +
-            '<div class="suggestion" onclick="useSuggestion(this)">Tell me about GEENA LLC - how many properties and violations?</div>' +
-            '<div class="suggestion" onclick="useSuggestion(this)">Compare vacancy and violation rates between zip codes 19134 and 19140</div>' +
-            '<div class="suggestion" onclick="useSuggestion(this)">Find LLCs that own more than 50 properties with demolition records</div>' +
+          '<div class="powered-by powered-by-aoai">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+              '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>' +
+            '</svg> Powered by Azure OpenAI</div>' +
+          '<h3>Investigative Agent</h3>' +
+          '<p>Ask questions in plain English about Philadelphia property data. This agent uses ' +
+          '<strong>Azure OpenAI Chat Completions</strong> with tool calling — our code runs the ' +
+          'agentic loop (up to 10 rounds), deciding which of 12 tools to call and chaining results together.</p>' +
+          '<div class="agent-info-grid">' +
+            '<div class="agent-info-item"><span class="agent-info-value">6</span><span class="agent-info-label">AI Models</span></div>' +
+            '<div class="agent-info-item"><span class="agent-info-value">12</span><span class="agent-info-label">Tools</span></div>' +
+            '<div class="agent-info-item"><span class="agent-info-value">29M</span><span class="agent-info-label">Rows</span></div>' +
+            '<div class="agent-info-item"><span class="agent-info-value">10</span><span class="agent-info-label">Max Rounds</span></div>' +
           '</div>' +
+          '<p class="agent-detail">Pick a model from the dropdown above. GPT-4.1 is the default. ' +
+          'Results include inline maps when properties have coordinates (99.97% do).</p>' +
+          '<div class="suggestions" id="agentSuggestions"></div>' +
         '</div>';
+      renderSuggestions('agentSuggestions', 'useSuggestion');
     }
 
     /* ================================================================
@@ -2985,15 +3474,29 @@
     function clearSKChat() {
       $('skChatScroll').innerHTML =
         '<div class="chat-welcome" id="skChatWelcome">' +
-          '<h3>Semantic Kernel Multi-Agent</h3>' +
-          '<p>Ask a question and watch a team of specialist agents collaborate.</p>' +
-          '<div class="suggestions">' +
-            '<div class="suggestion" onclick="useSKSuggestion(this)">Who are the top 10 LLC violators in Philadelphia?</div>' +
-            '<div class="suggestion" onclick="useSKSuggestion(this)">Investigate GEENA LLC — properties, violations, and demolitions</div>' +
-            '<div class="suggestion" onclick="useSKSuggestion(this)">Compare vacancy and violation rates in 19134 vs 19140</div>' +
-            '<div class="suggestion" onclick="useSKSuggestion(this)">Find check cashing businesses in zip code 19134</div>' +
+          '<div class="powered-by powered-by-sk">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' +
+              '<circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>' +
+              '<ellipse cx="12" cy="12" rx="10" ry="4"/>' +
+              '<ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/>' +
+              '<ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)"/>' +
+            '</svg> Powered by Semantic Kernel &middot; Microsoft Agent Framework</div>' +
+          '<h3>Multi-Agent Orchestration</h3>' +
+          '<p class="sk-subtitle">A team of specialist agents built with Semantic Kernel (C# / .NET 8) and Azure OpenAI GPT-4.1. ' +
+          'Your question goes to Triage, which routes to the right specialist.</p>' +
+          '<div class="sk-arch">' +
+            '<div class="sk-arch-node sk-arch-triage"><div class="sk-arch-name">Triage</div>' +
+              '<div class="sk-arch-desc">Routes your question to the right specialist</div></div>' +
+            '<div class="sk-arch-arrows"><div class="sk-arch-arrow"></div><div class="sk-arch-arrow"></div><div class="sk-arch-arrow"></div></div>' +
+            '<div class="sk-arch-specialists">' +
+              '<div class="sk-arch-node sk-arch-specialist"><div class="sk-arch-name">OwnerAnalyst</div><div class="sk-arch-tools">3 tools</div><div class="sk-arch-desc">Entity search, property networks, profiles</div></div>' +
+              '<div class="sk-arch-node sk-arch-specialist"><div class="sk-arch-name">ViolationAnalyst</div><div class="sk-arch-tools">4 tools</div><div class="sk-arch-desc">Violations, top violators, demolitions, appeals</div></div>' +
+              '<div class="sk-arch-node sk-arch-specialist"><div class="sk-arch-name">AreaAnalyst</div><div class="sk-arch-tools">5 tools</div><div class="sk-arch-desc">Zip stats, businesses, assessments, custom SQL</div></div>' +
+            '</div>' +
           '</div>' +
+          '<div class="suggestions" id="skSuggestions"></div>' +
         '</div>';
+      renderSuggestions('skSuggestions', 'useSKSuggestion');
     }
 
     function addSKMessage(role, content, agents, toolCalls, execTime) {
@@ -3774,8 +4277,11 @@
     // Dark-friendly tile layer
     const TILE_URL = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
     const TILE_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>';
-    // Light tile for city panel context
     const TILE_URL_LIGHT = 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
+
+    function getCurrentTileUrl() {
+      return document.documentElement.getAttribute('data-theme') === 'light' ? TILE_URL_LIGHT : TILE_URL;
+    }
 
     function initWelcomeMap() {
       var el = $('welcomeMap');
@@ -3790,7 +4296,7 @@
         doubleClickZoom: false,
         touchZoom: false,
       });
-      L.tileLayer(TILE_URL, { attribution: TILE_ATTR }).addTo(welcomeMapInstance);
+      L.tileLayer(getCurrentTileUrl(), { attribution: TILE_ATTR }).addTo(welcomeMapInstance);
       // Subtle city label
       L.marker(PHILLY_CENTER, {
         icon: L.divIcon({
@@ -3836,7 +4342,7 @@
 
       // Create map after DOM insertion
       var map = L.map(mapId, { zoomControl: true, attributionControl: false });
-      L.tileLayer(TILE_URL, { attribution: TILE_ATTR }).addTo(map);
+      L.tileLayer(getCurrentTileUrl(), { attribution: TILE_ATTR }).addTo(map);
 
       // Custom marker icon
       var markerIcon = L.divIcon({
@@ -3879,10 +4385,22 @@
     /* ================================================================
        INIT
        ================================================================ */
+    // Theme: restore from localStorage
+    (function() {
+      var saved = localStorage.getItem('philly-theme');
+      if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+      updateThemeIcon();
+    })();
+
     updatePanels();
     loadModels();
     loadUserInfo();
     renderDocList();
+
+    // Populate initial suggestions from shared prompts
+    renderSuggestions('agentSuggestions', 'useSuggestion');
+    renderSuggestions('skSuggestions', 'useSKSuggestion');
+
     // Init welcome map after a tick (DOM needs to be visible)
     setTimeout(initWelcomeMap, 100);
   </script>
