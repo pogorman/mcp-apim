@@ -1,8 +1,8 @@
 {
   "$schema": "https://aka.ms/json-schemas/copilot/plugin/v2.4/schema.json",
   "schema_version": "v2.4",
-  "name_for_human": "Philly Property Tools",
-  "description_for_human": "Philadelphia property data: ownership networks, violations, demolitions, assessments, licenses, and business activity across 29M rows.",
+  "name_for_human": "Philly Investigator",
+  "description_for_human": "Philadelphia property ownership, violations, demolitions, assessments, and licenses.",
   "namespace": "philly",
   "runtimes": [
     {
@@ -12,7 +12,21 @@
       },
       "auth": {
         "type": "None"
-      }
+      },
+      "run_for_functions": [
+        "search_entities",
+        "get_entity_network",
+        "get_property_profile",
+        "get_property_violations",
+        "get_property_assessments",
+        "get_property_licenses",
+        "get_property_appeals",
+        "get_property_demolitions",
+        "search_businesses",
+        "get_top_violators",
+        "get_area_stats",
+        "run_query"
+      ]
     }
   ],
   "functions": [

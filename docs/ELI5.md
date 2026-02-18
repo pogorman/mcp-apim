@@ -249,11 +249,13 @@ This is the demo's punchline: one backend, seven completely different client exp
 | | |
 |---|---|
 | **Pattern** | M365 Copilot declarative agent with RemoteMCPServer |
-| **What it means** | A sideloaded Teams app that gives Microsoft 365 Copilot access to all 12 tools via MCP. Works in Teams, Outlook, and Edge. No custom code — just manifest files pointing to our MCP endpoint. |
-| **Model** | Microsoft's M365 Copilot orchestration model |
+| **What it means** | 3 JSON files + 2 icons. That's the entire agent. We wrote a manifest that says "connect to this MCP URL" and sideloaded it into Teams with one CLI command. M365 Copilot discovers all 12 tools automatically. No custom code, no new infrastructure — reuses the exact same MCP endpoint as Copilot Studio. |
+| **Model** | Microsoft's M365 Copilot orchestration model (you don't choose) |
 | **Memory** | Conversation-scoped (within a Copilot chat session) |
 | **Maps** | No (text responses only) |
-| **Best for** | Showing that the same MCP backend works in M365 Copilot; enterprise distribution via Teams |
+| **How it was deployed** | `teamsapp install --file-path philly-investigator.zip` (M365 Agents Toolkit CLI) |
+| **How it differs from Copilot Studio** | Copilot Studio is a separate low-code agent builder. This lives _inside_ M365 Copilot alongside your emails, files, and calendar. Both connect to the same `/mcp` endpoint. |
+| **Best for** | Showing that the same MCP backend works in M365 Copilot; enterprise distribution via Teams; demonstrating the simplest possible integration path |
 
 ### 7. Documentation (Book icon)
 

@@ -371,17 +371,29 @@ MCP is GA in Copilot Studio (May 2025). Now that the MCP server has Streamable H
 
 ## M365 Copilot Declarative Agent
 
-The `m365-agent/` directory contains a declarative agent for Microsoft 365 Copilot (Teams, Outlook, Edge). It uses the `RemoteMCPServer` runtime to connect directly to our MCP endpoint — all 12 tools are available via dynamic discovery.
+The `m365-agent/` directory contains a declarative agent for Microsoft 365 Copilot (Teams, Outlook, Edge). Zero custom code, zero new infrastructure — just 3 JSON manifest files + 2 icons that point M365 Copilot at our existing MCP endpoint via the `RemoteMCPServer` runtime type. This is the simplest integration path in the project.
 
-**Files:** `manifest.json` (Teams app v1.25), `declarativeAgent.json` (agent v1.6), `ai-plugin.json` (plugin v2.4 with RemoteMCPServer)
+**How it works:** `ai-plugin.json` declares a `RemoteMCPServer` runtime with the Container App's `/mcp` URL. M365 Copilot connects via Streamable HTTP and discovers all 12 tools automatically — the same endpoint Copilot Studio and Azure AI Foundry already use.
 
-**Setup:**
-1. Replace `{{APP_ID}}` in `manifest.json` with a new GUID
-2. Zip all files: `cd m365-agent && zip philly-investigator.zip *`
-3. Sideload in Teams (Teams Toolkit, Developer Portal, or Admin Center)
-4. Open M365 Copilot and select "Philly Investigator" from agent picker
+**This is NOT Copilot Studio.** Copilot Studio is a separate low-code agent builder. This is a declarative agent that lives _inside_ M365 Copilot (the one built into Teams/Outlook/Edge), alongside your enterprise data (emails, files, calendar). Both connect to the same MCP endpoint, but they're different products.
 
-**Note:** MCP in declarative agents is in public preview. Integer params are sent as strings, max 10 actions per plugin. See `m365-agent/README.md` for full details.
+**Files:** `manifest.json` (Teams app v1.25), `declarativeAgent.json` (agent v1.6 — instructions + 6 conversation starters), `ai-plugin.json` (plugin v2.4 — RemoteMCPServer runtime + 12 tool schemas)
+
+**CLI used:** `teamsapp` (M365 Agents Toolkit CLI, `@microsoft/m365agentstoolkit-cli@1.1.4`, installed globally via npm)
+
+**Deploy:**
+```bash
+cd m365-agent
+# Create zip (use Node.js, NOT PowerShell Compress-Archive which produces incompatible zips)
+# Then sideload:
+teamsapp install --file-path philly-investigator.zip -i false
+```
+
+**Deployed instance:** TitleId `T_1179e3d7-033e-8784-6e25-caf4c0bbed61`, AppId `cadbec7e-cd67-4635-b60d-4f8d1a6b04fc`
+
+**Validation gotchas:** `name_for_human` max 20 chars, `description_for_human` max 100 chars, `run_for_functions` array required in runtime (can't be empty), `description.short` max 80 chars. PowerShell's `Compress-Archive` creates zips the portal rejects — use Node.js or 7-Zip.
+
+**Note:** MCP in declarative agents is in public preview (announced Ignite Nov 2025). See `m365-agent/README.md` for full build/deploy details including all validation errors we hit.
 
 ## Conventions
 

@@ -26,6 +26,8 @@ Chronological record of what was built, what broke, and how it was fixed. Keeps 
 - [Session 18 — Authentication, Docs Panel, Background Image](#session-18--authentication-docs-panel-background-image-2026-02-16)
 - [Session 19 — SK Agent, Bicep IaC, MCAPS Fix](#session-19--sk-agent-bicep-iac-mcaps-fix-2026-02-16)
 - [Session 20 — SK Agent UX, SQL Bug Fix](#session-20--sk-agent-ux-sql-bug-fix-2026-02-17)
+- [Session 22 — Dashboard, Architecture Panel, Warm-Up Button](#session-22--dashboard-architecture-panel-warm-up-button-2026-02-17)
+- [Session 23 — M365 Copilot Declarative Agent](#session-23--m365-copilot-declarative-agent-2026-02-17)
 
 ---
 
@@ -1018,3 +1020,85 @@ Comprehensive update of ALL project documentation with VNet + Private Endpoints 
 - `docs/ELI5.md` — Updated cost table
 - `docs/SESSION_LOG.md` — This entry
 - `docs/PROMPTS.md` — Session 21 prompts
+
+---
+
+## Session 22 — Dashboard, Architecture Panel, Warm-Up Button (2026-02-17)
+
+### Dashboard Home Screen
+Replaced the welcome screen with a full data dashboard using Chart.js and Leaflet. Static data queried once via MCP, embedded as JS constants in `web/dash-data.js` (70KB — mostly GeoJSON for 48 zip code polygons). Zero Azure cost after initial data pull.
+
+- **Choropleth map** — 48 zip codes colored by violation density (blue→red gradient), Leaflet popups with stats
+- **Top violators chart** — Horizontal bar chart, top 15 property owners by violations, government entities distinguished
+- **Demolitions chart** — Bar chart showing yearly demolition counts 2007-2024
+- **Vacancy chart** — Bar chart showing top 15 zips by vacancy percentage
+- **Bug fix:** GeoJSON features used `properties.zip` not `properties.CODE` — choropleth was blank until fixed
+
+### Architecture Panel
+Added the `architecture-combined-v2.html` page as an SPA panel (iframe) between Docs and About. Updated the architecture page with SK Agent (6th client pattern), resource tables, cost tables. Added light/dark mode support with theme sync from parent SPA via 500ms polling of `data-theme` attribute.
+
+### Warm-Up Button
+Added a lightning bolt button in the SPA header that wakes all serverless Azure resources before demos. Shows a live console overlay with checkmarks and elapsed time. Runs 3 tasks in parallel:
+- SQL + Functions + APIM (via `/chat` endpoint which traverses the full chain)
+- MCP Server Container App (`/healthz`)
+- SK Agent Container App (`/healthz`)
+
+### Files Changed
+- `web/dash-data.js` — **NEW** — Static dashboard data (violators, demolitions, zip stats, GeoJSON)
+- `web/index.html` — Dashboard initialization, architecture panel, warm-up button
+- `docs/architecture-combined-v2.html` — SK Agent cell, light/dark mode, theme sync
+- `infra/deploy-swa.sh` — Copy HTML files alongside MD files
+
+### Commits
+- `1d2b934` — Dashboard home screen with Chart.js visualizations
+- `893db58` — Fix choropleth property name
+- `443f522` — Architecture panel in SPA
+- `3c5cb2d` — Architecture page light/dark mode
+- `a89605b` — Warm-up button
+
+---
+
+## Session 23 — M365 Copilot Declarative Agent (2026-02-17)
+
+### What Was Built
+Created a Microsoft 365 Copilot declarative agent — the 7th (and simplest) client pattern in the project. The entire agent is 3 JSON files + 2 icons. No custom code, no new infrastructure. It connects to the same MCP endpoint that Copilot Studio already uses.
+
+### How It Works
+The `ai-plugin.json` declares a `RemoteMCPServer` runtime type that points to our existing Container App's `/mcp` endpoint URL. M365 Copilot connects via Streamable HTTP and discovers all 12 tools automatically. The agent is sideloaded as a Teams app and appears in the M365 Copilot agent picker in Teams, Outlook, and Edge.
+
+### This Is NOT Copilot Studio
+Copilot Studio is a separate low-code agent builder. The declarative agent lives _inside_ M365 Copilot alongside enterprise data (emails, files, calendar). Both connect to the same `/mcp` endpoint, but they're different products with different distribution models.
+
+### Tools & CLIs Used
+| Tool | Purpose |
+|------|---------|
+| `teamsapp` (M365 Agents Toolkit CLI, `@microsoft/m365agentstoolkit-cli@1.1.4`) | Sideload the app package |
+| Node.js | Generate placeholder icons, create zip (PowerShell `Compress-Archive` incompatible) |
+| Python | Generate GUID for app ID |
+
+### Validation Errors Hit & Fixed
+| Error | Fix |
+|-------|-----|
+| `name_for_human` > 20 chars | Shortened to "Philly Investigator" |
+| `description_for_human` > 100 chars | Shortened description |
+| `run_for_functions` empty (min 1) | Added array of all 12 function names |
+| `description.short` > 80 chars | Shortened manifest description |
+| Teams Dev Portal: "add-in package not understood" | PowerShell zip format issue → Node.js zip |
+
+### Deploy Command
+```bash
+teamsapp install --file-path philly-investigator.zip -i false
+# Output: TitleId: T_1179e3d7-..., AppId: cadbec7e-...
+```
+
+### Files Created/Changed
+- `m365-agent/manifest.json` — **NEW** — Teams app manifest (v1.25)
+- `m365-agent/declarativeAgent.json` — **NEW** — Agent definition (v1.6, 6 conversation starters)
+- `m365-agent/ai-plugin.json` — **NEW** — Plugin (v2.4, RemoteMCPServer + 12 tool schemas)
+- `m365-agent/color.png` — **NEW** — 192x192 placeholder icon
+- `m365-agent/outline.png` — **NEW** — 32x32 placeholder icon
+- `m365-agent/README.md` — **NEW** — Full build/deploy documentation
+- `CLAUDE.md` — Added M365 section, updated architecture diagram, project structure
+- `docs/architecture-combined-v2.html` — Added M365 cell (7th client), updated counts
+- `docs/ELI5.md` — Added M365 panel description, updated glossary and wrap-up counts
+- `docs/SESSION_LOG.md` — This entry

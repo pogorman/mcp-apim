@@ -2,7 +2,7 @@
   "$schema": "https://developer.microsoft.com/json-schemas/teams/v1.25/MicrosoftTeams.schema.json",
   "manifestVersion": "1.25",
   "version": "1.0.0",
-  "id": "{{APP_ID}}",
+  "id": "cb07e19f-f8c9-4760-9459-9f9198f9055b",
   "developer": {
     "name": "Philly Poverty Profiteering",
     "websiteUrl": "https://kind-forest-06c4d3c0f.1.azurestaticapps.net/",
@@ -14,7 +14,7 @@
     "full": "Philadelphia Property Investigator"
   },
   "description": {
-    "short": "Investigate property ownership, violations, and poverty profiteering in Philadelphia",
+    "short": "Investigate Philadelphia property ownership and violations",
     "full": "An AI agent that investigates poverty profiteering patterns in Philadelphia using 10 public datasets (~29M rows). Query property ownership networks, code violations, demolitions, business licenses, and assessment data to identify exploitative LLCs and property owners."
   },
   "icons": {
