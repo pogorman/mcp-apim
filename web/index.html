@@ -2841,7 +2841,7 @@
       var count = 0;
       for (var cat in SHARED_PROMPTS) {
         var prompts = SHARED_PROMPTS[cat];
-        for (var i = 0; i < prompts.length && count < 5; i++, count++) {
+        for (var i = 0; i < prompts.length; i++, count++) {
           html += '<div class="suggestion" onclick="' + handler + '(this)">' + escapeHtml(prompts[i]) + '</div>';
         }
       }
