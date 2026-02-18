@@ -2163,7 +2163,7 @@
       </select>
       <div class="status">
         <div class="status-dot"></div>
-        <span>12 tools + 29M rows</span>
+        <span>14 tools + 34M rows</span>
       </div>
       <div class="user-info" id="userInfo" style="display:none;">
         <span class="user-email" id="userEmail"></span>
@@ -2276,7 +2276,7 @@
         <div class="dash">
           <div class="dash-header">
             <h2>Philadelphia Poverty Profiteering Dashboard</h2>
-            <p>Static visualizations from 10 public datasets (~29M rows). Use the left nav to open AI agents for live investigation.</p>
+            <p>Static visualizations from 11 public datasets (~34M rows). Use the left nav to open AI agents for live investigation.</p>
           </div>
           <div class="dash-stats">
             <div class="dash-stat"><div class="dash-stat-value">584K</div><div class="dash-stat-label">Properties</div></div>
@@ -2329,7 +2329,7 @@
             <p>
               Ask questions in plain English about Philadelphia property data. This agent uses
               <strong>Azure OpenAI Chat Completions</strong> with tool calling &mdash; our code
-              runs the agentic loop (up to 10 rounds), deciding which of 12 tools to call and
+              runs the agentic loop (up to 10 rounds), deciding which of 14 tools to call and
               chaining results together to build a complete answer.
             </p>
             <div class="agent-info-grid">
@@ -2338,11 +2338,11 @@
                 <span class="agent-info-label">AI Models</span>
               </div>
               <div class="agent-info-item">
-                <span class="agent-info-value">12</span>
+                <span class="agent-info-value">14</span>
                 <span class="agent-info-label">Tools</span>
               </div>
               <div class="agent-info-item">
-                <span class="agent-info-value">29M</span>
+                <span class="agent-info-value">34M</span>
                 <span class="agent-info-label">Rows</span>
               </div>
               <div class="agent-info-item">
@@ -2395,7 +2395,7 @@
               Ask questions about Philadelphia property data using the
               <strong>Microsoft Foundry Assistants API</strong>. Azure manages the tool-calling loop
               and conversation threads persist server-side &mdash; follow-up questions remember context.
-              Same 12 tools, same 29M rows.
+              Same 14 tools, same 34M rows.
             </p>
             <div class="agent-info-grid" style="grid-template-columns: repeat(3, 1fr);">
               <div class="agent-info-item">
@@ -2561,8 +2561,8 @@
             <h2>What is this?</h2>
             <p>
               An AI-powered investigative platform that surfaces poverty profiteering patterns in Philadelphia.
-              It combines <strong>10 public datasets</strong> (~29 million rows) covering property ownership, code violations,
-              demolitions, business licenses, and tax assessments into a queryable system accessible through multiple AI interfaces.
+              It combines <strong>11 public datasets</strong> (~34 million rows) covering property ownership, code violations,
+              demolitions, business licenses, tax assessments, and real estate transfers into a queryable system accessible through multiple AI interfaces.
             </p>
             <p>
               Everything runs on serverless Azure infrastructure and costs ~$1&ndash;2/month when idle. The same 12 investigative
@@ -2616,7 +2616,7 @@
                 <span class="about-card-pattern">Low-Code Agent via MCP</span>
                 <p>
                   A Microsoft Copilot Studio agent that connects to our MCP endpoint and auto-discovers
-                  all 12 tools &mdash; no custom code required. Demonstrates the low-code/no-code path
+                  all 14 tools &mdash; no custom code required. Demonstrates the low-code/no-code path
                   to building an AI agent on top of the same data.
                 </p>
               </div>
@@ -2684,7 +2684,7 @@
                 <p>
                   A declarative agent deployed to Microsoft 365 Copilot (Teams, Outlook, M365.com).
                   Uses the <code>RemoteMCPServer</code> runtime to connect to the same MCP endpoint.
-                  Users ask questions in M365 Copilot and it invokes our 12 tools automatically &mdash;
+                  Users ask questions in M365 Copilot and it invokes our 14 tools automatically &mdash;
                   zero custom code, just a JSON manifest.
                 </p>
               </div>
@@ -3453,11 +3453,11 @@
           '<h3>Investigative Agent</h3>' +
           '<p>Ask questions in plain English about Philadelphia property data. This agent uses ' +
           '<strong>Azure OpenAI Chat Completions</strong> with tool calling — our code runs the ' +
-          'agentic loop (up to 10 rounds), deciding which of 12 tools to call and chaining results together.</p>' +
+          'agentic loop (up to 10 rounds), deciding which of 14 tools to call and chaining results together.</p>' +
           '<div class="agent-info-grid">' +
             '<div class="agent-info-item"><span class="agent-info-value">6</span><span class="agent-info-label">AI Models</span></div>' +
-            '<div class="agent-info-item"><span class="agent-info-value">12</span><span class="agent-info-label">Tools</span></div>' +
-            '<div class="agent-info-item"><span class="agent-info-value">29M</span><span class="agent-info-label">Rows</span></div>' +
+            '<div class="agent-info-item"><span class="agent-info-value">14</span><span class="agent-info-label">Tools</span></div>' +
+            '<div class="agent-info-item"><span class="agent-info-value">34M</span><span class="agent-info-label">Rows</span></div>' +
             '<div class="agent-info-item"><span class="agent-info-value">10</span><span class="agent-info-label">Max Rounds</span></div>' +
           '</div>' +
           '<p class="agent-detail">Pick a model from the dropdown above. GPT-4.1 is the default. ' +
