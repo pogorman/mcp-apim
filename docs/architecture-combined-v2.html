@@ -233,19 +233,20 @@
   <header>
     <div class="tag">Combined Architecture &amp; Implementation Map — v2</div>
     <h1>Philly Profiteering <span>→ Multi-Client Agent Platform</span></h1>
-    <p class="subtitle">Six live client patterns — Chat Completions (6 models), Semantic Kernel multi-agent (.NET), Assistants API, MCP (Copilot Studio), raw MCP tool tester, and stdio (Claude) — all consuming the same 12 tools and 29M rows. Two Container Apps host MCP, chat, agent, and SK endpoints. Azure APIM is the security front door. VNet + Private Endpoints isolate SQL &amp; Storage. ~$33/month idle. Mapped onto the enterprise multi-client pattern with Power Platform expansion paths.</p>
+    <p class="subtitle">Seven live client patterns — Chat Completions (6 models), Semantic Kernel multi-agent (.NET), Assistants API, MCP (Copilot Studio), M365 Copilot declarative agent, raw MCP tool tester, and stdio (Claude) — all consuming the same 12 tools and 29M rows. Two Container Apps host MCP, chat, agent, and SK endpoints. Azure APIM is the security front door. VNet + Private Endpoints isolate SQL &amp; Storage. ~$33/month idle. Mapped onto the enterprise multi-client pattern with Power Platform expansion paths.</p>
   </header>
 
   <!-- ══════════════════════════════════════════════════════ -->
   <!--  WHAT'S LIVE NOW                                      -->
   <!-- ══════════════════════════════════════════════════════ -->
   <div class="callout" style="border-left: 3px solid var(--accent-green);">
-    <h3 style="color:var(--accent-green);">What's Live Today — 6 Client Patterns, Same 12 Tools</h3>
+    <h3 style="color:var(--accent-green);">What's Live Today — 7 Client Patterns, Same 12 Tools</h3>
     <ul>
       <li><strong>Investigative Agent (Chat Completions + Tools)</strong> — SPA panel. 6 selectable models (GPT-4.1, GPT-5, GPT-5 Mini, o4-mini, o3-mini, Phi-4). Stateless agentic loop in <code>chat.ts</code>, up to 10 tool-call rounds.</li>
       <li><strong>SK Agent (Semantic Kernel Multi-Agent)</strong> — SPA panel. C#/.NET 8 orchestration with 4 specialist agents (Triage, OwnerAnalyst, ViolationAnalyst, AreaAnalyst). Triage routes questions to the right specialist. Each specialist has its own APIM-backed tools. GPT-4.1.</li>
       <li><strong>City Portal (Assistants API)</strong> — SPA panel. GPT-4.1 via Assistants API. Azure manages the tool-calling loop. Persistent threads — follow-ups remember context without resending history.</li>
       <li><strong>Copilot Studio (MCP)</strong> — Embedded iframe widget (floating purple star). Auto-discovers all 12 tools via MCP protocol. No custom code on the Copilot Studio side.</li>
+      <li><strong>M365 Copilot (Declarative Agent)</strong> — Teams / Outlook / Edge. Declarative agent with RemoteMCPServer runtime pointing to the MCP endpoint. Sideloaded via Teams app manifest. 6 conversation starters, all 12 tools.</li>
       <li><strong>MCP Tool Tester (Raw Protocol)</strong> — SPA panel. Connects directly to Streamable HTTP endpoint. Manual tool selection, raw JSON results. No AI in the loop.</li>
       <li><strong>Claude Code / Desktop (stdio)</strong> — Local MCP server process. Full access to all 12 tools + ad-hoc SQL via <code>run_query</code>.</li>
     </ul>
@@ -311,6 +312,18 @@
       </div>
     </div>
 
+    <!-- M365 Copilot Declarative Agent -->
+    <div class="cell c-pink">
+      <div class="cell-label"><span class="dot"></span>No-Code <span class="badge badge-live">LIVE</span></div>
+      <div class="cell-title">M365 Copilot</div>
+      <div class="cell-desc">Declarative agent sideloaded via Teams app manifest. RemoteMCPServer runtime auto-discovers all 12 tools via MCP. Available in Teams, Outlook, and Edge. 6 conversation starters for guided investigation.</div>
+      <div class="cell-items">
+        <span class="chip">POST /mcp</span>
+        <span class="chip">RemoteMCPServer</span>
+        <span class="chip">Teams / Outlook / Edge</span>
+      </div>
+    </div>
+
     <!-- Claude Code / Desktop -->
     <div class="cell c-green">
       <div class="cell-label"><span class="dot"></span>Pro-Code <span class="badge badge-live">LIVE</span></div>
@@ -351,7 +364,7 @@
   <!-- Connector -->
   <div class="connector">
     <span class="connector-label">
-      ▼&ensp;6 paths into the same backend: stdio | /mcp | /chat | /agent | /investigate | raw HTTP&ensp;▼
+      ▼&ensp;7 paths into the same backend: stdio | /mcp | /mcp (M365) | /chat | /agent | /investigate | raw HTTP&ensp;▼
     </span>
   </div>
 

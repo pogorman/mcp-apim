@@ -15,6 +15,7 @@
 - [Remote MCP Server (Container App)](#remote-mcp-server-container-app)
 - [Azure AI Foundry Agent](#azure-ai-foundry-agent)
 - [Copilot Studio Integration](#copilot-studio-integration)
+- [M365 Copilot Declarative Agent](#m365-copilot-declarative-agent)
 - [Conventions](#conventions)
 - [Data Source](#data-source)
 
@@ -41,6 +42,9 @@ Microsoft Copilot Studio (floating widget in SPA)
 
 Azure AI Foundry / Any HTTP MCP Client
     └→ Container App /mcp (Streamable HTTP) → APIM → Functions → SQL
+
+M365 Copilot Declarative Agent (Teams / Outlook / Edge)
+    └→ Container App /mcp (Streamable HTTP, RemoteMCPServer runtime) → APIM → Functions → SQL
 ```
 
 Detailed flow:
@@ -107,6 +111,12 @@ mcp-apim/
 ├── agent/                    # Azure AI Foundry agent
 │   ├── foundry_agent.py      # Agent with MCP tools + optional Bing grounding
 │   └── requirements.txt      # Python dependencies
+├── m365-agent/               # M365 Copilot declarative agent
+│   ├── manifest.json          # Teams app manifest (v1.25)
+│   ├── declarativeAgent.json  # Agent definition (v1.6) — instructions + conversation starters
+│   ├── ai-plugin.json         # Plugin (v2.4) — RemoteMCPServer runtime + 12 tool schemas
+│   ├── color.png              # 192x192 app icon
+│   └── outline.png            # 32x32 outline icon
 ├── sql/
 │   └── schema.sql            # 10 tables, 3 views, 20+ indexes
 ├── infra/
@@ -121,7 +131,7 @@ mcp-apim/
 │   ├── apim-policy.json      # APIM policy XML
 │   └── func-app-body.json    # Function app ARM template
 ├── web/                      # Front-end multi-panel interface
-│   ├── index.html            # 7-panel SPA (Agent, City Portal, Copilot, About, SK Agent, Docs, Tools)
+│   ├── index.html            # 8-panel SPA (Dashboard, Agent, City Portal, Copilot, SK Agent, Arch, Docs, About, Tools)
 │   └── staticwebapp.config.json  # SWA auth config (Entra ID login required)
 ├── docs/                     # Project documentation
 │   ├── ARCHITECTURE.md       # Full technical reference
@@ -358,6 +368,20 @@ MCP is GA in Copilot Studio (May 2025). Now that the MCP server has Streamable H
 **References:**
 - [MCP GA in Copilot Studio](https://www.microsoft.com/en-us/microsoft-copilot/blog/copilot-studio/model-context-protocol-mcp-is-now-generally-available-in-microsoft-copilot-studio/)
 - [Connect existing MCP server](https://learn.microsoft.com/en-us/microsoft-copilot-studio/mcp-add-existing-server-to-agent)
+
+## M365 Copilot Declarative Agent
+
+The `m365-agent/` directory contains a declarative agent for Microsoft 365 Copilot (Teams, Outlook, Edge). It uses the `RemoteMCPServer` runtime to connect directly to our MCP endpoint — all 12 tools are available via dynamic discovery.
+
+**Files:** `manifest.json` (Teams app v1.25), `declarativeAgent.json` (agent v1.6), `ai-plugin.json` (plugin v2.4 with RemoteMCPServer)
+
+**Setup:**
+1. Replace `{{APP_ID}}` in `manifest.json` with a new GUID
+2. Zip all files: `cd m365-agent && zip philly-investigator.zip *`
+3. Sideload in Teams (Teams Toolkit, Developer Portal, or Admin Center)
+4. Open M365 Copilot and select "Philly Investigator" from agent picker
+
+**Note:** MCP in declarative agents is in public preview. Integer params are sent as strings, max 10 actions per plugin. See `m365-agent/README.md` for full details.
 
 ## Conventions
 

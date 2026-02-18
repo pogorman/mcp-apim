@@ -93,7 +93,7 @@ Click the purple chat icon and ask something.
 
 ### Wrap Up
 
-> "Seven completely different interfaces — a custom chat agent, a government-branded portal, a Copilot Studio agent, a Semantic Kernel multi-agent, a project overview, a documentation reader, and a raw tool tester — all using the same 12 tools and the same 29 million rows of data. The whole thing runs serverless and costs about $33 a month when nobody's using it — most of that is network security keeping the data path private."
+> "Eight completely different interfaces — a custom chat agent, a government-branded portal, a Copilot Studio agent, a Semantic Kernel multi-agent, an M365 Copilot declarative agent, a project overview, a documentation reader, and a raw tool tester — all using the same 12 tools and the same 29 million rows of data. The whole thing runs serverless and costs about $33 a month when nobody's using it — most of that is network security keeping the data path private."
 
 ---
 
@@ -244,7 +244,18 @@ This is the demo's punchline: one backend, seven completely different client exp
 | **Maps** | No (text responses only) |
 | **Best for** | Showing the Microsoft Semantic Kernel pattern; C# enterprise agent architecture |
 
-### 6. Documentation (Book icon)
+### 6. M365 Copilot (Declarative Agent — not in SPA)
+
+| | |
+|---|---|
+| **Pattern** | M365 Copilot declarative agent with RemoteMCPServer |
+| **What it means** | A sideloaded Teams app that gives Microsoft 365 Copilot access to all 12 tools via MCP. Works in Teams, Outlook, and Edge. No custom code — just manifest files pointing to our MCP endpoint. |
+| **Model** | Microsoft's M365 Copilot orchestration model |
+| **Memory** | Conversation-scoped (within a Copilot chat session) |
+| **Maps** | No (text responses only) |
+| **Best for** | Showing that the same MCP backend works in M365 Copilot; enterprise distribution via Teams |
+
+### 7. Documentation (Book icon)
 
 | | |
 |---|---|
@@ -255,7 +266,7 @@ This is the demo's punchline: one backend, seven completely different client exp
 | **Maps** | No |
 | **Best for** | Reading docs during demos, quick reference, showing notebooks without Jupyter |
 
-### 7. MCP Tool Tester (Wrench icon, bottom of sidebar)
+### 8. MCP Tool Tester (Wrench icon, bottom of sidebar)
 
 | | |
 |---|---|
@@ -419,6 +430,7 @@ For when someone in your audience asks "what does that mean?"
 | **Container App** | A way to run our server code in the cloud. It can scale from zero (sleeping, $0) to multiple copies when busy. |
 | **Assistants API** | Microsoft's managed version of tool calling. Instead of us running the AI loop, Azure does it. Conversations are stored server-side. |
 | **Copilot Studio** | Microsoft's low-code platform for building AI agents. You can connect it to our tools without writing any code. |
+| **Declarative Agent** | A manifest-based agent for M365 Copilot. You describe the agent in JSON files (instructions, tools, conversation starters) and sideload it into Teams. No custom backend needed — it connects to our existing MCP endpoint. |
 | **Entity resolution** | Figuring out that "John Smith", "JOHN SMITH", and "J. Smith at 123 Main St" might all be the same person. The database has a graph of 2.8M entities linked to 987K addresses. |
 | **SPA** | Single Page Application — the website is one HTML file with no build step. No React, no npm, no webpack. Just HTML, CSS, and JavaScript. |
 | **Token** | The unit AI models use to read and write text. Roughly 3/4 of a word. You pay per token consumed. |
