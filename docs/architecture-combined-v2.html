@@ -202,16 +202,17 @@
   <header>
     <div class="tag">Combined Architecture &amp; Implementation Map — v2</div>
     <h1>Philly Profiteering <span>→ Multi-Client Agent Platform</span></h1>
-    <p class="subtitle">Five live client patterns — Chat Completions (6 models), Assistants API, MCP (Copilot Studio), raw MCP tool tester, and stdio (Claude) — all consuming the same 12 tools and 29M rows. A single Container App hosts MCP, chat, and agent endpoints. Azure APIM is the security front door. VNet + Private Endpoints isolate SQL &amp; Storage. ~$33/month idle. Mapped onto the enterprise multi-client pattern with Power Platform expansion paths.</p>
+    <p class="subtitle">Six live client patterns — Chat Completions (6 models), Semantic Kernel multi-agent (.NET), Assistants API, MCP (Copilot Studio), raw MCP tool tester, and stdio (Claude) — all consuming the same 12 tools and 29M rows. Two Container Apps host MCP, chat, agent, and SK endpoints. Azure APIM is the security front door. VNet + Private Endpoints isolate SQL &amp; Storage. ~$33/month idle. Mapped onto the enterprise multi-client pattern with Power Platform expansion paths.</p>
   </header>
 
   <!-- ══════════════════════════════════════════════════════ -->
   <!--  WHAT'S LIVE NOW                                      -->
   <!-- ══════════════════════════════════════════════════════ -->
   <div class="callout" style="border-left: 3px solid var(--accent-green);">
-    <h3 style="color:var(--accent-green);">What's Live Today — 5 Client Patterns, Same 12 Tools</h3>
+    <h3 style="color:var(--accent-green);">What's Live Today — 6 Client Patterns, Same 12 Tools</h3>
     <ul>
       <li><strong>Investigative Agent (Chat Completions + Tools)</strong> — SPA panel. 6 selectable models (GPT-4.1, GPT-5, GPT-5 Mini, o4-mini, o3-mini, Phi-4). Stateless agentic loop in <code>chat.ts</code>, up to 10 tool-call rounds.</li>
+      <li><strong>SK Agent (Semantic Kernel Multi-Agent)</strong> — SPA panel. C#/.NET 8 orchestration with 4 specialist agents (Triage, OwnerAnalyst, ViolationAnalyst, AreaAnalyst). Triage routes questions to the right specialist. Each specialist has its own APIM-backed tools. GPT-4.1.</li>
       <li><strong>City Portal (Assistants API)</strong> — SPA panel. GPT-4.1 via Assistants API. Azure manages the tool-calling loop. Persistent threads — follow-ups remember context without resending history.</li>
       <li><strong>Copilot Studio (MCP)</strong> — Embedded iframe widget (floating purple star). Auto-discovers all 12 tools via MCP protocol. No custom code on the Copilot Studio side.</li>
       <li><strong>MCP Tool Tester (Raw Protocol)</strong> — SPA panel. Connects directly to Streamable HTTP endpoint. Manual tool selection, raw JSON results. No AI in the loop.</li>
@@ -226,7 +227,7 @@
     <span class="num" style="background:var(--accent-blue); color:var(--bg);">1</span>
     Consuming Clients — Who Investigates Poverty Profiteering?
   </div>
-  <div class="grid top bottom" style="grid-template-columns: 1fr 1fr 1fr 1fr 1fr;">
+  <div class="grid top bottom" style="grid-template-columns: 1fr 1fr 1fr;">
 
     <!-- SPA: Investigative Agent -->
     <div class="cell c-blue">
@@ -238,6 +239,19 @@
         <span class="chip">6 models</span>
         <span class="chip">10-round tool loop</span>
         <span class="chip">Markdown rendering</span>
+      </div>
+    </div>
+
+    <!-- SK Agent -->
+    <div class="cell c-orange">
+      <div class="cell-label"><span class="dot"></span>Pro-Code <span class="badge badge-live">LIVE</span></div>
+      <div class="cell-title">SK Agent (Semantic Kernel)</div>
+      <div class="cell-desc">SPA panel (atom icon). C#/.NET 8 multi-agent orchestration. Triage agent routes to 3 specialists: OwnerAnalyst (3 tools), ViolationAnalyst (4 tools), AreaAnalyst (5 tools). GPT-4.1. Separate Container App.</div>
+      <div class="cell-items">
+        <span class="chip">POST /investigate</span>
+        <span class="chip">4 agents</span>
+        <span class="chip">12 APIM tools</span>
+        <span class="chip">Triage routing</span>
       </div>
     </div>
 
@@ -306,7 +320,7 @@
   <!-- Connector -->
   <div class="connector">
     <span class="connector-label">
-      ▼&ensp;5 paths into the same backend: stdio | /mcp | /chat | /agent | raw HTTP&ensp;▼
+      ▼&ensp;6 paths into the same backend: stdio | /mcp | /chat | /agent | /investigate | raw HTTP&ensp;▼
     </span>
   </div>
 
@@ -356,11 +370,30 @@
       </div>
     </div>
   </div>
-  <div class="grid bottom" style="grid-template-columns: 1fr 1fr;">
+  <div class="grid" style="grid-template-columns: 1fr;">
+    <div class="cell c-orange">
+      <div class="cell-label"><span class="dot"></span>Semantic Kernel</div>
+      <div class="cell-title">POST /investigate</div>
+      <div class="cell-desc">C#/.NET 8 multi-agent orchestration. Triage agent analyzes the question and routes to OwnerAnalyst (3 tools), ViolationAnalyst (4 tools), or AreaAnalyst (5 tools). Each specialist calls APIM endpoints directly. GPT-4.1 via managed identity. Returns synthesized answer from specialist(s).</div>
+      <div class="cell-items">
+        <span class="chip">GPT-4.1</span>
+        <span class="chip">4 agents</span>
+        <span class="chip">Triage routing</span>
+        <span class="chip">12 APIM tools</span>
+      </div>
+    </div>
+  </div>
+  <div class="grid bottom" style="grid-template-columns: 1fr 1fr 1fr;">
     <div class="cell" style="padding:14px 18px;">
       <div class="cell-desc" style="font-family:'JetBrains Mono',monospace; font-size:11px;">
         <span style="color:var(--accent-lime);">philly-mcp-server</span>
         &ensp;·&ensp; Container Apps Consumption &ensp;·&ensp; 0-3 replicas &ensp;·&ensp; ~180MB Alpine image &ensp;·&ensp; Port 8080 &ensp;·&ensp; Cold start ~5-10s
+      </div>
+    </div>
+    <div class="cell" style="padding:14px 18px;">
+      <div class="cell-desc" style="font-family:'JetBrains Mono',monospace; font-size:11px;">
+        <span style="color:var(--accent-orange);">philly-sk-agent</span>
+        &ensp;·&ensp; Container Apps Consumption &ensp;·&ensp; 0-3 replicas &ensp;·&ensp; .NET 8 &ensp;·&ensp; Port 8080 &ensp;·&ensp; Cold start ~8-15s
       </div>
     </div>
     <div class="cell" style="padding:14px 18px;">
@@ -607,6 +640,13 @@
           <td><span class="badge badge-live">LIVE</span></td>
         </tr>
         <tr>
+          <td class="resource">Container App</td>
+          <td>philly-sk-agent · Consumption 0-3</td>
+          <td>Layer 2 — Semantic Kernel multi-agent host. POST /investigate endpoint. 4 agents (Triage + 3 specialists). Managed identity → Azure OpenAI + APIM.</td>
+          <td>rg-philly-profiteering</td>
+          <td><span class="badge badge-live">LIVE</span></td>
+        </tr>
+        <tr>
           <td class="resource">API Management</td>
           <td>philly-profiteering-apim · Consumption</td>
           <td>Layer 3 — Security front door. Subscription key + function key injection. All tool calls from all clients route here.</td>
@@ -637,7 +677,7 @@
         <tr>
           <td class="resource">Static Web App</td>
           <td>philly-profiteering-spa · Free</td>
-          <td>Layer 1 — 5-panel SPA (Investigative Agent, City Portal, Copilot Studio, Docs, MCP Tester). Entra ID auth.</td>
+          <td>Layer 1 — 8-panel SPA with dashboard home screen (Investigative Agent, SK Agent, City Portal, Copilot Studio, MCP Tester, Docs, Architecture, About). Entra ID auth.</td>
           <td>rg-philly-profiteering</td>
           <td><span class="badge badge-live">LIVE</span></td>
         </tr>
@@ -705,7 +745,7 @@
         <tr><td class="resource">SQL Database</td><td>$0 (auto-paused)</td><td>~$0.75/vCore-hour</td></tr>
         <tr><td class="resource">Function App</td><td>$0</td><td>Pay per execution (1M/month free)</td></tr>
         <tr><td class="resource">APIM</td><td>$0</td><td>~$3.50/M calls (1M/month free)</td></tr>
-        <tr><td class="resource">Container App</td><td>$0 (0 replicas)</td><td>Pay per use (180K vCPU-s/month free)</td></tr>
+        <tr><td class="resource">Container Apps (x2)</td><td>$0 (0 replicas)</td><td>Pay per use (180K vCPU-s/month free)</td></tr>
         <tr><td class="resource">Container Registry</td><td>~$0.17/month</td><td>Storage only</td></tr>
         <tr><td class="resource">Static Web App</td><td>$0</td><td>Free tier</td></tr>
         <tr><td class="resource">Storage (x2)</td><td>~$1/month total</td><td>Minimal</td></tr>

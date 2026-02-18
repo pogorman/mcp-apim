@@ -2350,6 +2350,15 @@
         </svg>
         <span class="tab-text">Docs</span>
       </button>
+      <button class="activity-tab" id="tabArch" onclick="togglePanel('arch')" title="Architecture">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7"/>
+          <rect x="14" y="3" width="7" height="7"/>
+          <rect x="3" y="14" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/>
+        </svg>
+        <span class="tab-text">Architecture</span>
+      </button>
       <button class="activity-tab" id="tabAbout" onclick="togglePanel('about')" title="About This Site" style="margin-bottom:6px;">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"/>
@@ -2668,7 +2677,15 @@
         </div>
       </div>
 
-      <!-- Panel 6: About This Site -->
+      <!-- Panel 6: Architecture -->
+      <div class="panel" id="panelArch">
+        <div class="panel-header">
+          <span class="panel-header-title">Architecture</span>
+        </div>
+        <iframe id="archFrame" src="docs/architecture-combined-v2.html" style="width:100%;height:100%;border:none;flex:1;"></iframe>
+      </div>
+
+      <!-- Panel 7: About This Site -->
       <div class="panel" id="panelAbout">
         <div class="panel-header">
           <span class="panel-header-title">About This Site</span>
@@ -2944,7 +2961,7 @@
     }
 
     const state = {
-      panels: { agent: false, tools: false, city: false, copilot: false, docs: false, about: false, sk: false },
+      panels: { agent: false, tools: false, city: false, copilot: false, docs: false, arch: false, about: false, sk: false },
       copilotOpen: false,
       chat: { history: [], isLoading: false, model: 'gpt-4.1' },
       city: { threadId: null, chatOpen: false, isLoading: false },
@@ -3219,6 +3236,7 @@
       const cityOpen = state.panels.city;
       const copilotOpen = state.panels.copilot;
       const docsOpen = state.panels.docs;
+      const archOpen = state.panels.arch;
       const aboutOpen = state.panels.about;
       const skOpen = state.panels.sk;
 
@@ -3228,6 +3246,7 @@
       $('tabCity').classList.toggle('active', cityOpen);
       $('tabCopilot').classList.toggle('active', copilotOpen);
       $('tabDocs').classList.toggle('active', docsOpen);
+      $('tabArch').classList.toggle('active', archOpen);
       $('tabAbout').classList.toggle('active', aboutOpen);
       $('tabSK').classList.toggle('active', skOpen);
 
@@ -3237,15 +3256,16 @@
       $('panelCity').classList.toggle('visible', cityOpen);
       $('panelCopilot').classList.toggle('visible', copilotOpen);
       $('panelDocs').classList.toggle('visible', docsOpen);
+      $('panelArch').classList.toggle('visible', archOpen);
       $('panelAbout').classList.toggle('visible', aboutOpen);
       $('panelSK').classList.toggle('visible', skOpen);
 
       // Hide model selector unless Investigative Agent is open
-      const showModelSelect = agentOpen || (!agentOpen && !toolsOpen && !cityOpen && !copilotOpen && !docsOpen && !aboutOpen && !skOpen);
+      const showModelSelect = agentOpen || (!agentOpen && !toolsOpen && !cityOpen && !copilotOpen && !docsOpen && !archOpen && !aboutOpen && !skOpen);
       $('modelSelect').style.display = showModelSelect ? '' : 'none';
 
       // Welcome screen
-      const anyOpen = agentOpen || toolsOpen || cityOpen || copilotOpen || docsOpen || aboutOpen || skOpen;
+      const anyOpen = agentOpen || toolsOpen || cityOpen || copilotOpen || docsOpen || archOpen || aboutOpen || skOpen;
       $('welcomeScreen').classList.toggle('hidden', anyOpen);
 
       // Close copilot widget if copilot panel is closed

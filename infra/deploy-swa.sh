@@ -23,6 +23,7 @@ rm -rf "$DOCS_DEST" "$NB_DEST" "$IMG_DEST"
 echo "=== Copying documentation ==="
 mkdir -p "$DOCS_DEST"
 cp "$PROJECT_ROOT/docs/"*.md "$DOCS_DEST/"
+cp "$PROJECT_ROOT/docs/"*.html "$DOCS_DEST/" 2>/dev/null || true
 cp "$PROJECT_ROOT/README.md" "$DOCS_DEST/"
 
 echo "=== Copying notebooks ==="
