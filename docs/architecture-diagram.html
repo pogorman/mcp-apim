@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Architecture Diagram — Philly Profiteering Agent Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<style>
+  :root {
+    --bg: #0a0c10; --surface: #12151c; --surface2: #1a1e28; --surface3: #1f2330;
+    --border: #252a36; --text: #e2e4e9; --text-dim: #7a8192; --text-muted: #4a5168;
+    --accent-blue: #4a9eff; --accent-blue-dim: #1a3a66;
+    --accent-green: #3dd68c; --accent-green-dim: #153d2a;
+    --accent-orange: #f59e0b; --accent-orange-dim: #3d2a08;
+    --accent-purple: #a78bfa; --accent-purple-dim: #2a1f4e;
+    --accent-cyan: #22d3ee; --accent-cyan-dim: #0a3038;
+    --accent-pink: #f472b6; --accent-pink-dim: #3d152a;
+    --accent-red: #f87171; --accent-red-dim: #3d1515;
+  }
+  [data-theme="light"] {
+    --bg: #f5f6fa; --surface: #ffffff; --surface2: #f0f1f6; --surface3: #e8eaf0;
+    --border: #d4d7e0; --text: #1a1d27; --text-dim: #5a5f73; --text-muted: #8a8fa8;
+    --accent-blue: #2563eb; --accent-blue-dim: #dbeafe;
+    --accent-green: #16a34a; --accent-green-dim: #dcfce7;
+    --accent-orange: #d97706; --accent-orange-dim: #fef3c7;
+    --accent-purple: #7c3aed; --accent-purple-dim: #ede9fe;
+    --accent-cyan: #0891b2; --accent-cyan-dim: #cffafe;
+    --accent-pink: #db2777; --accent-pink-dim: #fce7f3;
+    --accent-red: #dc2626; --accent-red-dim: #fee2e2;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; overflow: hidden; }
+  #diagram-container { width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center; }
+  #arch-svg { width: 100%; height: 100%; }
+
+  /* Detail panel */
+  .detail-panel {
+    position: fixed; right: 0; top: 0; bottom: 0; width: 340px;
+    background: var(--surface); border-left: 1px solid var(--border);
+    transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+    overflow-y: auto; z-index: 10; padding: 1.2rem;
+    font-size: 0.82rem; line-height: 1.5;
+  }
+  .detail-panel.visible { transform: translateX(0); }
+  .detail-panel .close-btn {
+    position: absolute; top: 10px; right: 14px; background: none; border: none;
+    color: var(--text-dim); font-size: 1.4rem; cursor: pointer; line-height: 1;
+  }
+  .detail-panel .close-btn:hover { color: var(--text); }
+  .detail-panel h2 { font-size: 1.05rem; margin-bottom: 0.15rem; font-weight: 600; }
+  .detail-panel .subtitle { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; margin-bottom: 1rem; }
+  .detail-panel h3 { font-size: 0.82rem; font-weight: 600; margin: 0.9rem 0 0.3rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+  .detail-panel table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+  .detail-panel th, .detail-panel td { padding: 0.3rem 0.5rem; text-align: left; border-bottom: 1px solid var(--border); }
+  .detail-panel th { color: var(--text-dim); font-weight: 500; font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; }
+  .detail-panel td { font-family: 'JetBrains Mono', monospace; font-size: 0.7rem; }
+  .detail-panel .chip {
+    display: inline-block; padding: 0.15rem 0.45rem; border-radius: 4px; font-size: 0.68rem;
+    font-family: 'JetBrains Mono', monospace; margin: 0.1rem 0.15rem; border: 1px solid var(--border);
+  }
+  .detail-panel .stat { display: flex; justify-content: space-between; padding: 0.25rem 0; border-bottom: 1px solid var(--border); }
+  .detail-panel .stat-label { color: var(--text-dim); }
+  .detail-panel .stat-value { font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+  /* Legend */
+  .legend {
+    position: fixed; bottom: 16px; left: 16px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; font-size: 0.7rem; z-index: 5; display: flex; gap: 12px; align-items: center;
+  }
+  .legend-item { display: flex; align-items: center; gap: 5px; color: var(--text-dim); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  @keyframes dash-flow { to { stroke-dashoffset: -24; } }
+</style>
+</head>
+<body>
+<div id="diagram-container"></div>
+<div class="detail-panel" id="detailPanel">
+  <button class="close-btn" onclick="closeDetail()">&times;</button>
+  <div id="detailContent"></div>
+</div>
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#4a9eff"></div>Clients</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3dd68c"></div>Container Apps</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#a78bfa"></div>Azure OpenAI</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>APIM / Functions</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#22d3ee"></div>Data</div>
+</div>
+
+<script>
+// ── Data Model ──────────────────────────────────────────
+const COLORS = {
+  clients: '#4a9eff', container: '#3dd68c', openai: '#a78bfa',
+  apim: '#f59e0b', data: '#22d3ee', sk: '#3dd68c'
+};
+
+const nodes = [
+  // Layer 1: Clients
+  { id: 'claude', label: 'Claude Desktop / Code', sub: 'stdio · local', color: COLORS.clients, x: 140, y: 80, w: 195, h: 52,
+    detail: { type: 'client', transport: 'stdio (local process)', llm: 'Anthropic Claude', loop: 'Claude manages', state: 'Session-based', features: ['14 MCP tools', 'Ad-hoc SQL via run_query', 'Configured in .mcp.json'] } },
+  { id: 'investigative', label: 'Investigative Agent', sub: 'POST /chat · 6 models', color: COLORS.clients, x: 140, y: 155, w: 195, h: 52,
+    detail: { type: 'client', transport: 'POST /chat → Container App', llm: '6 models (GPT-4.1 default)', loop: 'Our code (up to 10 rounds)', state: 'Stateless', features: ['Model selector', 'Tool chaining', 'Inline maps'] } },
+  { id: 'city', label: 'City Portal', sub: 'POST /agent · Assistants API', color: COLORS.clients, x: 140, y: 230, w: 195, h: 52,
+    detail: { type: 'client', transport: 'POST /agent/thread + /agent/message', llm: 'GPT-4.1 (Assistants API)', loop: 'Azure manages', state: 'Persistent threads', features: ['Server-side context', 'Philly-branded UI', 'Auto tool sync on startup'] } },
+  { id: 'copilot-studio', label: 'Copilot Studio', sub: 'POST /mcp · low-code', color: COLORS.clients, x: 140, y: 305, w: 195, h: 52,
+    detail: { type: 'client', transport: 'POST /mcp (Streamable HTTP)', llm: 'Microsoft orchestration', loop: 'Microsoft manages', state: 'Managed', features: ['Auto-discovers 14 tools', 'No custom code', 'MCP GA (May 2025)'] } },
+  { id: 'm365', label: 'M365 Copilot', sub: 'POST /mcp · no-code', color: COLORS.clients, x: 140, y: 380, w: 195, h: 52,
+    detail: { type: 'client', transport: 'POST /mcp (RemoteMCPServer)', llm: 'Copilot for M365', loop: 'Microsoft manages', state: 'Managed', features: ['Teams / Outlook / Edge', '3 JSON files + 2 icons', 'Zero custom code'] } },
+  { id: 'sk-agent', label: 'SK Agent', sub: 'POST /investigate · C#/.NET', color: COLORS.sk, x: 140, y: 455, w: 195, h: 52,
+    detail: { type: 'client', transport: 'POST /investigate → SK Container App', llm: 'GPT-4.1 via Semantic Kernel', loop: 'Triage → 3 specialists', state: 'Stateless', features: ['OwnerAnalyst', 'ViolationAnalyst', 'AreaAnalyst', 'Separate Container App'] } },
+  { id: 'tool-tester', label: 'MCP Tool Tester', sub: 'POST /mcp · raw JSON-RPC', color: COLORS.clients, x: 140, y: 530, w: 195, h: 52,
+    detail: { type: 'client', transport: 'POST /mcp (Streamable HTTP)', llm: 'None (raw protocol)', loop: 'Manual', state: 'Stateless', features: ['Direct tool invocation', 'Raw JSON-RPC 2.0', 'Debug/test tool'] } },
+
+  // Layer 2: Container App
+  { id: 'mcp-server', label: 'MCP Server', sub: 'Container App · Node.js 20', color: COLORS.container, x: 480, y: 290, w: 195, h: 130,
+    detail: { type: 'container', endpoints: [
+      { method: 'POST/GET', path: '/mcp', desc: 'Streamable HTTP MCP transport' },
+      { method: 'POST', path: '/chat', desc: 'Chat Completions + tool calling' },
+      { method: 'POST', path: '/agent/thread', desc: 'Create Assistants API thread' },
+      { method: 'POST', path: '/agent/message', desc: 'Send message to Assistants API' },
+      { method: 'GET', path: '/models', desc: 'List available models' },
+      { method: 'GET', path: '/healthz', desc: 'Health check' },
+    ], runtime: 'Node.js 20 Alpine', replicas: '0-3 (scale to zero)', transport: 'Dual: stdio + HTTP', image: '~180MB' } },
+
+  // Layer 3: Azure OpenAI
+  { id: 'openai', label: 'Azure OpenAI', sub: '6 models · Managed Identity', color: COLORS.openai, x: 480, y: 80, w: 195, h: 70,
+    detail: { type: 'openai', models: [
+      { name: 'GPT-4.1', role: 'Default chat + agent' },
+      { name: 'GPT-5', role: 'Advanced reasoning' },
+      { name: 'GPT-5 Mini', role: 'Fast reasoning' },
+      { name: 'o4-mini', role: 'Efficient reasoning' },
+      { name: 'o3-mini', role: 'Cost-effective' },
+      { name: 'Phi-4', role: 'Small language model' },
+    ], apis: ['Chat Completions', 'Assistants API'], auth: 'Managed Identity → Cognitive Services OpenAI User' } },
+
+  // Layer 4: APIM + Functions
+  { id: 'apim', label: 'API Management', sub: 'Consumption tier', color: COLORS.apim, x: 780, y: 220, w: 175, h: 65,
+    detail: { type: 'apim', operations: '14 (10 GET, 4 POST)', security: ['Subscription key validation', 'Function key injection via policy', 'Never exposes function key to clients'], tier: 'Consumption ($0 idle)', policy: 'Wildcard route + key injection' } },
+  { id: 'functions', label: 'Azure Functions', sub: '14 endpoints · Flex FC1', color: COLORS.apim, x: 780, y: 350, w: 175, h: 65,
+    detail: { type: 'functions', tools: [
+      'search_entities', 'get_entity_network', 'get_property_profile', 'get_property_violations',
+      'get_property_assessments', 'get_property_licenses', 'get_property_appeals', 'get_property_demolitions',
+      'get_property_transfers ★', 'search_transfers ★', 'search_businesses', 'get_top_violators', 'get_area_stats', 'run_query'
+    ], runtime: 'Node.js 20 TypeScript', sku: 'Flex Consumption FC1', vnet: 'VNet-integrated (snet-functions)', auth: 'System-assigned Managed Identity → db_datareader' } },
+
+  // Layer 5: Data
+  { id: 'sql', label: 'Azure SQL', sub: '11 tables · 34M rows', color: COLORS.data, x: 1050, y: 270, w: 175, h: 90,
+    detail: { type: 'sql', tables: [
+      { name: 'master_entity_address', rows: '15.5M' }, { name: 'assessments', rows: '6.4M' },
+      { name: 'rtt_summary ★', rows: '5.05M' }, { name: 'master_entity', rows: '2.8M' },
+      { name: 'case_investigations', rows: '1.6M' }, { name: 'master_address', rows: '987K' },
+      { name: 'opa_properties', rows: '584K' }, { name: 'commercial_activity_licenses', rows: '508K' },
+      { name: 'business_licenses', rows: '422K' }, { name: 'appeals', rows: '316K' },
+      { name: 'demolitions', rows: '13.5K' },
+    ], sku: 'GP Serverless Gen5 2 vCores', autoPause: '60 min', access: 'Private endpoint only', auth: 'Azure AD only', indexes: '28+' } },
+];
+
+const connections = [
+  { from: 'claude', to: 'mcp-server', label: 'stdio' },
+  { from: 'investigative', to: 'mcp-server', label: '/chat' },
+  { from: 'city', to: 'mcp-server', label: '/agent' },
+  { from: 'copilot-studio', to: 'mcp-server', label: '/mcp' },
+  { from: 'm365', to: 'mcp-server', label: '/mcp' },
+  { from: 'tool-tester', to: 'mcp-server', label: '/mcp' },
+  { from: 'sk-agent', to: 'apim', label: 'HTTPS' },
+  { from: 'mcp-server', to: 'openai', label: 'Managed ID' },
+  { from: 'mcp-server', to: 'apim', label: 'Sub Key' },
+  { from: 'apim', to: 'functions', label: 'Func Key' },
+  { from: 'functions', to: 'sql', label: 'AAD + PE' },
+];
+
+// ── SVG Setup ──────────────────────────────────────────
+const W = 1250, H = 620;
+const svg = d3.select('#diagram-container')
+  .append('svg')
+  .attr('id', 'arch-svg')
+  .attr('viewBox', `0 0 ${W} ${H}`)
+  .attr('preserveAspectRatio', 'xMidYMid meet');
+
+// Defs
+const defs = svg.append('defs');
+
+// Glow filters
+Object.entries(COLORS).forEach(([key, color]) => {
+  const filter = defs.append('filter').attr('id', `glow-${key}`).attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
+  filter.append('feGaussianBlur').attr('stdDeviation', '4').attr('result', 'blur');
+  filter.append('feFlood').attr('flood-color', color).attr('flood-opacity', '0.4').attr('result', 'color');
+  filter.append('feComposite').attr('in', 'color').attr('in2', 'blur').attr('operator', 'in').attr('result', 'glow');
+  const merge = filter.append('feMerge');
+  merge.append('feMergeNode').attr('in', 'glow');
+  merge.append('feMergeNode').attr('in', 'SourceGraphic');
+});
+
+// Drop shadow
+const shadow = defs.append('filter').attr('id', 'shadow').attr('x', '-10%').attr('y', '-10%').attr('width', '130%').attr('height', '140%');
+shadow.append('feDropShadow').attr('dx', '0').attr('dy', '2').attr('stdDeviation', '4').attr('flood-color', '#000').attr('flood-opacity', '0.3');
+
+// Arrow marker
+defs.append('marker').attr('id', 'arrow').attr('viewBox', '0 0 10 6').attr('refX', '10').attr('refY', '3')
+  .attr('markerWidth', '8').attr('markerHeight', '6').attr('orient', 'auto')
+  .append('path').attr('d', 'M0,0 L10,3 L0,6').attr('fill', 'var(--text-muted)');
+
+// ── Layer Labels ──────────────────────────────────────
+const layers = [
+  { label: 'CLIENTS', x: 140, y: 595, color: COLORS.clients },
+  { label: 'CONTAINER APPS', x: 480, y: 595, color: COLORS.container },
+  { label: 'GOVERNANCE', x: 780, y: 595, color: COLORS.apim },
+  { label: 'DATA', x: 1050, y: 595, color: COLORS.data },
+];
+
+const labelsG = svg.append('g').attr('class', 'layer-labels');
+labelsG.selectAll('text').data(layers).join('text')
+  .attr('x', d => d.x).attr('y', d => d.y)
+  .attr('text-anchor', 'middle')
+  .attr('fill', d => d.color).attr('opacity', 0.4)
+  .attr('font-family', 'JetBrains Mono').attr('font-size', '10px')
+  .attr('font-weight', '600').attr('letter-spacing', '2px')
+  .text(d => d.label);
+
+// ── Connections ──────────────────────────────────────
+function nodeById(id) { return nodes.find(n => n.id === id); }
+
+function connPath(c) {
+  const s = nodeById(c.from), t = nodeById(c.to);
+  const sx = s.x + s.w / 2, sy = s.y + s.h / 2;
+  const tx = t.x - t.w / 2, ty = t.y + t.h / 2;
+
+  // Special case: vertical connection (mcp-server → openai)
+  if (c.from === 'mcp-server' && c.to === 'openai') {
+    const sy2 = s.y;
+    const ty2 = t.y + t.h;
+    return `M ${s.x + s.w/2},${sy2} C ${s.x + s.w/2},${sy2 - 40} ${t.x + t.w/2},${ty2 + 40} ${t.x + t.w/2},${ty2}`;
+  }
+
+  // SK Agent → APIM (longer horizontal)
+  if (c.from === 'sk-agent') {
+    const sx2 = s.x + s.w / 2;
+    const sy2 = s.y + s.h / 2;
+    const tx2 = t.x - t.w / 2;
+    const ty2 = t.y + t.h / 2;
+    const mx = (sx2 + tx2) / 2;
+    return `M ${sx2},${sy2} C ${mx},${sy2} ${mx},${ty2} ${tx2},${ty2}`;
+  }
+
+  const mx = (sx + tx) / 2;
+  return `M ${sx},${sy} C ${mx},${sy} ${mx},${ty} ${tx},${ty}`;
+}
+
+const connG = svg.append('g').attr('class', 'connections');
+const connPaths = connG.selectAll('path').data(connections).join('path')
+  .attr('d', connPath)
+  .attr('fill', 'none')
+  .attr('stroke', 'var(--text-muted)')
+  .attr('stroke-width', 1.2)
+  .attr('stroke-dasharray', '8 4')
+  .attr('opacity', 0.6)
+  .style('animation', 'dash-flow 1.5s linear infinite')
+  .attr('marker-end', 'url(#arrow)');
+
+// Connection labels
+const connLabelsG = svg.append('g').attr('class', 'conn-labels');
+connections.forEach((c, i) => {
+  const path = connPaths.nodes()[i];
+  const len = path.getTotalLength();
+  const pt = path.getPointAtLength(len * 0.5);
+
+  connLabelsG.append('text')
+    .attr('x', pt.x).attr('y', pt.y - 6)
+    .attr('text-anchor', 'middle')
+    .attr('fill', 'var(--text-muted)')
+    .attr('font-family', 'JetBrains Mono').attr('font-size', '8px')
+    .text(c.label);
+});
+
+// ── Particles ──────────────────────────────────────
+const particlesG = svg.append('g').attr('class', 'particles');
+const particles = [];
+
+connections.forEach((c, i) => {
+  const path = connPaths.nodes()[i];
+  const srcNode = nodeById(c.from);
+  const color = srcNode.color;
+  for (let j = 0; j < 2; j++) {
+    const circle = particlesG.append('circle')
+      .attr('r', 2.5).attr('fill', color).attr('opacity', 0.8);
+    particles.push({ el: circle.node(), path, offset: j * 0.5, speed: 0.003, connIdx: i });
+  }
+});
+
+let animating = true;
+function animateParticles() {
+  if (!animating) { requestAnimationFrame(animateParticles); return; }
+  particles.forEach(p => {
+    p.offset = (p.offset + p.speed) % 1;
+    const len = p.path.getTotalLength();
+    const pt = p.path.getPointAtLength(p.offset * len);
+    p.el.setAttribute('cx', pt.x);
+    p.el.setAttribute('cy', pt.y);
+  });
+  requestAnimationFrame(animateParticles);
+}
+requestAnimationFrame(animateParticles);
+
+document.addEventListener('visibilitychange', () => { animating = !document.hidden; });
+
+// ── Nodes ──────────────────────────────────────────
+const nodesG = svg.append('g').attr('class', 'nodes');
+
+const nodeGroups = nodesG.selectAll('g.node').data(nodes).join('g')
+  .attr('class', 'node')
+  .attr('transform', d => `translate(${d.x},${d.y})`)
+  .style('cursor', 'pointer')
+  .on('mouseenter', handleHover)
+  .on('mouseleave', handleUnhover)
+  .on('click', handleClick);
+
+// Background rect
+nodeGroups.append('rect')
+  .attr('width', d => d.w).attr('height', d => d.h)
+  .attr('rx', 10).attr('ry', 10)
+  .attr('fill', 'var(--surface)')
+  .attr('stroke', d => d.color)
+  .attr('stroke-width', 1.5)
+  .attr('filter', 'url(#shadow)');
+
+// Inner glow overlay
+nodeGroups.append('rect')
+  .attr('width', d => d.w).attr('height', d => d.h)
+  .attr('rx', 10).attr('ry', 10)
+  .attr('fill', d => d.color)
+  .attr('opacity', 0.06);
+
+// Title
+nodeGroups.append('text')
+  .attr('x', d => d.w / 2).attr('y', d => d.h > 80 ? 24 : 20)
+  .attr('text-anchor', 'middle')
+  .attr('fill', 'var(--text)')
+  .attr('font-family', 'DM Sans').attr('font-size', '12px').attr('font-weight', '600')
+  .text(d => d.label);
+
+// Subtitle
+nodeGroups.append('text')
+  .attr('x', d => d.w / 2).attr('y', d => d.h > 80 ? 42 : 36)
+  .attr('text-anchor', 'middle')
+  .attr('fill', 'var(--text-dim)')
+  .attr('font-family', 'JetBrains Mono').attr('font-size', '9px')
+  .text(d => d.sub);
+
+// Extra info for larger nodes
+nodes.filter(n => n.id === 'mcp-server').forEach(n => {
+  const g = nodesG.select(`g.node[transform="translate(${n.x},${n.y})"]`);
+  const endpoints = ['/mcp', '/chat', '/agent', '/healthz'];
+  endpoints.forEach((ep, i) => {
+    g.append('text')
+      .attr('x', n.w / 2).attr('y', 66 + i * 16)
+      .attr('text-anchor', 'middle')
+      .attr('fill', 'var(--text-muted)')
+      .attr('font-family', 'JetBrains Mono').attr('font-size', '9px')
+      .text(ep);
+  });
+});
+
+nodes.filter(n => n.id === 'sql').forEach(n => {
+  const g = nodesG.select(`g.node[transform="translate(${n.x},${n.y})"]`);
+  g.append('text')
+    .attr('x', n.w / 2).attr('y', 60)
+    .attr('text-anchor', 'middle')
+    .attr('fill', 'var(--text-muted)')
+    .attr('font-family', 'JetBrains Mono').attr('font-size', '9px')
+    .text('Private Endpoint · Auto-Pause');
+  g.append('text')
+    .attr('x', n.w / 2).attr('y', 76)
+    .attr('text-anchor', 'middle')
+    .attr('fill', 'var(--text-muted)')
+    .attr('font-family', 'JetBrains Mono').attr('font-size', '9px')
+    .text('28+ indexes · AAD auth');
+});
+
+// ── Hover ──────────────────────────────────────────
+function getConnected(nodeId) {
+  const ids = new Set([nodeId]);
+  connections.forEach(c => {
+    if (c.from === nodeId || c.to === nodeId) { ids.add(c.from); ids.add(c.to); }
+  });
+  return ids;
+}
+
+function handleHover(event, d) {
+  const connected = getConnected(d.id);
+
+  nodeGroups.transition().duration(200)
+    .attr('opacity', n => connected.has(n.id) ? 1 : 0.15);
+
+  connPaths.transition().duration(200)
+    .attr('opacity', c => (c.from === d.id || c.to === d.id) ? 0.9 : 0.05)
+    .attr('stroke-width', c => (c.from === d.id || c.to === d.id) ? 2.5 : 1);
+
+  // Boost node glow
+  d3.select(this).select('rect').attr('stroke-width', 2.5);
+
+  // Speed up connected particles
+  particles.forEach(p => {
+    const c = connections[p.connIdx];
+    p.speed = (c.from === d.id || c.to === d.id) ? 0.008 : 0.001;
+    p.el.setAttribute('opacity', (c.from === d.id || c.to === d.id) ? 1 : 0.1);
+  });
+}
+
+function handleUnhover() {
+  nodeGroups.transition().duration(300).attr('opacity', 1);
+  connPaths.transition().duration(300).attr('opacity', 0.6).attr('stroke-width', 1.2);
+  d3.selectAll('g.node rect:first-child').attr('stroke-width', 1.5);
+  particles.forEach(p => { p.speed = 0.003; p.el.setAttribute('opacity', 0.8); });
+}
+
+// ── Click / Detail Panel ──────────────────────────────
+function handleClick(event, d) {
+  event.stopPropagation();
+  const panel = document.getElementById('detailPanel');
+  const content = document.getElementById('detailContent');
+  const det = d.detail;
+
+  let html = `<h2 style="color:${d.color}">${d.label}</h2><div class="subtitle" style="color:${d.color}">${d.sub}</div>`;
+
+  if (det.type === 'client') {
+    html += `<h3>Connection</h3>`;
+    html += `<div class="stat"><span class="stat-label">Transport</span><span class="stat-value">${det.transport}</span></div>`;
+    html += `<div class="stat"><span class="stat-label">LLM</span><span class="stat-value">${det.llm}</span></div>`;
+    html += `<div class="stat"><span class="stat-label">Orchestration</span><span class="stat-value">${det.loop}</span></div>`;
+    html += `<div class="stat"><span class="stat-label">State</span><span class="stat-value">${det.state}</span></div>`;
+    html += `<h3>Features</h3>`;
+    html += det.features.map(f => `<div class="chip" style="border-color:${d.color}">${f}</div>`).join('');
+  }
+  else if (det.type === 'container') {
+    html += `<h3>Endpoints</h3><table><tr><th>Method</th><th>Path</th><th>Description</th></tr>`;
+    html += det.endpoints.map(e => `<tr><td>${e.method}</td><td>${e.path}</td><td style="color:var(--text-dim)">${e.desc}</td></tr>`).join('');
+    html += `</table><h3>Infrastructure</h3>`;
+    html += `<div class="stat"><span class="stat-label">Runtime</span><span class="stat-value">${det.runtime}</span></div>`;
+    html += `<div class="stat"><span class="stat-label">Replicas</span><span class="stat-value">${det.replicas}</span></div>`;
+    html += `<div class="stat"><span class="stat-label">Transport</span><span class="stat-value">${det.transport}</span></div>`;
+    html += `<div class="stat"><span class="stat-label">Image</span><span class="stat-value">${det.image}</span></div>`;
+  }
+  else if (det.type === 'openai') {
+    html += `<h3>Models</h3><table><tr><th>Model</th><th>Role</th></tr>`;
+    html += det.models.map(m => `<tr><td>${m.name}</td><td style="color:var(--text-dim)">${m.role}</td></tr>`).join('');
+    html += `</table><h3>APIs</h3>`;
+    html += det.apis.map(a => `<div class="chip" style="border-color:${d.color}">${a}</div>`).join('');
+    html += `<h3>Auth</h3><div style="font-size:0.75rem;color:var(--text-dim)">${det.auth}</div>`;
+  }
+  else if (det.type === 'apim') {
+    html += `<h3>Operations</h3>`;
+    html += `<div class="stat"><span class="stat-label">Total</span><span class="stat-value">${det.operations}</span></div>`;
+    html += `<div class="stat"><span class="stat-label">Tier</span><span class="stat-value">${det.tier}</span></div>`;
+    html += `<div class="stat"><span class="stat-label">Policy</span><span class="stat-value">${det.policy}</span></div>`;
+    html += `<h3>Security</h3>`;
+    html += det.security.map(s => `<div class="chip" style="border-color:${d.color}">${s}</div>`).join('');
+  }
+  else if (det.type === 'functions') {
+    html += `<h3>14 Tools</h3>`;
+    html += det.tools.map(t => {
+      const isNew = t.includes('★');
+      const style = isNew ? `border-color:${d.color};background:${d.color}22` : `border-color:var(--border)`;
+      return `<div class="chip" style="${style}">${t}</div>`;
+    }).join('');
+    html += `<h3>Infrastructure</h3>`;
+    html += `<div class="stat"><span class="stat-label">Runtime</span><span class="stat-value">${det.runtime}</span></div>`;
+    html += `<div class="stat"><span class="stat-label">SKU</span><span class="stat-value">${det.sku}</span></div>`;
+    html += `<div class="stat"><span class="stat-label">Network</span><span class="stat-value">${det.vnet}</span></div>`;
+    html += `<div class="stat"><span class="stat-label">Auth</span><span class="stat-value">${det.auth}</span></div>`;
+  }
+  else if (det.type === 'sql') {
+    html += `<h3>11 Tables (34M rows)</h3><table><tr><th>Table</th><th>Rows</th></tr>`;
+    html += det.tables.map(t => {
+      const isNew = t.name.includes('★');
+      const style = isNew ? `color:${d.color};font-weight:600` : '';
+      return `<tr><td style="${style}">${t.name}</td><td>${t.rows}</td></tr>`;
+    }).join('');
+    html += `</table><h3>Infrastructure</h3>`;
+    html += `<div class="stat"><span class="stat-label">SKU</span><span class="stat-value">${det.sku}</span></div>`;
+    html += `<div class="stat"><span class="stat-label">Auto-Pause</span><span class="stat-value">${det.autoPause}</span></div>`;
+    html += `<div class="stat"><span class="stat-label">Access</span><span class="stat-value">${det.access}</span></div>`;
+    html += `<div class="stat"><span class="stat-label">Auth</span><span class="stat-value">${det.auth}</span></div>`;
+    html += `<div class="stat"><span class="stat-label">Indexes</span><span class="stat-value">${det.indexes}</span></div>`;
+  }
+
+  content.innerHTML = html;
+  panel.classList.add('visible');
+}
+
+function closeDetail() {
+  document.getElementById('detailPanel').classList.remove('visible');
+}
+
+// Close on click outside
+svg.on('click', closeDetail);
+
+// ── Theme Sync ──────────────────────────────────────
+function syncTheme() {
+  try {
+    var parentTheme = window.parent.document.documentElement.getAttribute('data-theme');
+    document.documentElement.setAttribute('data-theme', parentTheme || '');
+  } catch(e) {
+    var saved = localStorage.getItem('philly-theme');
+    if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  }
+}
+syncTheme();
+setInterval(syncTheme, 500);
+</script>
+</body>
+</html>
