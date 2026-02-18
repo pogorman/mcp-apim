@@ -37,6 +37,37 @@
     --accent-white-dim: #1e2029;
   }
 
+  [data-theme="light"] {
+    --bg: #f5f6fa;
+    --surface: #ffffff;
+    --surface2: #f0f1f6;
+    --surface3: #e8eaf0;
+    --border: #d4d7e0;
+    --text: #1a1d27;
+    --text-dim: #5a5f73;
+    --text-muted: #8a8fa8;
+    --accent-blue: #2563eb;
+    --accent-blue-dim: #dbeafe;
+    --accent-green: #16a34a;
+    --accent-green-dim: #dcfce7;
+    --accent-orange: #d97706;
+    --accent-orange-dim: #fef3c7;
+    --accent-purple: #7c3aed;
+    --accent-purple-dim: #ede9fe;
+    --accent-red: #dc2626;
+    --accent-red-dim: #fee2e2;
+    --accent-cyan: #0891b2;
+    --accent-cyan-dim: #cffafe;
+    --accent-pink: #db2777;
+    --accent-pink-dim: #fce7f3;
+    --accent-yellow: #ca8a04;
+    --accent-yellow-dim: #fef9c3;
+    --accent-lime: #65a30d;
+    --accent-lime-dim: #ecfccb;
+    --accent-white: #1a1d27;
+    --accent-white-dim: #f1f5f9;
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
@@ -121,9 +152,9 @@
     letter-spacing: 0.5px; text-transform: uppercase; padding: 2px 6px;
     border-radius: 3px; margin-left: 4px; white-space: nowrap;
   }
-  .badge-live { background: var(--accent-green-dim); color: var(--accent-green); border: 1px solid #1f5e3d; }
-  .badge-planned { background: var(--accent-yellow-dim); color: var(--accent-yellow); border: 1px solid #5e4d1f; }
-  .badge-future { background: var(--accent-purple-dim); color: var(--accent-purple); border: 1px solid #3d2d6e; }
+  .badge-live { background: var(--accent-green-dim); color: var(--accent-green); border: 1px solid var(--accent-green-dim); }
+  .badge-planned { background: var(--accent-yellow-dim); color: var(--accent-yellow); border: 1px solid var(--accent-yellow-dim); }
+  .badge-future { background: var(--accent-purple-dim); color: var(--accent-purple); border: 1px solid var(--accent-purple-dim); }
 
   /* ─── Color Classes ─── */
   .c-blue .cell-label{color:var(--accent-blue)}.c-blue .dot{background:var(--accent-blue);box-shadow:0 0 8px var(--accent-blue)}.c-blue .chip{color:var(--accent-blue);border-color:var(--accent-blue-dim);background:var(--accent-blue-dim)}
@@ -774,5 +805,21 @@
   </div>
 
 </div>
+<script>
+  // Sync theme with parent SPA (when loaded in iframe)
+  function syncTheme() {
+    try {
+      var parentTheme = window.parent.document.documentElement.getAttribute('data-theme');
+      document.documentElement.setAttribute('data-theme', parentTheme || '');
+    } catch(e) {
+      // Cross-origin — fall back to localStorage
+      var saved = localStorage.getItem('philly-theme');
+      if (saved === 'light') document.documentElement.setAttribute('data-theme', 'light');
+    }
+  }
+  syncTheme();
+  // Re-check periodically (parent theme toggle won't fire events into iframe)
+  setInterval(syncTheme, 500);
+</script>
 </body>
 </html>
