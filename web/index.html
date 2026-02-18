@@ -557,21 +557,23 @@
     }
 
     .suggestions {
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.5rem;
       text-align: left;
-      max-width: 500px;
-      margin: 0 auto;
+      width: 100%;
+      max-width: 95%;
+      margin: 0.5rem auto;
     }
 
     .suggestion {
-      padding: 0.5rem 0.75rem;
+      padding: 0.5rem 0.65rem;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 7px;
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 0.78rem;
+      font-size: 0.72rem;
+      line-height: 1.3;
       color: var(--text);
       transition: all 0.15s;
     }
@@ -579,6 +581,17 @@
     .suggestion:hover {
       border-color: var(--accent);
       background: var(--accent-dim);
+    }
+
+    .suggestion.is-new {
+      border-color: var(--accent);
+      background: rgba(0, 122, 204, 0.06);
+    }
+
+    .suggestion .new-badge {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.68rem;
     }
 
     /* ── "Powered by" Badges ────────────────────────── */
@@ -2838,11 +2851,13 @@
       var el = $(containerId);
       if (!el) return;
       var html = '';
-      var count = 0;
       for (var cat in SHARED_PROMPTS) {
+        var isNew = cat.indexOf('V2') !== -1;
         var prompts = SHARED_PROMPTS[cat];
-        for (var i = 0; i < prompts.length; i++, count++) {
-          html += '<div class="suggestion" onclick="' + handler + '(this)">' + escapeHtml(prompts[i]) + '</div>';
+        for (var i = 0; i < prompts.length; i++) {
+          var cls = isNew ? 'suggestion is-new' : 'suggestion';
+          var badge = isNew ? '<span class="new-badge">*NEW </span>' : '';
+          html += '<div class="' + cls + '" onclick="' + handler + '(this)">' + badge + escapeHtml(prompts[i]) + '</div>';
         }
       }
       el.innerHTML = html;
