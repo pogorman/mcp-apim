@@ -1366,3 +1366,33 @@ After fix: `[agent] Found and updated existing assistant: asst_CiN7zyMnsQxEcgG5J
 
 #### No-Cache Headers
 Added `Cache-Control: no-cache, no-store, must-revalidate` to `staticwebapp.config.json` global headers. Prevents stale SWA content after deploys.
+
+---
+
+## Session 27 — Interactive Architecture Diagram (2026-02-18)
+
+### What Changed
+Replaced the text-based architecture HTML (`architecture-combined-v2.html`) in the SPA's Architecture panel with an interactive D3.js SVG diagram (`docs/architecture-diagram.html`).
+
+### New File: `docs/architecture-diagram.html`
+Self-contained HTML file (~500 lines) using D3.js v7 (CDN, no build step). Features:
+- **13 nodes across 5 layers**: 7 clients → MCP Server Container App → Azure OpenAI / APIM → Azure Functions → Azure SQL
+- **Animated connections**: Dashed bezier curves with glowing particles flowing along paths to show data direction
+- **Hover interactivity**: Hovering a node highlights it and all connected nodes/paths, dims everything else
+- **Click detail panels**: Clicking a node slides in a right-side panel showing endpoints, tools, tables, models, or protocols depending on the node
+- **Dark/light theme sync**: Polls parent SPA's `data-theme` attribute and switches CSS variables accordingly
+- **Responsive**: SVG viewBox (1400x800) scales to any panel width
+
+### Color Scheme
+Matches the SPA's existing theme:
+- Clients: `#4a9eff` (blue)
+- Container Apps: `#3dd68c` (green)
+- Azure OpenAI: `#a78bfa` (purple)
+- APIM/Functions: `#f59e0b` (orange)
+- SQL/Data: `#22d3ee` (cyan)
+
+### SPA Update
+Changed `web/index.html` Architecture panel iframe `src` from `docs/architecture-combined-v2.html` to `docs/architecture-diagram.html`. The old file remains accessible in the Documentation panel.
+
+### Deployment
+Deployed to SWA via deployment token (SWA CLI `--deployment-token` flag, bypassing the `crypto is not defined` bug in SWA CLI 2.0.8).

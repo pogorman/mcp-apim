@@ -301,6 +301,17 @@ This is the demo's punchline: one backend, nine completely different client expe
 | **Maps** | No |
 | **Best for** | Debugging, showing what the AI sees under the hood, demonstrating MCP protocol |
 
+### 10. Architecture (Grid icon)
+
+| | |
+|---|---|
+| **Pattern** | Interactive D3.js SVG diagram |
+| **What it means** | A visual architecture diagram showing all 5 layers of the platform — 7 clients, MCP Server container app, Azure OpenAI, APIM + Functions, and Azure SQL. Nodes are color-coded by tier. Animated dashed lines with flowing particles show data direction. Hover a node to highlight its connections (everything else dims). Click a node to open a detail panel showing endpoints, tools, tables, or models. |
+| **Model** | None |
+| **Memory** | None |
+| **Maps** | No |
+| **Best for** | Demos and presentations. Visually walk someone through how data flows from a client question to a SQL query and back. Much more engaging than a static text diagram. |
+
 ---
 
 ## Why It Matters (The Story)
@@ -471,4 +482,4 @@ For when someone in your audience asks "what does that mean?"
 
 ---
 
-*Last updated: Session 26 (2026-02-17). This file should be updated whenever features, panels, data, architecture, or costs change.*
+*Last updated: Session 27 (2026-02-18). This file should be updated whenever features, panels, data, architecture, or costs change.*

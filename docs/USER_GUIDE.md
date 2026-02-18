@@ -160,7 +160,14 @@ The left sidebar has nine icons. Click one to open that panel. You can have mult
 
 ### 8. Architecture — Grid Icon
 
-**What it is:** An interactive HTML architecture diagram showing all layers of the system. Embedded as an iframe.
+**What it is:** An interactive D3.js architecture diagram showing all layers of the system — clients, container apps, Azure OpenAI, APIM, Functions, and SQL. Embedded as an iframe.
+
+**How to use it:**
+1. Click the grid icon in the sidebar
+2. **Hover** over any node to highlight it and all connected nodes/paths (everything else dims)
+3. **Click** any node to open a detail panel on the right with endpoints, tools, tables, or models
+4. Animated particles flow along connection lines showing data direction
+5. Theme syncs automatically with the SPA's dark/light toggle
 
 ### 9. About — Question Mark Icon
 

@@ -137,6 +137,7 @@ mcp-apim/
 │   └── staticwebapp.config.json  # SWA auth config (Entra ID login required)
 ├── docs/                     # Project documentation
 │   ├── ARCHITECTURE.md       # Full technical reference
+│   ├── architecture-diagram.html  # Interactive D3.js SVG architecture diagram
 │   ├── CLI_CHEATSHEET.md     # Day-to-day management commands
 │   ├── COMMANDS.md           # All CLI commands used to build/deploy
 │   ├── ELI5.md               # Plain-English explainer for demos/presentations
@@ -315,7 +316,7 @@ SPA with VS Code-style activity bar demonstrating multiple panels using the same
 - **MCP Tool Tester** — Raw MCP protocol. Direct tool discovery and invocation via Streamable HTTP (`/mcp` endpoint).
 - **Documentation** — Built-in reader for all project markdown files and Jupyter notebooks. Files copied to `web/docs/` and `web/notebooks/` at deploy time.
 - **Slide Deck** — Reveal.js presentation embedded in an iframe. Architecture walkthrough with animated builds, section-by-section.
-- **Architecture** — Interactive architecture diagram (HTML).
+- **Architecture** — Interactive D3.js SVG architecture diagram with animated connections, hover highlighting, and click-for-detail panels.
 - **About** — Project overview with cards for all 7 integration patterns including M365 Copilot declarative agent.
 
 Panels can be open side-by-side or individually. Chat responses in the Investigative Agent include inline maps powered by Leaflet.js when properties have coordinates (99.97% do).

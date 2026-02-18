@@ -1089,6 +1089,7 @@ Browser → Container App /investigate → SK Orchestration → Azure OpenAI GPT
 - **Copilot Studio widget**: Floats within the Copilot Studio panel (purple icon, bottom-right). Scoped to the Copilot panel only.
 - Responsive: on mobile (<768px), only one panel visible at a time
 - No build step or dependencies — open the HTML file directly or serve with any static file server
+- **Architecture diagram**: Interactive D3.js SVG (`docs/architecture-diagram.html`) with 13 nodes across 5 layers, animated connection lines with flow particles, hover highlighting, and click-for-detail panels. Self-contained (D3.js v7 via CDN), syncs dark/light theme with parent SPA.
 
 ### Chat Endpoint Architecture
 
