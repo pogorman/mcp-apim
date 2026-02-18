@@ -134,6 +134,97 @@
     .theme-toggle:hover { color: var(--text); border-color: var(--muted); }
     .theme-toggle svg { width: 16px; height: 16px; }
 
+    /* ── Warm-Up Console ─────────────────────────────── */
+    .btn-warmup {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0.25rem 0.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      gap: 0.3rem;
+      font-size: 0.7rem;
+      font-family: inherit;
+    }
+    .btn-warmup:hover { color: var(--text); border-color: var(--muted); }
+    .btn-warmup svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .btn-warmup.running { color: var(--warning); border-color: var(--warning); pointer-events: none; }
+    .btn-warmup.done { color: var(--success); border-color: var(--success); }
+
+    .warmup-console {
+      position: fixed;
+      top: 50px;
+      right: 12px;
+      width: 380px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      z-index: 1000;
+      overflow: hidden;
+      display: none;
+    }
+    .warmup-console.open { display: block; }
+    .warmup-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.6rem 0.8rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .warmup-header span { color: var(--muted); font-weight: 400; font-size: 0.65rem; }
+    .warmup-close {
+      background: none; border: none; color: var(--muted); cursor: pointer;
+      font-size: 1rem; line-height: 1; padding: 0 0.2rem;
+    }
+    .warmup-close:hover { color: var(--text); }
+    .warmup-body {
+      padding: 0.5rem 0;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 0.68rem;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .warmup-line {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.3rem 0.8rem;
+      color: var(--muted);
+    }
+    .warmup-line.active { color: var(--warning); }
+    .warmup-line.done { color: var(--success); }
+    .warmup-line.fail { color: var(--error); }
+    .warmup-icon { width: 14px; text-align: center; flex-shrink: 0; }
+    .warmup-label { flex: 1; }
+    .warmup-time { color: var(--muted); font-size: 0.6rem; }
+    .warmup-summary {
+      padding: 0.5rem 0.8rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.68rem;
+      color: var(--success);
+      font-weight: 600;
+      display: none;
+    }
+    @keyframes warmup-spin {
+      to { transform: rotate(360deg); }
+    }
+    .warmup-spinner {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border: 2px solid var(--border);
+      border-top-color: var(--warning);
+      border-radius: 50%;
+      animation: warmup-spin 0.6s linear infinite;
+    }
+
     /* ── Main Layout ─────────────────────────────────── */
     .app-body {
       flex: 1;
@@ -2261,6 +2352,12 @@
   <header>
     <h1>Philly Poverty Profiteering<span>Investigative Agent</span></h1>
     <div class="header-right">
+      <button class="btn-warmup" id="btnWarmup" onclick="startWarmup()" title="Wake up all Azure services">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+        <span>Warm Up</span>
+      </button>
       <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle light/dark mode">
         <svg id="sunIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
@@ -2290,6 +2387,17 @@
       </div>
     </div>
   </header>
+
+  <!-- Warm-Up Console -->
+  <div class="warmup-console" id="warmupConsole">
+    <div class="warmup-header">
+      Azure Service Warm-Up
+      <span id="warmupStatus"></span>
+      <button class="warmup-close" onclick="closeWarmup()">&times;</button>
+    </div>
+    <div class="warmup-body" id="warmupBody"></div>
+    <div class="warmup-summary" id="warmupSummary"></div>
+  </div>
 
   <div class="app-body">
     <!-- Activity Bar -->
@@ -3125,6 +3233,143 @@
       // Inline code
       text = text.replace(/`([^`]+)`/g, '<code class="md-inline-code">$1</code>');
       return text;
+    }
+
+    /* ================================================================
+       WARM-UP
+       ================================================================ */
+    var warmupRunning = false;
+
+    var WARMUP_TASKS = [
+      {
+        id: 'sql',
+        label: 'Azure SQL + Functions + APIM',
+        desc: 'Waking serverless SQL (auto-paused), Functions (cold start), and APIM',
+        fn: function() {
+          return fetch(API_BASE + '/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: 'ping', model: 'gpt-4.1' })
+          }).then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+          });
+        }
+      },
+      {
+        id: 'mcp',
+        label: 'Container App — MCP Server',
+        desc: 'Scale from 0 replicas, load Node.js runtime',
+        fn: function() {
+          return fetch(API_BASE + '/healthz').then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.text();
+          });
+        }
+      },
+      {
+        id: 'sk',
+        label: 'Container App — SK Agent',
+        desc: 'Scale from 0 replicas, load .NET runtime',
+        fn: function() {
+          return fetch('https://philly-sk-agent.victoriouspond-48a6f41b.eastus2.azurecontainerapps.io/healthz').then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.text();
+          });
+        }
+      }
+    ];
+
+    function startWarmup() {
+      if (warmupRunning) {
+        $('warmupConsole').classList.toggle('open');
+        return;
+      }
+      warmupRunning = true;
+      var btn = $('btnWarmup');
+      btn.classList.add('running');
+      btn.classList.remove('done');
+
+      var console = $('warmupConsole');
+      var body = $('warmupBody');
+      var summary = $('warmupSummary');
+      body.innerHTML = '';
+      summary.style.display = 'none';
+      summary.textContent = '';
+      $('warmupStatus').textContent = 'running...';
+      console.classList.add('open');
+
+      var totalStart = Date.now();
+      var completed = 0;
+      var failed = 0;
+
+      // Render initial lines
+      WARMUP_TASKS.forEach(function(task) {
+        var line = document.createElement('div');
+        line.className = 'warmup-line active';
+        line.id = 'warmup-' + task.id;
+        line.innerHTML =
+          '<span class="warmup-icon"><span class="warmup-spinner"></span></span>' +
+          '<span class="warmup-label">' + escapeHtml(task.label) +
+          '<br><span style="font-size:0.58rem;color:var(--muted);">' + escapeHtml(task.desc) + '</span></span>' +
+          '<span class="warmup-time" id="warmup-time-' + task.id + '"></span>';
+        body.appendChild(line);
+      });
+
+      // Run all in parallel
+      WARMUP_TASKS.forEach(function(task) {
+        var start = Date.now();
+        var timeEl = $('warmup-time-' + task.id);
+        var lineEl = $('warmup-' + task.id);
+
+        // Update elapsed time while running
+        var timer = setInterval(function() {
+          timeEl.textContent = ((Date.now() - start) / 1000).toFixed(1) + 's';
+        }, 100);
+
+        task.fn().then(function() {
+          clearInterval(timer);
+          var elapsed = ((Date.now() - start) / 1000).toFixed(1);
+          lineEl.className = 'warmup-line done';
+          lineEl.querySelector('.warmup-icon').innerHTML = '\u2713';
+          timeEl.textContent = elapsed + 's';
+          completed++;
+          checkDone();
+        }).catch(function(err) {
+          clearInterval(timer);
+          var elapsed = ((Date.now() - start) / 1000).toFixed(1);
+          lineEl.className = 'warmup-line fail';
+          lineEl.querySelector('.warmup-icon').innerHTML = '\u2717';
+          timeEl.textContent = elapsed + 's \u2014 ' + err.message;
+          failed++;
+          checkDone();
+        });
+      });
+
+      function checkDone() {
+        if (completed + failed < WARMUP_TASKS.length) return;
+        warmupRunning = false;
+        var totalTime = ((Date.now() - totalStart) / 1000).toFixed(1);
+        var btn = $('btnWarmup');
+        btn.classList.remove('running');
+
+        if (failed === 0) {
+          btn.classList.add('done');
+          summary.textContent = '\u2713 All services ready in ' + totalTime + 's';
+          summary.style.color = 'var(--success)';
+          $('warmupStatus').textContent = 'ready \u2014 ' + totalTime + 's';
+          setTimeout(function() { btn.classList.remove('done'); }, 8000);
+        } else {
+          summary.textContent = '\u26a0 ' + failed + ' service(s) failed \u2014 ' + totalTime + 's';
+          summary.style.color = 'var(--error)';
+          $('warmupStatus').textContent = failed + ' failed';
+        }
+        summary.style.display = 'block';
+      }
+    }
+
+    function closeWarmup() {
+      $('warmupConsole').classList.remove('open');
     }
 
     /* ================================================================
